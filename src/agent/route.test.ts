@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fixture from './fixtures/snapshot.json';
-import { route, helpText, describeRoute, COMMANDS } from './route';
+import { route, helpText, describeRoute, COMMANDS, editDistance } from './route';
 import type { Chunk, Snapshot } from './types';
 
 const snapshot = fixture as unknown as Snapshot;
@@ -298,5 +298,28 @@ describe('help text', () => {
   it('lists every command without inventing numbers', () => {
     for (const command of COMMANDS) expect(helpText()).toContain(command.name);
     expect(helpText()).not.toMatch(/\d/);
+  });
+});
+
+describe('typo tolerance for section words', () => {
+  const where = (query: string) => route(snapshot, query).intent;
+  it('routes a transposed or slightly misspelled section word', () => {
+    expect(where('looking for expeirence')).toBe('experience');
+    expect(where('your projcts')).toBe('projects');
+    expect(where('contcat info')).toBe('contact');
+    expect(where('experiance')).toBe('experience');
+  });
+  it('does not guess on short or unrelated words', () => {
+    expect(where('cat')).toBe('search');
+    expect(where('about')).toBe('about');
+    expect(where('what is the capital of France')).toBe('search');
+    expect(where('prompts')).toBe('search');
+  });
+  it('never overrides a rule that already matched', () => {
+    expect(where('what did you do at tesla')).toBe('experience');
+  });
+  it('measures a swap as one edit', () => {
+    expect(editDistance('expeirence', 'experience')).toBe(1);
+    expect(editDistance('abc', 'abc')).toBe(0);
   });
 });

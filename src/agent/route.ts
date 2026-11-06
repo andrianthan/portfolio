@@ -179,6 +179,46 @@ function routeCommand(raw: string): Route {
   }
 }
 
+// Section words a visitor may misspell. Only used when nothing else matched, so a typo in a
+// real question never overrides a rule that already fired.
+const FUZZY_WORDS: Record<string, Intent> = {
+  experience: 'experience',
+  projects: 'projects',
+  project: 'projects',
+  about: 'about',
+  skills: 'skills',
+  contact: 'contact',
+  resume: 'resume',
+};
+
+// Optimal string alignment distance: an adjacent swap ("expeirence") costs one edit.
+export function editDistance(a: string, b: string): number {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const d: number[][] = Array.from({ length: rows }, (_, i) => Array.from({ length: cols }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  }
+  return d[rows - 1][cols - 1];
+}
+
+function fuzzySection(text: string): { intent: Intent; word: string } | null {
+  for (const token of text.split(' ')) {
+    if (token.length < 5) continue;
+    const allowed = token.length >= 8 ? 2 : 1;
+    for (const [word, intent] of Object.entries(FUZZY_WORDS)) {
+      if (token !== word && Math.abs(token.length - word.length) <= allowed && editDistance(token, word) <= allowed) {
+        return { intent, word };
+      }
+    }
+  }
+  return null;
+}
+
 export function route(snapshot: Snapshot, query: string): Route {
   const normalized = normalize(query);
   if (normalized.tooLong) {
@@ -203,6 +243,10 @@ export function route(snapshot: Snapshot, query: string): Route {
   const entity = findEntity(snapshot, normalized.text);
   if (entity && (intent === 'about' || intent === 'search' || intent === 'projects' || isEntityName(normalized.text, entity))) {
     return { intent: entity.intent, args: [entity.term], query: normalized.raw };
+  }
+  if (intent === 'search' && !entity) {
+    const near = fuzzySection(normalized.text);
+    if (near) return { intent: near.intent, args: [near.word], query: normalized.raw };
   }
   return { intent, args: matched ? [matched] : [], query: normalized.raw };
 }

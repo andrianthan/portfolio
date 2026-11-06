@@ -4,7 +4,12 @@ import { useTerminal } from './useTerminal';
 
 /** The prompt on the home page's first screen: type a route or a question. */
 export default function IntroTerminal() {
-  const term = useTerminal({ autoHelp: false, onNavigate: (target) => scrollToSection(target.href) });
+  const term = useTerminal({
+    autoHelp: false,
+    onNavigate: (target) => scrollToSection(target.href),
+    thinkMs: 700,
+    quietRefusals: true,
+  });
   const out = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -56,7 +61,7 @@ export default function IntroTerminal() {
             ) : null}
           </div>
         ))}
-        {term.busy ? <div className="intro-line-out intro-info">{term.spinner} thinking</div> : null}
+        {term.busy ? <div className="intro-line-out intro-info intro-think">{term.spinner} thinking</div> : null}
       </div>
     </div>
   );

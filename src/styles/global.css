@@ -18,7 +18,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); 
 #theme-toggle:hover { color: var(--color-fg); border-color: var(--color-muted); }
 
 /* hero */
-.hero { position: relative; display: flex; min-height: calc(100svh - 72px); padding: clamp(48px, 16svh, 168px) 0 var(--space-lg); }
+.hero { position: relative; display: flex; padding: clamp(48px, 14svh, 140px) 0 var(--space-lg); }
 .hero::before { content: ""; position: absolute; inset: 0 0 0 0; z-index: -1;
   background-image: radial-gradient(var(--color-dot) 1.2px, transparent 1.2px); background-size: 22px 22px;
   -webkit-mask-image: linear-gradient(to bottom, var(--color-fg) 0%, transparent 88%); mask-image: linear-gradient(to bottom, var(--color-fg) 0%, transparent 88%); }
@@ -229,3 +229,9 @@ header.ph { padding: 48px 0 var(--space-lg); }
 .routes { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: var(--space-md); font: 500 clamp(15px, 2vw, 18px) var(--font-mono); }
 .routes a { color: var(--color-fg); }
 .routes a:hover { color: var(--color-num); text-decoration: none; }
+
+.intro-think::after { content: ""; display: inline-block; width: 1.4em; text-align: left; animation: intro-dots 1.2s steps(4) infinite; }
+@keyframes intro-dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+.intro-answer, .intro-trace { animation: intro-in .25s ease-out; }
+@keyframes intro-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .intro-think::after, .intro-answer, .intro-trace { animation: none; } }
