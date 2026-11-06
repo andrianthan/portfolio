@@ -6,7 +6,7 @@ const { role, hasPage } = Astro.props;
 const d = role.data;
 ---
 <article class:list={['job', { now: d.current }, 'reveal']}>
-  <div class={`logo${d.logoFill ? ' fill' : ''}`}><img src={d.logo} alt={d.company} /></div>
+  <div class={`logo${d.logoFill ? ' fill' : ''}`}><img src={d.logo} alt={d.company} width="48" height="48" /></div>
   <div>
     <h3>{d.title} <span class="org">· {d.company}</span>{d.current && <span class="tag">current</span>}</h3>
     <p class="dates">{`${d.dates} · ${d.project}`.toUpperCase()}</p>
