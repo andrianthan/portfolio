@@ -17,7 +17,7 @@ const STOPWORDS = new Set([
   'there', 'then', 'than', 'also', 'some', 'any', 'all', 'more', 'most', 'much', 'many', 'tell',
   'show', 'know', 'about', 'what', 'which', 'who', 'whom', 'how', 'when', 'where', 'why', 'not',
   'no', 'so', 'if', 'but', 'get', 'got', 'give', 'use', 'used', 'using', 'make', 'made', 'just',
-  'very', 'really', 'please', 'hi', 'hello', 'hey', 'up', 'out', 'over', 'into', 'does', 'did',
+  'very', 'really', 'please', 'hi', 'hello', 'hey', 'up', 'out', 'over', 'into',
 ]);
 
 export function tokenize(text: string): string[] {
