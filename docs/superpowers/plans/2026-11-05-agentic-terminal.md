@@ -151,12 +151,14 @@ Create `src/data/profile.test.ts`:
 import { describe, it, expect } from 'vitest';
 import { profile } from './profile';
 
+const marker = '[' + 'to confirm';
+
 describe('profile', () => {
   it('has three about paragraphs and none of them is a draft', () => {
     expect(profile.about).toHaveLength(3);
     for (const p of profile.about) {
       expect(p.trim().length).toBeGreaterThan(20);
-      expect(p.toLowerCase()).not.toContain('[to confirm');
+      expect(p.toLowerCase()).not.toContain(marker);
     }
   });
 
@@ -303,9 +305,8 @@ Expected: all tests PASS; `astro build` succeeds and `check-build: ok (N pages, 
 
 ```bash
 git add src/data/profile.ts src/data/profile.test.ts src/components/About.astro src/components/Hero.astro
-git commit -m "feat: shared profile data module for about, skills and contact" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: shared profile data module for about, skills and contact" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -583,9 +584,8 @@ Expected: PASS (all tests).
 
 ```bash
 git add src/lib/heroGraph.ts src/lib/heroGraph.test.ts
-git commit -m "feat: hero graph geometry and pointer pull math" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: hero graph geometry and pointer pull math" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -795,9 +795,8 @@ Expected: all tests PASS.
 
 ```bash
 git add src/components/HeroGraph.tsx src/components/HeroGraph.test.tsx
-git commit -m "feat: hero graph island with real links and pointer reaction" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: hero graph island with real links and pointer reaction" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -892,9 +891,8 @@ Expected: `check-build: ok (N pages, 7 entries)` and `dist/terminal/index.html` 
 
 ```bash
 git add src/pages/terminal.astro src/styles/terminal.css
-git commit -m "feat: terminal page shell and scoped terminal theme" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: terminal page shell and scoped terminal theme" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -1099,9 +1097,8 @@ Expected: all tests PASS; `check-build: ok (N pages, 7 entries)` — the `/termi
 
 ```bash
 git add src/components/HeroGraph.astro src/components/Hero.astro src/components/TopBar.astro src/components/Footer.astro src/styles/global.css scripts/lib/checks.mjs scripts/lib/run.mjs scripts/lib/checks.test.mjs
-git commit -m "feat: hero graph on the home page with terminal link and route gate" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: hero graph on the home page with terminal link and route gate" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -1321,9 +1318,8 @@ Expected: PASS (7 tests).
 
 ```bash
 git add src/agent/types.ts src/agent/normalize.ts src/agent/normalize.test.ts
-git commit -m "feat: agent types and query normalization" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: agent types and query normalization" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -1725,9 +1721,8 @@ Expected: `check-build: ok` and a line like `1 12 about:bio contact:links projec
 
 ```bash
 git add src/agent/snapshot.ts src/agent/snapshot.test.ts src/agent/verify.ts src/pages/agent-data.json.ts
-git commit -m "feat: content snapshot builder and agent data route" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: content snapshot builder and agent data route" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -2029,9 +2024,8 @@ Expected: PASS (all tests).
 
 ```bash
 git add src/agent/route.ts src/agent/route.test.ts src/agent/fixtures/snapshot.json
-git commit -m "feat: agent router with commands, keyword rules and entity matching" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: agent router with commands, keyword rules and entity matching" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -2267,9 +2261,8 @@ Expected: PASS (all tests).
 
 ```bash
 git add src/agent/tools.ts src/agent/tools.test.ts
-git commit -m "feat: retrieval tools with BM25 ranking" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: retrieval tools with BM25 ranking" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -2503,9 +2496,8 @@ Expected: PASS (all tests).
 
 ```bash
 git add src/agent/respond.ts src/agent/respond.test.ts src/agent/verify.ts
-git commit -m "feat: answer templates and the numeric grounding verifier" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: answer templates and the numeric grounding verifier" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -2767,9 +2759,8 @@ Expected: every test PASS.
 
 ```bash
 git add src/agent/run.ts src/agent/run.test.ts
-git commit -m "feat: agent pipeline from normalize to verified answer" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: agent pipeline from normalize to verified answer" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -2934,9 +2925,8 @@ Add to `scripts` (do not change the existing `build` script):
 
 ```bash
 git add src/agent/golden.json src/agent/golden.test.ts package.json
-git commit -m "test: golden set evaluation with coverage and refusal report" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "test: golden set evaluation with coverage and refusal report" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -3103,9 +3093,8 @@ Expected: PASS (6 tests).
 
 ```bash
 git add src/components/terminal/sound.ts src/components/terminal/sound.test.ts
-git commit -m "feat: opt-in terminal blips with a safe sound preference" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: opt-in terminal blips with a safe sound preference" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -3466,9 +3455,8 @@ Expected: PASS (9 tests).
 
 ```bash
 git add src/components/terminal/useTerminal.ts src/components/terminal/useTerminal.test.ts
-git commit -m "feat: terminal state hook with history, completion and trace reveal" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: terminal state hook with history, completion and trace reveal" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -3641,9 +3629,8 @@ Expected: PASS (6 tests).
 
 ```bash
 git add src/components/terminal/Terminal.tsx src/components/terminal/Terminal.test.tsx
-git commit -m "feat: terminal island with log, prompt and command chips" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: terminal island with log, prompt and command chips" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -3886,9 +3873,8 @@ Expected: all tests PASS; `check-build: ok`; `dist/terminal/index.html` and `dis
 
 ```bash
 git add src/components/terminal/fallback.ts src/components/terminal/fallback.test.ts src/lib/snapshotSource.ts src/pages/terminal.astro src/pages/agent-data.json.ts src/styles/terminal.css
-git commit -m "feat: live terminal page with a no-JS fallback from the snapshot" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: live terminal page with a no-JS fallback from the snapshot" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -4024,9 +4010,8 @@ Expected: all tests PASS; `check-build: ok`.
 
 ```bash
 git add src/styles/terminal.css src/styles/terminal.test.ts
-git commit -m "feat: terminal chrome styles with an AA checked palette" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: terminal chrome styles with an AA checked palette" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -4226,9 +4211,8 @@ Expected: all tests PASS; `check-build: ok` — and the build now also proves `d
 
 ```bash
 git add scripts/lib/checks.mjs scripts/lib/run.mjs scripts/lib/checks.test.mjs .github/workflows/ci.yml
-git commit -m "feat: fail the build on a snapshot that leaks gated content" \
-  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" \
-  -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com"
+git -c user.name="Andrian Than" -c user.email="andrian.than.api@gmail.com" commit -m "feat: fail the build on a snapshot that leaks gated content" \
+  -m "Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
