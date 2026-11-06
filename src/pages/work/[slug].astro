@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from 'astro:content';
+import Detail from '../../layouts/Detail.astro';
+import { cleared, neighbors } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = cleared(await getCollection('work'));
+  return all.map((entry) => {
+    const { prev, next } = neighbors(all, entry.id);
+    return { params: { slug: entry.id }, props: { entry, prev, next } };
+  });
+}
+
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+---
+<Detail
+  kicker={`Role · ${d.project}`}
+  title={d.company}
+  lede={`${d.title}, ${d.dates}`}
+  meta={[{ label: 'Role', value: d.title }, { label: 'Dates', value: d.dates }, { label: 'Stack', value: d.stack.join(', ') }]}
+  links={[]}
+  prev={prev ? { href: `/work/${prev.id}`, label: prev.data.company } : null}
+  next={next ? { href: `/work/${next.id}`, label: next.data.company } : null}
+  backHref="/#experience"
+  backLabel="experience"
+>
+  <Content />
+</Detail>
