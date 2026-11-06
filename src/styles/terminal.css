@@ -1,5 +1,5 @@
 /* Terminal theme. Scoped to the terminal page; the home page keeps the base tokens. */
-.term-page {
+.term-page, .term-embed {
   --term-bg: #1b1917;
   --term-fg: #e9e5de;
   --term-muted: #948d83;
@@ -74,3 +74,18 @@
 @media (prefers-reduced-motion: reduce) {
   .term-cursor { animation: none; }
 }
+
+/* embedded panel on the home page */
+.ask-hint { margin: 0 0 var(--space-md); color: var(--color-muted); max-width: 56ch; }
+.term-embed { min-height: 0; background: var(--term-bg); color: var(--term-fg); font: 400 15px/1.6 var(--font-mono); border: 1px solid var(--term-rule); border-radius: 12px; overflow: hidden; }
+.term-embed a { color: var(--term-accent); text-decoration: none; }
+.term-embed a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.term-embed a:focus-visible { outline: 2px solid var(--term-accent); outline-offset: 3px; border-radius: 4px; }
+.term-embed .term-app { min-height: 0; height: 460px; }
+.term-embed .term-log { min-height: 0; max-height: none; }
+.term-embed .term-chips { padding-bottom: 14px; }
+.term-embed-live { display: none; }
+.js .term-embed-live { display: block; }
+.term-embed-nojs { margin: 0; padding: 16px; color: var(--term-muted); }
+.js .term-embed-nojs { display: none; }
+@media (max-width: 768px) { .term-embed .term-app { height: 440px; } }

@@ -38,3 +38,23 @@ describe('Terminal', () => {
     expect(html).not.toContain('Commands:');
   });
 });
+
+describe('Terminal embedded on the home page', () => {
+  const embedded = renderToStaticMarkup(<Terminal embedded />);
+
+  it('shows an empty-state hint instead of running /help', () => {
+    expect(embedded).toContain('Ask about Andrian');
+    expect(embedded).not.toContain('Commands:');
+  });
+
+  it('links to the full-screen page and does not add a second page heading', () => {
+    expect(embedded).toContain('href="/terminal"');
+    expect(embedded).toContain('full screen');
+    expect(embedded).not.toContain('<h1');
+  });
+
+  it('keeps the command chips and the labelled input', () => {
+    expect(embedded).toContain('>/experience</button>');
+    expect(embedded).toContain('aria-label="Terminal command"');
+  });
+});

@@ -64,7 +64,12 @@ export function getSnapshot(): Promise<Snapshot> {
   return snapshotCache;
 }
 
-export function useTerminal() {
+export interface TerminalOptions {
+  /** Run /help on mount. The embedded home-page panel leaves the log empty instead. */
+  autoHelp?: boolean;
+}
+
+export function useTerminal({ autoHelp = true }: TerminalOptions = {}) {
   const [lines, setLines] = useState<LogLine[]>([]);
   const [value, setValue] = useState('');
   const [busy, setBusy] = useState(false);
@@ -230,7 +235,7 @@ export function useTerminal() {
     reduced.current = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     soundRef.current = readSound() === 'on';
     setSoundOn(soundRef.current);
-    void submit('/help');
+    if (autoHelp) void submit('/help');
     return () => {
       if (timer.current !== null) clearTimeout(timer.current);
       if (spinnerTimer.current !== null) clearInterval(spinnerTimer.current);
