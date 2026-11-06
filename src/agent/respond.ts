@@ -28,7 +28,7 @@ function easter(route: Route, chunks: Ranked[]): Answer {
   const kind = route.args[0];
   if (kind === 'coffee') return { text: COFFEE, sources: [] };
   if (kind === 'whoami') {
-    const chunk = chunks[0]?.chunk;
+    const chunk = chunks.find((entry) => entry.chunk.kind === 'about')?.chunk;
     if (!chunk) return { text: '', sources: [] };
     const line = chunk.text.split('\n').map((part) => part.trim()).find((part) => part.length > 0) ?? '';
     return { text: line, sources: [{ title: chunk.title, url: chunk.url }] };
@@ -38,6 +38,7 @@ function easter(route: Route, chunks: Ranked[]): Answer {
 
 export function respond(route: Route, chunks: Ranked[]): Answer {
   if (route.intent === 'help') return { text: helpText(), sources: [] };
+  if (route.intent === 'refuse') return { text: REFUSAL_TEXT, sources: [] };
   if (route.intent === 'easter') return easter(route, chunks);
   return list(chunks);
 }
