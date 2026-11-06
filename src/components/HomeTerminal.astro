@@ -1,0 +1,25 @@
+---
+import Terminal from './terminal/Terminal.tsx';
+// The panel sits below the fold, so its stylesheet loads without blocking first paint
+// (a blocking request here measurably delayed the hero's largest paint). The reserved
+// height keeps the page from shifting when the styles arrive.
+import terminalCss from '../styles/terminal.css?url';
+---
+<link rel="stylesheet" href={terminalCss} media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href={terminalCss} /></noscript>
+<style is:inline>
+  .term-embed { min-height: 462px; }
+  @media (max-width: 768px) { .term-embed { min-height: 442px; } }
+</style>
+<section class="s" id="ask">
+  <h2>Ask my portfolio</h2>
+  <p class="ask-hint">Type a question or tap a command below. It answers from this site's content: rules and retrieval, no LLM.</p>
+  <div class="term-embed">
+    <div class="term-embed-live">
+      <Terminal embedded client:visible />
+    </div>
+    <p class="term-embed-nojs">
+      The interactive agent needs JavaScript. <a href="/terminal">Open the full terminal page</a> for the same content as a plain list.
+    </p>
+  </div>
+</section>
