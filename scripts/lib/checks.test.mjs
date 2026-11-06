@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { listHtml, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle } from './checks.mjs';
+import { listHtml, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles } from './checks.mjs';
 
 let dir;
 const write = (rel, content) => {
@@ -97,6 +97,38 @@ describe('findLeaks', () => {
   it('detects body text of a rendered markdown heading-led body', () => {
     write('index.html', `<h2>Head</h2><p>${body}</p>`);
     const e = [{ collection: 'work', id: 'tesla', cleared: false, body: `## Head\n\n${body}\n` }];
+    expect(findLeaks(dir, listHtml(dir), e)).toHaveLength(1);
+  });
+});
+
+describe('bodyNeedles', () => {
+  const plain = 'Third line is plain prose that is comfortably over forty characters long.';
+  const first = "**Bold** statement that isn't going to match -- rendered HTML at all, no way";
+  it('collects later lines when the first has apostrophe and bold markup', () => {
+    const n = bodyNeedles(`${first}\n\nsecond short\n${plain}\n`);
+    expect(n).toContain(plain.slice(0, 60));
+  });
+  it('returns at most max needles', () => {
+    const lines = Array.from({ length: 10 }, (_, i) => `Line number ${i} is plain prose that is long enough to qualify.`).join('\n');
+    expect(bodyNeedles(lines)).toHaveLength(5);
+    expect(bodyNeedles(lines, 2)).toHaveLength(2);
+  });
+  it('returns [] for only headings, short lines and [to confirm]', () => {
+    expect(bodyNeedles('## Heading\n\n[to confirm]\n\nshort line\n')).toEqual([]);
+  });
+  it('cuts at the first special character and drops short remainders', () => {
+    const a = 'Plain prefix that is long enough to keep around ok';
+    expect(bodyNeedles(`${a} \`code\` and more words after that point`)).toEqual([`${a} `]);
+    expect(bodyNeedles(`${a} it's more words after that point here`)).toEqual([`${a} it`]);
+    expect(bodyNeedles('Short prefix [link](url) and more words after that point here')).toEqual([]);
+  });
+});
+
+describe('findLeaks via later lines', () => {
+  it('detects a leak through a later line when the first has inline markdown', () => {
+    const plain = 'Third line is plain prose that is comfortably over forty characters long.';
+    write('index.html', `<p>${plain}</p>`);
+    const e = [{ collection: 'projects', id: 'x', cleared: false, body: `**Bold** it's text that never matches rendered html, honestly\n\n${plain}\n` }];
     expect(findLeaks(dir, listHtml(dir), e)).toHaveLength(1);
   });
 });

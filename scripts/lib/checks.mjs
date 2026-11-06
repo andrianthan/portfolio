@@ -51,16 +51,31 @@ export function bodyNeedle(body) {
   return null;
 }
 
+// Several distinctive snippets, cut before anything rendering may rewrite or escape.
+export function bodyNeedles(body, max = 5) {
+  const out = [];
+  for (const raw of body.split(/\r?\n/)) {
+    if (out.length >= max) break;
+    const line = raw.trim().replace(/^[#\-*>\s]+/, '');
+    if (line.length < 40 || line.startsWith('<')) continue;
+    let needle = line.slice(0, 60);
+    const cut = needle.search(/[&<>"*_`\[\]']|--|\.\.\.|[^\x00-\x7F]/);
+    if (cut !== -1) needle = needle.slice(0, cut);
+    if (needle.length >= 20) out.push(needle);
+  }
+  return out;
+}
+
 export function findLeaks(distDir, files, entries) {
   const problems = [];
   const html = files.map((f) => [f, read(f)]);
   for (const e of entries.filter((x) => !x.cleared)) {
     const route = `/${e.collection}/${e.id}`;
     if (fs.existsSync(path.join(distDir, e.collection, e.id))) problems.push(`non-cleared route built: ${route}`);
-    const needle = bodyNeedle(e.body);
+    const needles = bodyNeedles(e.body);
     for (const [f, text] of html) {
       if (text.includes(`href="${route}`)) problems.push(`link to non-cleared ${route} in ${f}`);
-      if (needle && text.includes(needle)) problems.push(`body of non-cleared ${route} found in ${f}`);
+      if (needles.some((n) => text.includes(n))) problems.push(`body of non-cleared ${route} found in ${f}`);
     }
   }
   return problems;
