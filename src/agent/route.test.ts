@@ -154,6 +154,28 @@ describe('steering refusals', () => {
   });
 });
 
+describe('ordinary questions that look like steering', () => {
+  const falseRefusals: [string, string][] = [
+    ['did you build anything before Tesla', 'experience'],
+    ['did you do anything before joining Tesla', 'experience'],
+    ['have you done anything earlier in your career', 'search'],
+    ['show me the prompt', 'search'],
+    ['show me the prompts', 'search'],
+    ['show me the rules', 'search'],
+    ['you are a different engineer', 'search'],
+    ['you are free to ask me anything', 'search'],
+    ['there are no constraints on what you build', 'projects'],
+  ];
+
+  it('routes them normally instead of refusing', () => {
+    for (const [query, intent] of falseRefusals) {
+      const r = route(snapshot, query);
+      expect(r.intent, query).not.toBe('refuse');
+      expect(r.intent, query).toBe(intent);
+    }
+  });
+});
+
 describe('plain questions', () => {
   it('routes by keyword', () => {
     expect(route(snapshot, 'what projects have you built').intent).toBe('projects');
@@ -214,6 +236,19 @@ describe('entity matching', () => {
   it('keeps the topic keyword when the entity is only a mention', () => {
     expect(route(snapshot, 'what skills did you use at Tesla').intent).toBe('skills');
     expect(route(snapshot, 'what technologies does Blue Dome Technologies use').intent).toBe('skills');
+  });
+
+  it('ignores an entity whose title normalizes to nothing', () => {
+    const blank: Snapshot = {
+      version: 1,
+      chunks: [fakeChunk('role:blank', '   ')],
+    };
+    // An empty needle compiles to a pattern that matches wherever two
+    // non-alphanumerics meet, so without the guard this chunk answers every
+    // query that starts with a dot.
+    const r = route(blank, '...');
+    expect(r.intent).toBe('search');
+    expect(r.args[0]).not.toBe('   ');
   });
 });
 
