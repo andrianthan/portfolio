@@ -17,7 +17,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); 
 #theme-toggle:hover { color: var(--color-fg); border-color: var(--color-muted); }
 
 /* hero */
-.hero { position: relative; padding: 56px 0 var(--space-xl); display: grid; gap: var(--space-lg); }
+.hero { position: relative; padding: 56px 0 var(--space-xl); }
 .hero::before { content: ""; position: absolute; inset: 0 0 0 0; z-index: -1;
   background-image: radial-gradient(var(--color-dot) 1.2px, transparent 1.2px); background-size: 22px 22px;
   -webkit-mask-image: linear-gradient(to bottom, var(--color-fg) 0%, transparent 88%); mask-image: linear-gradient(to bottom, var(--color-fg) 0%, transparent 88%); }
@@ -37,13 +37,15 @@ h1 .dot { color: var(--color-num); }
 .contact a:hover { text-decoration: none; border-color: var(--color-muted); background: var(--color-chip); }
 .contact a.p { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
 .contact a.p:hover { opacity: .88; background: var(--color-fg); }
-.hero-copy, .hero-side { min-width: 0; }
+.hero-side { margin-top: var(--space-lg); }
 .contact a.term { border: 0; background: none; color: var(--color-accent); padding: 9px 6px; }
 .contact a.term:hover { background: none; }
 .bar-right { display: flex; align-items: center; gap: 14px; }
 
 /* hero graph */
-.hero-graph { width: 100%; max-width: 420px; aspect-ratio: 4 / 3; }
+/* the width is definite, so the svg below fills it exactly: a percentage of a fit-content
+   parent would fall back to the svg's default size */
+.hero-graph { width: min(320px, 100%); aspect-ratio: 4 / 3; }
 /* the svg is the pointer surface: a border or padding would offset the mapped coordinates */
 .hero-graph .hg-svg { display: block; width: 100%; height: 100%; overflow: visible; font-family: var(--font-mono); }
 .hg-edge { fill: none; stroke: var(--color-rule); stroke-width: 1.5; }
@@ -185,8 +187,7 @@ header.ph { padding: 48px 0 var(--space-lg); }
   :root { --space-xl: 56px; }
 }
 @media (min-width: 900px) {
-  .hero { grid-template-columns: minmax(0, 1fr) 380px; align-items: center; }
-  .hero-side { justify-self: end; }
+  .hero-graph { width: min(380px, 100%); }
 }
 @media (max-width: 760px) {
   .meta { grid-template-columns: minmax(0, 1fr); }
