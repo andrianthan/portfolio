@@ -10,7 +10,7 @@ export const COMMANDS = [
   { name: '/skills', description: 'technical skills' },
   { name: '/contact', description: 'how to reach Andrian' },
   { name: '/clear', description: 'clear the screen' },
-  { name: '/sound on|off', description: 'toggle the blip' },
+  { name: '/sound', description: 'toggle the blip (on or off)' },
   { name: '/hire', description: 'a short pitch' },
   { name: '/coffee', description: 'a short cup' },
   { name: '/whoami', description: 'one line about Andrian' },
@@ -27,14 +27,43 @@ export function helpText(): string {
   ].join('\n');
 }
 
+// The steering denylist. Every pattern targets an instruction-like noun, so an
+// ordinary portfolio question can never trip it: the only things it refuses are
+// attempts to steer the agent, asks for money or credentials, and asks for
+// contact details the site does not publish.
+const STEER_NOUN = '(instructions?|prompts?|rules?|directions?|directives?|guidelines?|constraints?|restrictions?)';
+const STEER_QUALIFIER = '(all|any|every|each|of|the|your|my|our|its|these|those|previous|prior|earlier|above|preceding|former|original|initial)';
+const ROLE_SWITCH = '(different|unrestricted|unfiltered|unlocked|evil|rogue|amoral|immoral|another|alternative|pirate|hacker|malicious|unaligned|dan|admin|administrator|root|god|devil|alien|robot|fictional|nonexistent)';
+const ROLE_SWITCH_STRICT = '(new|teacher|professor|lawyer|doctor|chef|freelancer|unemployed|ceo|cto|anybody|everyone|student|intern|expert)';
+
 const REFUSE_PATTERNS: RegExp[] = [
-  /ignore\s+(all\s+|any\s+)?(of\s+)?(the\s+)?(previous|prior|earlier|above)\s+(instructions|prompts?|rules?|directions)/,
-  /(system|initial|hidden)\s+prompt/,
-  /reveal\s+(your|the)\s+(prompt|instructions|rules)/,
-  /(salary|compensation|remuneration|pay\s+rate|how\s+much\s+do\s+you\s+(get|earn))/,
-  /(social\s+security|ssn|bank\s+account|credit\s+card|password|api\s*key|secret\s+key)/,
-  /(home\s+address|personal\s+(email|phone|number)|phone\s+number|private\s+(details?|info))/,
-  /(act\s+as|pretend\s+(to\s+be|you)|roleplay|role-play|from\s+now\s+on\s+you\s+are)/,
+  // steer the agent: ignore or disregard the instructions it was given
+  new RegExp(`\\b(ignore|disregard)\\s+(${STEER_QUALIFIER}\\s+)*${STEER_NOUN}\\b`),
+  // steer the agent: forget, override, bypass or skip the rules
+  new RegExp(`\\b(forget|override|bypass|skip|discard)\\s+(${STEER_QUALIFIER}\\s+)+${STEER_NOUN}\\b`),
+  // steer the agent: everything above this line
+  new RegExp('\\b(ignore|disregard|forget|override|bypass|skip)\\s+(all\\s+|any\\s+|the\\s+|your\\s+|these\\s+|those\\s+)*(above|everything)\\b'),
+  new RegExp('\\b(everything|anything)\\s+(above|before|earlier|previously|prior\\s+to|that\\s+came\\s+before)\\b'),
+  // the hidden prompt itself
+  /(system|initial|hidden|original)\s+prompt/,
+  /(reveal|show|print|dump|leak|expose)\s+(me\s+)?(your|the)\s+(prompt|instructions?|rules?|secrets?|password|credentials|api[\s-]*key)/,
+  // salary and compensation
+  /(salary|compensation|remuneration|pay\s+rate|how\s+much\s+(do|did|would)\s+you\s+(get|earn|make))/,
+  // credentials and account numbers
+  /(social\s+security|ssn|bank\s+account|credit\s+card|password|\bapi[\s-]*key\b|secret[\s-]*key)/,
+  // contact details the site does not publish
+  /(home\s+address|personal\s+(phone|number|mobile|address|ssn)|phone\s+number|mobile\s+number|private\s+(details?|info))/,
+  // persona switching
+  /(act\s+as|acting\s+as|pretend\s+(to\s+be|you\s+are|you)|role\s*-?\s*play|simulate\s+(being|that\s+you)|imagine\s+you\s+(are|to\s+be))/,
+  new RegExp(`\\b(you\\s+are|you\\s+re)\\b\\s+now\\s+(an?\\s+|the\\s+)?(${ROLE_SWITCH}|${ROLE_SWITCH_STRICT})\\b`),
+  new RegExp(`\\b(you\\s+are|you\\s+re|from\\s+now\\s+on\\s+you\\s+are|from\\s+now\\s+on\\s+you\\s+re)\\b\\s+(an?\\s+|the\\s+)?${ROLE_SWITCH}\\b`),
+  new RegExp('\\bfrom\\s+now\\s+on\\s+(you|your|everything|all)\\b'),
+  // rule disabling
+  /(you\s+have\s+no\s+(restrictions?|rules?|limits?|guidelines?|filters?|boundaries))/,
+  /(you\s+are\s+(free|unrestricted|unfiltered)\s+to)/,
+  /(your\s+(rules?|instructions?|guidelines?|restrictions?)\s+(no\s+longer|do\s+not|do\s+nt|don\s+t)\s+(apply|exist|bind|matter))/,
+  /(there\s+are\s+no\s+(rules|restrictions|limits|constraints|guidelines)\b)/,
+  /(you\s+must\s+(ignore|disregard|override|bypass|forget|only\s+follow))/,
   /(jailbreak|developer\s+mode|dan\s+mode)/,
 ];
 
@@ -49,7 +78,9 @@ const INTENT_RULES: { intent: Intent; pattern: RegExp }[] = [
 ];
 
 interface Entity {
+  id: string;
   term: string;
+  needle: string;
   intent: Intent;
 }
 
@@ -57,9 +88,16 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
 }
 
-function containsTerm(text: string, term: string): boolean {
-  const pattern = new RegExp(`(?<![a-z0-9])${escapeRegExp(term.toLowerCase())}(?![a-z0-9])`);
+function containsTerm(text: string, needle: string): boolean {
+  const pattern = new RegExp(`(?<![a-z0-9])${escapeRegExp(needle)}(?![a-z0-9])`);
   return pattern.test(text);
+}
+
+// A query that is nothing but the entity's name IS the entity, not a topic
+// keyword: "Blue Dome Technologies" is a company, not a question about
+// technologies.
+function isEntityName(text: string, entity: Entity): boolean {
+  return new RegExp(`^${escapeRegExp(entity.needle)}[.!?]*$`).test(text);
 }
 
 function entities(snapshot: Snapshot): Entity[] {
@@ -72,14 +110,25 @@ function entities(snapshot: Snapshot): Entity[] {
     if (slug) terms.push(slug);
     const words = chunk.title.split(/\s+/);
     if (words.length > 2) terms.push(words.slice(0, 2).join(' '));
-    for (const term of terms) found.push({ term, intent });
+    // The needle is the term put through the same normalizer the query goes
+    // through, so a title with a stripped character (AI/LLM) can still match.
+    for (const term of terms) {
+      found.push({ id: chunk.id, term, needle: normalize(term).text, intent });
+    }
   }
-  return found.sort((a, b) => b.term.length - a.term.length);
+  // Longest needle first so the most specific term wins, then id ascending so
+  // the order never depends on the order of the input.
+  return found.sort((a, b) => {
+    if (b.needle.length !== a.needle.length) return b.needle.length - a.needle.length;
+    if (a.id !== b.id) return a.id < b.id ? -1 : 1;
+    if (a.term !== b.term) return a.term < b.term ? -1 : 1;
+    return 0;
+  });
 }
 
 function findEntity(snapshot: Snapshot, text: string): Entity | null {
   for (const entity of entities(snapshot)) {
-    if (containsTerm(text, entity.term)) return entity;
+    if (containsTerm(text, entity.needle)) return entity;
   }
   return null;
 }
@@ -130,16 +179,16 @@ export function route(snapshot: Snapshot, query: string): Route {
   }
 
   const entity = findEntity(snapshot, normalized.text);
-  if (entity && (intent === 'about' || intent === 'search' || intent === 'projects')) {
+  if (entity && (intent === 'about' || intent === 'search' || intent === 'projects' || isEntityName(normalized.text, entity))) {
     return { intent: entity.intent, args: [entity.term], query: normalized.raw };
   }
   return { intent, args: matched ? [matched] : [], query: normalized.raw };
 }
 
-export function describeRoute(route: Route): string {
-  if (route.intent === 'refuse') return `refused: ${route.args[0] ?? 'out of scope'}`;
-  const command = route.query.trim().split(/\s+/)[0] ?? '';
-  if (command.startsWith('/')) return `routed to ${route.intent} (${command})`;
-  if (route.args.length) return `routed to ${route.intent} (matched "${route.args[0]}")`;
-  return `routed to ${route.intent}`;
+export function describeRoute(routed: Route): string {
+  if (routed.intent === 'refuse') return `refused: ${routed.args[0] ?? 'out of scope'}`;
+  const command = routed.query.trim().split(/\s+/)[0] ?? '';
+  if (command.startsWith('/')) return `routed to ${routed.intent} (${command})`;
+  if (routed.args.length) return `routed to ${routed.intent} (matched "${routed.args[0]}")`;
+  return `routed to ${routed.intent}`;
 }
