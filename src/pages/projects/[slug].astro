@@ -25,6 +25,8 @@ const d = entry.data;
   next={next ? { href: `/projects/${next.id}`, label: next.data.name } : null}
   backHref="/#projects"
   backLabel="all projects"
+  shot={d.shot}
+  shotAlt={`${d.name} screenshot`}
 >
   <Content />
 </Detail>

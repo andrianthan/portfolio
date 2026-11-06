@@ -12,7 +12,7 @@ if (!reduce && 'IntersectionObserver' in window) {
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 }
 
-document.querySelectorAll<HTMLElement>('.card').forEach((card) => {
+if (!reduce) document.querySelectorAll<HTMLElement>('a.card').forEach((card) => {
   card.addEventListener('pointermove', (e) => {
     const r = card.getBoundingClientRect();
     card.style.setProperty('--mx', `${e.clientX - r.left}px`);

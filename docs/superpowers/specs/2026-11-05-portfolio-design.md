@@ -50,9 +50,9 @@ Content lives in Markdown files under `src/content/` using Astro content collect
 
 Frontmatter (validated with a Zod schema; build fails on invalid):
 
-Roles: `company`, `title`, `dates` (display string), `start`, `end` (ISO), `summary`, `bullets[]`, `stack[]`, `logo` (path), `current` (boolean), `listed` (boolean, default `true`: show on the home timeline), `cleared` (boolean, default `false`: generate the detail page), `order` (number).
+Roles: `company`, `title`, `dates` (display string), `start`, `end` (ISO), `project`, `summary`, `stack[]`, `logo` (path), `logoFill` (boolean, default `false`), `current` (boolean, default `false`), `listed` (boolean, default `true`: show on the home timeline), `cleared` (boolean, default `false`: generate the detail page), `order` (number).
 
-Projects: `name`, `kicker`, `lede`, `meta{role,status,stack}`, `repoUrl` (optional), `shot` (optional path), `summary`, `listed` (default `true`), `cleared` (default `false`), `order`.
+Projects: `name`, `kicker`, `lede`, `tag`, `meta{role,status,stack}`, `repoUrl` (optional), `shot` (optional path), `summary`, `listed` (default `true`), `cleared` (default `false`), `order`.
 
 The Markdown body of each file holds the detail-page sections: Problem, Architecture, Key decisions, Backend and data, Results and lessons.
 

@@ -10,13 +10,14 @@ interface Props {
   links: Link[];
   prev: Nav | null; next: Nav | null;
   backHref: string; backLabel: string;
+  shot?: string; shotAlt?: string;
 }
-const { kicker, title, lede, meta, links, prev, next, backHref, backLabel } = Astro.props;
+const { kicker, title, lede, meta, links, prev, next, backHref, backLabel, shot, shotAlt } = Astro.props;
 ---
 <Base title={`${title} · Andrian Than`} description={lede}>
   <div class="detail">
     <div class="wide"><div class="bar"><a href={backHref}>← {backLabel}</a><ThemeToggle client:load /></div></div>
-    <div class="inner">
+    <main class="inner">
       <header class="ph">
         <p class="kicker">{kicker}</p>
         <h1>{title}</h1>
@@ -31,7 +32,9 @@ const { kicker, title, lede, meta, links, prev, next, backHref, backLabel } = As
         )}
       </header>
 
-      <div class="shot">screenshot</div>
+      {shot
+        ? <img class="shot-img" src={shot} alt={shotAlt ?? ''} width="1280" height="720" loading="lazy" />
+        : <div class="shot">screenshot</div>}
 
       <div class="prose"><slot /></div>
 
@@ -39,6 +42,6 @@ const { kicker, title, lede, meta, links, prev, next, backHref, backLabel } = As
         {prev ? <a href={prev.href}><small>Previous</small>← {prev.label}</a> : <span></span>}
         {next ? <a href={next.href} style="text-align:right"><small>Next</small>{next.label} →</a> : <span></span>}
       </nav>
-    </div>
+    </main>
   </div>
 </Base>
