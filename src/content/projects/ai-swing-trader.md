@@ -1,14 +1,13 @@
 ---
 name: ai-swing-trader
-kicker: "Project · Multi-agent trading research"
-lede: "AI agents research US semiconductor stocks, but they never place a trade. Deterministic code decides, and it can't be talked out of its rules."
-summary: "Research agents whose orders must pass deterministic risk gates."
-tag: GitHub
+kicker: "Project · Paper-trading pipeline"
+lede: "A paper-trading pipeline where coded strategy rules and a deterministic risk gate decide every order."
+summary: "Paper-trading pipeline where deterministic rules and a risk gate approve every order."
+tag: Personal project
 meta:
   role: Solo build
   status: "V1, paper trading only"
   stack: Python, pydantic, Alpaca MCP
-repoUrl: https://github.com/andrianthan/ai-swing-trader
 listed: true
 cleared: false
 order: 2

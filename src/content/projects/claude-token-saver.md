@@ -3,7 +3,7 @@ name: claude-token-saver
 kicker: "Project · Claude Code plugin"
 lede: "A Claude Code plugin that routes each prompt to the right model tier through a hook, so simple turns do not pay for the biggest model."
 summary: "A hook that routes each prompt to the right model tier."
-tag: GitHub
+tag: Claude Code plugin
 meta:
   role: Solo build
   status: "Working, with tests and an installer"
