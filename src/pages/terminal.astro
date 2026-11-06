@@ -1,16 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
+import Terminal from '../components/terminal/Terminal.tsx';
+import { fallbackSections } from '../components/terminal/fallback';
+import { liveSnapshot } from '../lib/snapshotSource';
 import { profile } from '../data/profile';
 import '../styles/terminal.css';
 
-const preview = `deterministic agent: rules and retrieval, no LLM
-
-The live agent is being built in the open and is not in this build yet. This is
-where it will live: a question goes to one router, the router picks a tool, the
-tool retrieves from this site's published content, and a verifier checks every
-number in the answer before it is shown.
-
-It will answer from: experience, projects, resume, about, skills, contact.`;
+const sections = fallbackSections(await liveSnapshot());
 ---
 <Base
   title="terminal · Andrian Than"
@@ -18,14 +14,36 @@ It will answer from: experience, projects, resume, about, skills, contact.`;
   path="/terminal"
 >
   <div class="term-page">
-    <div class="term-bar">
-      <span class="term-title">andrian@portfolio · terminal</span>
-      <a class="term-back" href="/">← site</a>
+    <div class="term-shell">
+      <Terminal client:load />
     </div>
-    <main class="term-main">
-      <p class="term-scope">deterministic agent: rules and retrieval, no LLM</p>
-      <pre class="term-static">{preview}</pre>
-    </main>
+
+    <div class="term-fallback">
+      <div class="term-bar">
+        <h1 class="term-title">andrian@portfolio · terminal</h1>
+        <a class="term-back" href="/">← site</a>
+      </div>
+      <main class="term-main">
+        <p class="term-scope">deterministic agent: rules and retrieval, no LLM</p>
+        <p class="term-note">
+          The interactive agent needs JavaScript. Everything it would answer from is listed below.
+        </p>
+        {sections.map((section) => (
+          <section class="term-section">
+            <h2>{section.heading}</h2>
+            <ul class="term-list">
+              {section.items.map((item) => (
+                <li>
+                  <a href={item.url}>{item.label}</a>
+                  <span class="term-item-text">{item.text}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </main>
+    </div>
+
     <footer class="term-foot">
       <p>{profile.disclaimer}</p>
     </footer>

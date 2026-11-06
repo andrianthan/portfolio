@@ -16,7 +16,7 @@ export default function Terminal() {
   return (
     <div className="term-app">
       <div className="term-bar">
-        <span className="term-title">andrian@portfolio · terminal</span>
+        <h1 className="term-title">andrian@portfolio · terminal</h1>
         <span className="term-bar-actions">
           <button type="button" className="term-sound" aria-pressed={term.soundOn} onClick={term.toggleSound}>
             {`sound ${term.soundOn ? 'on' : 'off'}`}

@@ -17,10 +17,20 @@
 .term-page a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .term-page a:focus-visible { outline: 2px solid var(--term-accent); outline-offset: 3px; border-radius: 4px; }
 .term-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--term-rule); }
-.term-title { font-weight: 500; }
+.term-title { font-weight: 500; font-size: inherit; margin: 0; }
 .term-back { white-space: nowrap; }
 .term-main { padding: 28px 16px; max-width: 80ch; }
 .term-scope { color: var(--term-muted); margin: 0 0 18px; }
 .term-static { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: inherit; color: var(--term-fg); }
 .term-foot { border-top: 1px solid var(--term-rule); padding: 16px; color: var(--term-muted); font-size: 12px; }
 .term-foot p { margin: 0; }
+
+.term-shell { display: none; }
+.js .term-shell { display: block; }
+.term-fallback { display: block; }
+.js .term-fallback { display: none; }
+.term-note { color: var(--term-muted); margin: 0 0 24px; }
+.term-section h2 { color: var(--term-muted); font: 500 12px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 10px; }
+.term-list { list-style: none; margin: 0 0 24px; padding: 0; }
+.term-list li { margin: 0 0 12px; }
+.term-item-text { display: block; color: var(--term-muted); overflow-wrap: anywhere; }
