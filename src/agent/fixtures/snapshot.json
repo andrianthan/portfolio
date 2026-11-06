@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "chunks": [
+    {
+      "id": "about:bio",
+      "kind": "about",
+      "title": "About",
+      "text": "Andrian Than — software engineer building LLM agents for real users.\n\nI'm a computer science student at San Jose State (3.7 GPA, graduating Spring 2027) who builds LLM agents for real users: copilots grounded in data, tested against golden sets, and shipped with the infrastructure to keep them honest.\n\nI've also mentored 30+ people on working with AI coding tools like Cursor and Claude Code, including how to review and verify AI-generated changes.\n\nOutside of engineering I lead in Alpha Kappa Psi and Spartan Analytics.",
+      "url": "/#about",
+      "facts": [
+        "3.7",
+        "2027",
+        "30+"
+      ]
+    },
+    {
+      "id": "contact:links",
+      "kind": "contact",
+      "title": "Contact",
+      "text": "Email: andrian.than.api@gmail.com · LinkedIn: https://www.linkedin.com/in/andrian-than · GitHub: https://github.com/andrianthan · Resume: /resume.pdf",
+      "url": "/#contact",
+      "facts": []
+    },
+    {
+      "id": "project:advisorai",
+      "kind": "project",
+      "title": "AdvisorAI",
+      "text": "Multi-agent academic advising. Led 8 people to 1st of 9 teams.",
+      "url": "/#projects",
+      "facts": [
+        "8",
+        "1",
+        "9"
+      ]
+    },
+    {
+      "id": "project:ai-swing-trader",
+      "kind": "project",
+      "title": "ai-swing-trader",
+      "text": "Paper-trading pipeline where deterministic rules and a risk gate approve every order.",
+      "url": "/#projects",
+      "facts": []
+    },
+    {
+      "id": "project:claude-token-saver",
+      "kind": "project",
+      "title": "claude-token-saver",
+      "text": "A hook that routes each prompt to the right model tier.",
+      "url": "/#projects",
+      "facts": []
+    },
+    {
+      "id": "role:bluedome",
+      "kind": "role",
+      "title": "Blue Dome Technologies",
+      "text": "Shipped a production full-stack QA tool for reviewing AI-labeled roadway images, with TPM 2.0 backed authentication.",
+      "url": "/#experience",
+      "facts": [
+        "2.0"
+      ]
+    },
+    {
+      "id": "role:hanna",
+      "kind": "role",
+      "title": "Hanna Center",
+      "text": "Built in-house LLM tools with non-technical staff, including a grant-research agent that replaced an enterprise platform, avoiding $30k+ in vendor and subscription cost. Wrote the validation framework for agent accuracy, consistency, and safety.",
+      "url": "/#experience",
+      "facts": [
+        "$30k+"
+      ]
+    },
+    {
+      "id": "role:micron",
+      "kind": "role",
+      "title": "Micron Technology",
+      "text": "Built Python and Snowflake pipelines over high-volume manufacturing data, plus a risk classification model to prioritize high-risk wafers.",
+      "url": "/#experience",
+      "facts": []
+    },
+    {
+      "id": "role:tesla",
+      "kind": "role",
+      "title": "Tesla",
+      "text": "Built Ask SDP, a tool-calling LLM copilot whose answers can't contain invented numbers, and shipped Forecast Lab, with Chronos-2 forecasts 32% better than baseline on backtest. Built the staging-to-prod pipeline behind 200+ staging deploys a week.",
+      "url": "/#experience",
+      "facts": [
+        "2",
+        "32%",
+        "200+"
+      ]
+    },
+    {
+      "id": "skill:ai-llm",
+      "kind": "skill",
+      "title": "AI/LLM",
+      "text": "AI/LLM: LLM agents, tool calling, multi-agent orchestration, RAG, evals (golden sets, promptfoo, deepeval), numeric grounding",
+      "url": "/#about",
+      "facts": []
+    },
+    {
+      "id": "skill:backend-frontend",
+      "kind": "skill",
+      "title": "Backend/Frontend",
+      "text": "Backend/Frontend: FastAPI, Flask, REST API design, React, Vite, Zustand",
+      "url": "/#about",
+      "facts": []
+    },
+    {
+      "id": "skill:data",
+      "kind": "skill",
+      "title": "Data",
+      "text": "Data: DuckDB, MySQL, MSSQL, Vertica, ClickHouse, Snowflake, SQLite, Parquet",
+      "url": "/#about",
+      "facts": []
+    },
+    {
+      "id": "skill:infra-tools",
+      "kind": "skill",
+      "title": "Infra/tools",
+      "text": "Infra/tools: Kubernetes, Docker, GitHub Actions CI/CD, Git, Copilot, Power Automate",
+      "url": "/#about",
+      "facts": []
+    },
+    {
+      "id": "skill:languages",
+      "kind": "skill",
+      "title": "Languages",
+      "text": "Languages: Python, TypeScript, JavaScript, SQL",
+      "url": "/#about",
+      "facts": []
+    }
+  ]
+}

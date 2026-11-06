@@ -46,6 +46,27 @@ export function findBrokenLinks(distDir, files) {
 export const findMissingAlt = (files) =>
   files.filter((f) => /<img(?![^>]*\balt=)[^>]*>/i.test(read(f))).map((f) => `<img> without alt in ${f}`);
 
+/**
+ * Links that must be present in the built pages. A route that nobody links to is unreachable,
+ * so a link that is required by the site has to be checked against the built html.
+ */
+export function findRequiredLinks(files, required) {
+  const all = files.map((f) => read(f)).join('\n');
+  return required
+    .filter((href) => !all.includes(`href="${href}"`))
+    .map((href) => `required link "${href}" is not present in the built pages`);
+}
+
+/**
+ * Routes that must exist in the built output. A page that was never built is a dead end, even
+ * when another page links to it.
+ */
+export function findMissingRoutes(distDir, routes) {
+  return routes
+    .filter((route) => !fs.existsSync(path.join(distDir, route.replace(/^\//, ''), 'index.html')))
+    .map((route) => `missing route ${route} (expected ${route.replace(/^\//, '')}/index.html in dist)`);
+}
+
 // A distinctive prose snippet from a Markdown body that survives rendering to HTML.
 export function bodyNeedle(body) {
   for (const raw of body.split(/\r?\n/)) {
@@ -99,8 +120,47 @@ export function readEntries(contentDir) {
     if (!fs.existsSync(dir)) continue;
     for (const name of fs.readdirSync(dir).filter((n) => n.endsWith('.md'))) {
       const { data, content } = matter(fs.readFileSync(path.join(dir, name), 'utf8'));
-      entries.push({ collection, id: name.replace(/\.md$/, '').toLowerCase(), cleared: data.cleared === true, body: content });
+      entries.push({
+        collection,
+        id: name.replace(/\.md$/, '').toLowerCase(),
+        listed: data.listed !== false,
+        cleared: data.cleared === true,
+        body: content,
+      });
     }
   }
   return entries;
+}
+
+const SNAPSHOT_COLLECTIONS = { role: 'work', project: 'projects' };
+
+export function findSnapshotProblems(distDir, entries) {
+  const file = path.join(distDir, 'agent-data.json');
+  if (!fs.existsSync(file)) return ['agent-data.json is missing from dist'];
+  let data;
+  try {
+    data = JSON.parse(read(file));
+  } catch (error) {
+    return [`agent-data.json is not valid JSON: ${error.message}`];
+  }
+  const chunks = Array.isArray(data?.chunks) ? data.chunks : [];
+  const problems = [];
+  if (chunks.length === 0) problems.push('agent-data.json has no chunks');
+  const byKey = new Map(entries.map((entry) => [`${entry.collection}:${entry.id}`, entry]));
+  for (const chunk of chunks) {
+    const id = String(chunk?.id ?? '');
+    const hash = id.indexOf('#');
+    const key = hash === -1 ? id : id.slice(0, hash);
+    const [kind, entryId] = key.split(':');
+    const collection = SNAPSHOT_COLLECTIONS[kind];
+    if (!collection) continue;
+    const entry = byKey.get(`${collection}:${entryId}`);
+    if (!entry) {
+      problems.push(`agent-data.json chunk "${id}" has no content entry`);
+      continue;
+    }
+    if (!entry.listed) problems.push(`agent-data.json chunk "${id}" belongs to a non-listed entry`);
+    if (hash !== -1 && !entry.cleared) problems.push(`agent-data.json chunk "${id}" is body text from a non-cleared entry`);
+  }
+  return problems;
 }

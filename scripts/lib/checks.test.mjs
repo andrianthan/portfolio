@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles } from './checks.mjs';
+import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles, findRequiredLinks, findMissingRoutes, findSnapshotProblems } from './checks.mjs';
 import { runChecks } from './run.mjs';
 
 let dir;
@@ -177,6 +177,28 @@ describe('readEntries', () => {
   });
 });
 
+describe('findRequiredLinks', () => {
+  it('passes when the required href is present', () => {
+    write('index.html', '<a href="/terminal">terminal</a>');
+    expect(findRequiredLinks(listHtml(dir), ['/terminal'])).toEqual([]);
+  });
+  it('fails when the required href is missing', () => {
+    write('index.html', '<a href="/">home</a>');
+    expect(findRequiredLinks(listHtml(dir), ['/terminal'])).toHaveLength(1);
+  });
+});
+
+describe('findMissingRoutes', () => {
+  it('passes when the route was built', () => {
+    write('terminal/index.html', '<!doctype html>');
+    expect(findMissingRoutes(dir, ['/terminal'])).toEqual([]);
+  });
+  it('fails when the route is missing', () => {
+    write('index.html', '<!doctype html>');
+    expect(findMissingRoutes(dir, ['/terminal'])).toHaveLength(1);
+  });
+});
+
 describe('runChecks fail-closed', () => {
   it('reports a problem on an empty dist', () => {
     const content = path.join(dir, 'content');
@@ -188,16 +210,83 @@ describe('runChecks fail-closed', () => {
     expect(problems.join('\n')).toMatch(/no html/i);
   });
   it('reports a problem when the entries list is empty', () => {
-    write('dist/index.html', '<p>ok</p>');
+    write('dist/index.html', '<a href="/terminal">terminal</a>');
+    write('dist/terminal/index.html', '<!doctype html>');
     fs.mkdirSync(path.join(dir, 'content'));
     const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: path.join(dir, 'content') });
     expect(problems.join('\n')).toMatch(/no content entries/i);
   });
   it('is clean for a good dist', () => {
-    write('dist/index.html', '<p>ok</p>');
+    write('dist/index.html', '<a href="/terminal">terminal</a>');
+    write('dist/terminal/index.html', '<!doctype html>');
+    write('dist/agent-data.json', JSON.stringify({ version: 1, chunks: [{ id: 'role:a' }] }));
     const content = path.join(dir, 'content');
     fs.mkdirSync(path.join(content, 'work'), { recursive: true });
     fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
     expect(runChecks({ distDir: path.join(dir, 'dist'), contentDir: content }).problems).toEqual([]);
+  });
+  it('reports a terminal link that is missing and a terminal route that was not built', () => {
+    write('dist/index.html', '<p>ok</p>');
+    const content = path.join(dir, 'content');
+    fs.mkdirSync(path.join(content, 'work'), { recursive: true });
+    fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
+    const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: content });
+    expect(problems.join('\n')).toMatch(/required link "\/terminal"/);
+    expect(problems.join('\n')).toMatch(/missing route \/terminal/);
+  });
+});
+
+describe('findSnapshotProblems', () => {
+  const entries = [
+    { collection: 'work', id: 'tesla', listed: true, cleared: false, body: '' },
+    { collection: 'work', id: 'hanna', listed: false, cleared: false, body: '' },
+    { collection: 'projects', id: 'advisorai', listed: true, cleared: true, body: '' },
+  ];
+  const snapshot = (chunks) => write('agent-data.json', JSON.stringify({ version: 1, chunks }));
+
+  it('passes when the snapshot matches the entries', () => {
+    snapshot([{ id: 'role:tesla' }, { id: 'project:advisorai#results' }]);
+    expect(findSnapshotProblems(dir, entries)).toEqual([]);
+  });
+
+  it('fails when the file is missing', () => {
+    expect(findSnapshotProblems(dir, entries)).toHaveLength(1);
+  });
+
+  it('fails when there are no chunks', () => {
+    snapshot([]);
+    expect(findSnapshotProblems(dir, entries).some((p) => p.includes('no chunks'))).toBe(true);
+  });
+
+  it('fails for a chunk from a non-listed entry', () => {
+    snapshot([{ id: 'role:hanna' }]);
+    expect(findSnapshotProblems(dir, entries).some((p) => p.includes('non-listed'))).toBe(true);
+  });
+
+  it('fails for body text from a non-cleared entry', () => {
+    snapshot([{ id: 'role:tesla#problem' }]);
+    expect(findSnapshotProblems(dir, entries).some((p) => p.includes('non-cleared'))).toBe(true);
+  });
+
+  it('fails for a chunk with no content entry', () => {
+    snapshot([{ id: 'role:ghost' }]);
+    expect(findSnapshotProblems(dir, entries).some((p) => p.includes('no content entry'))).toBe(true);
+  });
+
+  it('fails when the file is not valid json', () => {
+    write('agent-data.json', 'not json at all');
+    expect(findSnapshotProblems(dir, entries)).toHaveLength(1);
+  });
+});
+
+describe('readEntries listed flag', () => {
+  it('defaults listed to true and honours an explicit false', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'content-'));
+    fs.mkdirSync(path.join(dir, 'work'));
+    fs.writeFileSync(path.join(dir, 'work', 'a.md'), '---\nlisted: false\n---\nbody text here');
+    fs.writeFileSync(path.join(dir, 'work', 'b.md'), '---\ncleared: true\n---\nbody text here');
+    const entries = readEntries(dir);
+    expect(entries.find((e) => e.id === 'a').listed).toBe(false);
+    expect(entries.find((e) => e.id === 'b').listed).toBe(true);
   });
 });
