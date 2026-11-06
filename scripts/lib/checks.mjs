@@ -15,7 +15,7 @@ export function listHtml(dir) {
 const read = (f) => fs.readFileSync(f, 'utf8');
 
 export const findMarkers = (files) =>
-  files.filter((f) => read(f).includes('[to confirm]')).map((f) => `marker "[to confirm]" in ${f}`);
+  files.filter((f) => /\[to confirm/i.test(read(f))).map((f) => `marker "[to confirm" in ${f}`);
 
 export function findBrokenLinks(distDir, files) {
   const problems = [];

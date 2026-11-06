@@ -28,6 +28,16 @@ describe('findMarkers', () => {
     expect(problems[0]).toContain('p/index.html');
   });
   it('returns nothing when clean', () => { write('index.html', '<p>ok</p>'); expect(findMarkers(listHtml(dir))).toEqual([]); });
+  it('flags the [to confirm: detail] variant', () => {
+    write('index.html', '<p>ok</p>'); write('p/index.html', '<p>[to confirm: why]</p>');
+    const problems = findMarkers(listHtml(dir));
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain('p/index.html');
+  });
+  it('flags [To Confirm] case-insensitively', () => {
+    write('index.html', '<p>[To Confirm]</p>');
+    expect(findMarkers(listHtml(dir))).toHaveLength(1);
+  });
 });
 
 describe('findBrokenLinks', () => {

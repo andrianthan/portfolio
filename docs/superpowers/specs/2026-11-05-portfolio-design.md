@@ -66,7 +66,7 @@ Employer work and unreviewed drafts must never ship by accident.
 
 - Every content file has `cleared: true|false`. Default is `false`.
 - An entry with `cleared: false` is excluded from home page lists, routes, sitemap, and Open Graph. It generates no page.
-- Build check: the build fails if any rendered output contains the marker `[to confirm]`, if a `cleared: false` entry has a built route, is linked from any page, or has its body text present in any built page (titles may appear because `listed` entries are shown on the home page), or if any internal link is broken.
+- Build check: the build fails if any rendered output contains the `[to confirm` marker (case-insensitive), if a `cleared: false` entry has a built route, is linked from any page, or has its body text present in any built page (titles may appear because `listed` entries are shown on the home page), or if any internal link is broken.
 - A `drafts/` folder is gitignored for work-in-progress text, so unreviewed writing never enters git history.
 - Before the repo is first pushed, run a secrets scan (gitleaks) over the working tree and history.
 - Employer pages (Tesla, Hanna, Micron, Blue Dome) are `cleared: false` until the owner has reviewed the text and is comfortable publishing it. Their entries on the home page may show only resume-level one-liners, which the owner has already chosen to publish on the resume. Whether the home page shows a role before its detail page is cleared is controlled by a separate `listed` flag (default `true` for resume-level content); a role with `listed: true, cleared: false` appears on the home timeline without a "Read the full write-up" link.
@@ -133,7 +133,7 @@ Back link, kicker, title, lede, meta row (role, status, stack), links, screensho
 ## 9. Build checks
 
 `npm run build` runs Astro's build, then `scripts/check-build.mjs`, which fails the build on:
-1. Any `[to confirm]` marker in built HTML.
+1. Any `[to confirm` marker (case-insensitive) in built HTML.
 2. Any non-cleared entry with a built route in `dist/`, a link to it from any page, or its body text present in any built page (titles may appear because `listed` entries are shown on the home page).
 3. Any broken internal link or missing asset reference.
 4. Any `<img>` without `alt`.
