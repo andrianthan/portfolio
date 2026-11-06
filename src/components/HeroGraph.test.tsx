@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import HeroGraph, { checkMarkPoint, labelY } from './HeroGraph';
-import { GRAPH_CENTER, GRAPH_EDGES, GRAPH_NODES, GRAPH_VIEWBOX, controlPoint, edgeMidpoint } from '../lib/heroGraph';
+import HeroGraph from './HeroGraph';
+import {
+  CHECK_MARK_HALF_WIDTH, GRAPH_CENTER, GRAPH_EDGES, GRAPH_NODES, GRAPH_VIEWBOX, controlPoint,
+  edgeMidpoint, edgeShapes, labelY,
+} from '../lib/heroGraph';
 
 const html = renderToStaticMarkup(<HeroGraph nodes={GRAPH_NODES} edges={GRAPH_EDGES} />);
 const count = (needle: string) => html.split(needle).length - 1;
@@ -14,14 +17,14 @@ const checkEdges = GRAPH_EDGES.filter((e) => e.check);
 
 /** The ✓ marks as they are rendered, in the order the check edges are declared. */
 const renderedChecks = (markup: string): { x: number; y: number }[] =>
-  [...markup.matchAll(/<text class="hg-check" x="([-\d.]+)" y="([-\d.]+)">/g)].map((m) => ({
+  [...markup.matchAll(/<text class="hg-check" x="([-\d.]+)" y="([-\d.]+)"/g)].map((m) => ({
     x: Number(m[1]),
     y: Number(m[2]),
   }));
 
 /** The node labels as they are rendered, in document order. */
 const renderedLabels = (markup: string): { x: number; y: number; label: string }[] =>
-  [...markup.matchAll(/<text x="([-\d.]+)" y="([-\d.]+)">([^<]+)<\/text>/g)].map((m) => ({
+  [...markup.matchAll(/<text x="([-\d.]+)" y="([-\d.]+)"[^>]*>([^<]+)<\/text>/g)].map((m) => ({
     x: Number(m[1]),
     y: Number(m[2]),
     label: m[3],
@@ -39,6 +42,14 @@ const curvePoint = (
     x: u * u * p0.x + 2 * t * u * c.x + t * t * p1.x,
     y: u * u * p0.y + 2 * t * u * c.y + t * t * p1.y,
   };
+};
+
+/** The distance from a node centre to the glyph's ink: a band at the baseline, astride the anchor. */
+const inkDistance = (node: { x: number; y: number; r: number }, p: { x: number; y: number }) => {
+  const lo = p.x - CHECK_MARK_HALF_WIDTH;
+  const hi = p.x + CHECK_MARK_HALF_WIDTH;
+  const dx = node.x < lo ? lo - node.x : node.x > hi ? node.x - hi : 0;
+  return Math.hypot(dx, node.y - p.y);
 };
 
 describe('HeroGraph', () => {
@@ -89,12 +100,20 @@ describe('HeroGraph layering', () => {
 });
 
 describe('HeroGraph check marks', () => {
-  it('keeps every check mark out of every node disc', () => {
+  it('keeps every check mark clear of every node by more than the glyph', () => {
     const marks = renderedChecks(html);
     expect(marks).toHaveLength(checkEdges.length);
     for (const p of marks) {
       for (const n of GRAPH_NODES) {
-        expect(Math.hypot(p.x - n.x, p.y - n.y)).toBeGreaterThan(n.r);
+        expect(Math.hypot(p.x - n.x, p.y - n.y)).toBeGreaterThan(n.r + CHECK_MARK_HALF_WIDTH);
+      }
+    }
+  });
+
+  it('keeps the ink of every check mark out of every disc', () => {
+    for (const p of renderedChecks(html)) {
+      for (const n of GRAPH_NODES) {
+        expect(inkDistance(n, p)).toBeGreaterThan(n.r);
       }
     }
   });
@@ -116,25 +135,52 @@ describe('HeroGraph check marks', () => {
       const c = controlPoint(from, to, GRAPH_CENTER, CHECK_BOW);
       const onEdge = Array.from({ length: 13 }, (_, k) => (4 + k) / 20).some((t) => {
         const p = curvePoint(from, c, to, t);
-        return Math.abs(p.x - marks[i].x) < 1e-6 && Math.abs(p.y - marks[i].y) < 1e-6;
+        return Math.abs(p.x - marks[i].x) < 1e-9 && Math.abs(p.y - marks[i].y) < 1e-9;
       });
       expect(onEdge).toBe(true);
     }
   });
 
+  it('centres the check mark on its anchor', () => {
+    expect(count('text-anchor="middle"')).toBe(GRAPH_NODES.length + checkEdges.length);
+  });
+
+  it('sets the size of the check mark glyph', () => {
+    expect(count('font-size="6"')).toBe(checkEdges.length);
+  });
+
   it('moves the skills check off the midpoint that lands on the verifier', () => {
     const mid = edgeMidpoint(byId('skills'), byId('verify'), GRAPH_CENTER, CHECK_BOW);
     expect(Math.hypot(mid.x - byId('verify').x, mid.y - byId('verify').y)).toBeLessThan(byId('verify').r);
-    const p = checkMarkPoint(byId('skills'), byId('verify'), GRAPH_NODES, GRAPH_CENTER, CHECK_BOW);
+    const p = edgeShapes(GRAPH_NODES, GRAPH_EDGES).find((s) => s.key === 'skills-verify')!.check!;
     expect(p).not.toEqual(mid);
-    for (const n of GRAPH_NODES) {
-      expect(Math.hypot(p.x - n.x, p.y - n.y)).toBeGreaterThan(n.r);
-    }
+    expect(inkDistance(byId('verify'), p)).toBeGreaterThan(byId('verify').r);
+  });
+});
+
+describe('HeroGraph edges', () => {
+  it('draws every edge from the positions the nodes have now', () => {
+    const moved = GRAPH_NODES.map((n) => (n.id === 'skills' ? { ...n, x: n.x + 12, y: n.y - 6 } : n));
+    const markup = renderToStaticMarkup(<HeroGraph nodes={moved} edges={GRAPH_EDGES} />);
+    const paths = [...markup.matchAll(/<path class="hg-edge" d="([^"]+)"/g)].map((m) => m[1]);
+    const shape = edgeShapes(moved, GRAPH_EDGES).find((s) => s.key === 'skills-verify')!;
+    expect(paths).toContain(shape.d);
+    // the base layout would have drawn the same edge somewhere else
+    const base = edgeShapes(GRAPH_NODES, GRAPH_EDGES).find((s) => s.key === 'skills-verify')!;
+    expect(shape.d).not.toBe(base.d);
   });
 
-  it('falls back to the plain midpoint when the scan finds nothing better', () => {
-    const mid = edgeMidpoint(byId('skills'), byId('verify'), GRAPH_CENTER, CHECK_BOW);
-    expect(checkMarkPoint(byId('skills'), byId('verify'), [], GRAPH_CENTER, CHECK_BOW)).toEqual(mid);
+  it('anchors every edge to the node it belongs to', () => {
+    const paths = [...html.matchAll(/<path class="hg-edge" d="M ([-\d.]+) ([-\d.]+) Q [-\d.]+,[-\d.]+ ([-\d.]+),([-\d.]+)"/g)]
+      .map((m) => ({ from: { x: Number(m[1]), y: Number(m[2]) }, to: { x: Number(m[3]), y: Number(m[4]) } }));
+    const circles = [...html.matchAll(/<circle cx="([-\d.]+)" cy="([-\d.]+)"/g)]
+      .map((m) => ({ x: Number(m[1]), y: Number(m[2]) }));
+    expect(paths).toHaveLength(GRAPH_EDGES.length);
+    // an edge that does not stretch with its node would tear away from the circle
+    for (const p of paths) {
+      expect(circles).toContainEqual(p.from);
+      expect(circles).toContainEqual(p.to);
+    }
   });
 });
 
