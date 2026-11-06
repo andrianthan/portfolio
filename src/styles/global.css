@@ -38,6 +38,28 @@ h1 .dot { color: var(--color-num); }
 .contact a.p { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
 .contact a.p:hover { opacity: .88; background: var(--color-fg); }
 .hero-side { margin-top: var(--space-lg); }
+/* The hero copy reserves the height of its tallest state. The rotating word changes the line
+   count of the subtitle and the web font changes the metrics of the text, so without a
+   reservation the copy grows and drags the graph and everything under it down the page. The
+   slack lands below the buttons, so the pill, the name, the subtitle and the buttons keep the
+   place they have today. The parts below are the heights measured in the browser: the pill
+   (31px, or 48px when it wraps), the name, the subtitle (two or three lines) and the buttons
+   (37px on one row, 84px on two, 129px on three). */
+.hero-copy {
+  --hero-pill: 31px;
+  --hero-name: clamp(44px, 10vw, 92px);
+  --hero-sub: calc(2.6 * clamp(20px, 3vw, 28px));
+  --hero-buttons: 37px;
+  min-height: calc(var(--hero-pill) + 32px + var(--hero-name) + 16px + var(--hero-sub) + 32px + var(--hero-buttons) + 2px);
+}
+/* The subtitle keeps the height of its shortest state. A longer word needs one more line and
+   flows into the margin below it, so the buttons below it never move either. */
+.sub { height: var(--hero-sub); }
+@media (max-width: 591px) { .hero-copy { --hero-buttons: 84px; } }
+@media (max-width: 368px) { .hero-copy { --hero-pill: 48px; } }
+@media (max-width: 353px) { .hero-copy { --hero-buttons: 129px; } }
+@media (max-width: 330px) { .hero-copy { --hero-sub: calc(3.9 * clamp(20px, 3vw, 28px)); } }
+@media (max-width: 315px) { .hero-copy { --hero-name: 2 * clamp(44px, 10vw, 92px); } }
 .contact a.term { border: 0; background: none; color: var(--color-accent); padding: 9px 6px; }
 .contact a.term:hover { background: none; }
 .bar-right { display: flex; align-items: center; gap: 14px; }
