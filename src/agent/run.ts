@@ -2,6 +2,7 @@ import { describeRoute, route } from './route';
 import { REFUSAL_TEXT, respond, type Answer } from './respond';
 import { about, contact, experience, projects, resume, search, skills, type Ranked } from './tools';
 import { verify, type VerifyResult } from './verify';
+import { withNavigate } from './navigate';
 import type { Actor, AgentResult, Chunk, Intent, Route, Snapshot, TraceStep } from './types';
 
 // The intents answered by a tool, and the actor that reports each one in the
@@ -111,5 +112,5 @@ export function runAgent(snapshot: Snapshot, query: string): AgentResult {
     return refusal(refusalRoute, steps);
   }
 
-  return verified(routed, steps, respond(routed, chunks), chunks.map((entry) => entry.chunk));
+  return withNavigate(verified(routed, steps, respond(routed, chunks), chunks.map((entry) => entry.chunk)));
 }

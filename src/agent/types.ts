@@ -55,10 +55,16 @@ export interface Source {
   url: string;
 }
 
+/** A place on the home page an answer belongs to. Fixed in code, never read from content. */
+export interface NavTarget {
+  href: string;
+  label: string;
+}
+
 export interface AgentResult {
   route: Route;
   steps: TraceStep[];
   answer: { text: string; sources: Source[] } | null;
   refused: boolean;
-  effects?: { clear?: boolean; sound?: 'on' | 'off' | 'toggle' };
+  effects?: { clear?: boolean; sound?: 'on' | 'off' | 'toggle'; navigate?: NavTarget };
 }
