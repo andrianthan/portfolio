@@ -167,4 +167,5 @@ header.ph { padding: 48px 0 var(--space-lg); }
   .pill i { animation: none; } .sub #rot { transition: none; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .card, .more span, #theme-toggle, .contact a { transition: none; } .card::after { transition: none; } .card:hover { transform: none; }
+  .more:hover span { transform: none; }
 }

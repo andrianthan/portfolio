@@ -1,6 +1,21 @@
 ---
 import Base from '../layouts/Base.astro';
+import TopBar from '../components/TopBar.astro';
+import Hero from '../components/Hero.astro';
+import StatStrip from '../components/StatStrip.astro';
+import Timeline from '../components/Timeline.astro';
+import ProjectCards from '../components/ProjectCards.astro';
+import About from '../components/About.astro';
+import Footer from '../components/Footer.astro';
 ---
-<Base title="Andrian Than">
-  <h1>Andrian Than</h1>
+<Base title="Andrian Than · Software Engineer">
+  <div class="inner">
+    <TopBar />
+    <Hero />
+    <StatStrip />
+    <Timeline />
+    <ProjectCards />
+    <About />
+    <Footer />
+  </div>
 </Base>

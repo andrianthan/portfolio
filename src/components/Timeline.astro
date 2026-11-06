@@ -1,0 +1,12 @@
+---
+import { getCollection } from 'astro:content';
+import { listed } from '../lib/content';
+import RoleEntry from './RoleEntry.astro';
+const roles = listed(await getCollection('work'));
+---
+<section class="s" id="experience">
+  <h2>Experience</h2>
+  <div class="tl">
+    {roles.map((role) => <RoleEntry role={role} hasPage={role.data.cleared} />)}
+  </div>
+</section>

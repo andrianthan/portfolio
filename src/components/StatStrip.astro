@@ -1,0 +1,6 @@
+---
+import { stats } from '../data/stats';
+---
+<div class="stats reveal">
+  {stats.map((s) => <div class="stat"><b>{s.value}</b><span>{s.caption}</span></div>)}
+</div>

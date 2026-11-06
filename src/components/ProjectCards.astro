@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+import { listed } from '../lib/content';
+const projects = listed(await getCollection('projects'));
+---
+<section class="s" id="projects">
+  <h2>Projects</h2>
+  <div class="cards reveal">
+    {projects.map((p) => {
+      const Tag = p.data.cleared ? 'a' : 'div';
+      const href = p.data.cleared ? `/projects/${p.id}` : undefined;
+      return (
+        <Tag class="card" href={href}>
+          <div class="shot">screenshot</div>
+          <div class="t"><b>{p.data.name}</b><span class="m">{p.data.tag}</span><p>{p.data.summary}</p></div>
+        </Tag>
+      );
+    })}
+  </div>
+</section>
