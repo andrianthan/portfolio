@@ -14,6 +14,10 @@ export function writeSound(state: SoundState): void {
   try { localStorage.setItem(SOUND_KEY, state); } catch { /* storage unavailable */ }
 }
 
+/**
+ * A short terminal blip. Sound is a nicety, so neither method throws and
+ * neither leaves a rejected promise behind: every failure is swallowed.
+ */
 export interface Blip {
   play(): void;
   close(): void;
