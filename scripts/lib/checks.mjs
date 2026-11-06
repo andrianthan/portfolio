@@ -12,6 +12,17 @@ export function listHtml(dir) {
   return out;
 }
 
+const TEXT_EXT = new Set(['.html', '.js', '.css', '.xml', '.txt', '.json']);
+export function listText(dir) {
+  const out = [];
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...listText(p));
+    else if (TEXT_EXT.has(path.extname(e.name).toLowerCase())) out.push(p);
+  }
+  return out;
+}
+
 const read = (f) => fs.readFileSync(f, 'utf8');
 
 export const findMarkers = (files) =>
@@ -88,7 +99,7 @@ export function readEntries(contentDir) {
     if (!fs.existsSync(dir)) continue;
     for (const name of fs.readdirSync(dir).filter((n) => n.endsWith('.md'))) {
       const { data, content } = matter(fs.readFileSync(path.join(dir, name), 'utf8'));
-      entries.push({ collection, id: name.replace(/\.md$/, ''), cleared: data.cleared === true, body: content });
+      entries.push({ collection, id: name.replace(/\.md$/, '').toLowerCase(), cleared: data.cleared === true, body: content });
     }
   }
   return entries;

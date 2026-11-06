@@ -1,0 +1,19 @@
+import fs from 'node:fs';
+import { listHtml, listText, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, readEntries } from './checks.mjs';
+
+export function runChecks({ distDir, contentDir }) {
+  if (!fs.existsSync(distDir)) return { problems: [`dist not found: ${distDir}; run astro build first`], pages: 0, entries: 0 };
+  const html = listHtml(distDir);
+  const text = listText(distDir);
+  const entries = readEntries(contentDir);
+  const problems = [];
+  if (html.length === 0) problems.push('no html files found in dist (refusing to pass an empty build)');
+  if (entries.length === 0) problems.push('no content entries found (refusing to pass with nothing to check against)');
+  problems.push(
+    ...findMarkers(text),
+    ...findMissingAlt(html),
+    ...findBrokenLinks(distDir, html),
+    ...findLeaks(distDir, text, entries),
+  );
+  return { problems, pages: html.length, entries: entries.length };
+}

@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { listHtml, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles } from './checks.mjs';
+import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles } from './checks.mjs';
+import { runChecks } from './run.mjs';
 
 let dir;
 const write = (rel, content) => {
@@ -140,5 +141,63 @@ describe('findLeaks via later lines', () => {
     write('index.html', `<p>${plain}</p>`);
     const e = [{ collection: 'projects', id: 'x', cleared: false, body: `**Bold** it's text that never matches rendered html, honestly\n\n${plain}\n` }];
     expect(findLeaks(dir, listHtml(dir), e)).toHaveLength(1);
+  });
+});
+
+describe('listText', () => {
+  it('returns text outputs recursively and ignores other extensions', () => {
+    for (const f of ['a.html', 'b/c.js', 'd.css', 'e.xml', 'f.txt', 'g/h.json', 'i.png', 'j.woff2']) write(f, 'x');
+    expect(listText(dir).map((f) => path.relative(dir, f)).sort())
+      .toEqual(['a.html', 'b/c.js', 'd.css', 'e.xml', 'f.txt', 'g/h.json']);
+  });
+});
+
+describe('all-text scanning', () => {
+  it('findMarkers flags a marker inside a .js file', () => {
+    write('index.html', '<p>ok</p>'); write('_astro/app.js', 'const a = "[To Confirm]";');
+    const problems = findMarkers(listText(dir));
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain('app.js');
+  });
+  it('findLeaks flags a body needle present in an .xml file', () => {
+    const body = 'This is a confidential architecture description that must never be published anywhere.';
+    write('index.html', '<p>ok</p>'); write('feed.xml', `<x>${body}</x>`);
+    const problems = findLeaks(dir, listText(dir), [{ collection: 'work', id: 'tesla', cleared: false, body }]);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain('feed.xml');
+  });
+});
+
+describe('readEntries', () => {
+  it('lowercases ids so mixed-case filenames cannot hide a built route', () => {
+    const content = path.join(dir, 'content');
+    fs.mkdirSync(path.join(content, 'work'), { recursive: true });
+    fs.writeFileSync(path.join(content, 'work', 'Tesla.md'), '---\ncleared: false\n---\nbody');
+    expect(readEntries(content).map((e) => e.id)).toEqual(['tesla']);
+  });
+});
+
+describe('runChecks fail-closed', () => {
+  it('reports a problem on an empty dist', () => {
+    const content = path.join(dir, 'content');
+    fs.mkdirSync(path.join(content, 'work'), { recursive: true });
+    fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
+    fs.mkdirSync(path.join(dir, 'dist'));
+    const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: content });
+    expect(problems.length).toBeGreaterThan(0);
+    expect(problems.join('\n')).toMatch(/no html/i);
+  });
+  it('reports a problem when the entries list is empty', () => {
+    write('dist/index.html', '<p>ok</p>');
+    fs.mkdirSync(path.join(dir, 'content'));
+    const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: path.join(dir, 'content') });
+    expect(problems.join('\n')).toMatch(/no content entries/i);
+  });
+  it('is clean for a good dist', () => {
+    write('dist/index.html', '<p>ok</p>');
+    const content = path.join(dir, 'content');
+    fs.mkdirSync(path.join(content, 'work'), { recursive: true });
+    fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
+    expect(runChecks({ distDir: path.join(dir, 'dist'), contentDir: content }).problems).toEqual([]);
   });
 });
