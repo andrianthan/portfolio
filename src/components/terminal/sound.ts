@@ -19,6 +19,17 @@ export interface Blip {
   close(): void;
 }
 
+/**
+ * Attach a no-op rejection handler so a failed resume/close never surfaces as an
+ * unhandled promise rejection. Older or stubbed contexts may return a value that
+ * is not a promise, so the guard is required rather than decorative.
+ */
+function silence(result: unknown): void {
+  if (result && typeof (result as { catch?: unknown }).catch === 'function') {
+    (result as Promise<unknown>).catch(() => {});
+  }
+}
+
 export function createBlip(): Blip | null {
   if (typeof window === 'undefined') return null;
   const scope = window as unknown as { AudioContext?: new () => AudioContext; webkitAudioContext?: new () => AudioContext };
@@ -27,21 +38,25 @@ export function createBlip(): Blip | null {
   let context: AudioContext | null = null;
   return {
     play() {
-      if (!context) context = new Ctor();
-      if (context.state === 'suspended') void context.resume();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = 'square';
-      oscillator.frequency.value = 660;
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.05, context.currentTime + 0.005);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.02);
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start();
-      oscillator.stop(context.currentTime + 0.02);
+        if (!context) context = new Ctor();
+        if (context.state === 'suspended') void context.resume();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = 'square';
+        oscillator.frequency.value = 660;
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.05, context.currentTime + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.02);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.02);
     },
     close() {
-      void context?.close();
+      try {
+        silence(context?.close());
+      } catch {
+        /* the context is already gone */
+      }
       context = null;
     },
   };
