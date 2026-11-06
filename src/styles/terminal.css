@@ -1,0 +1,26 @@
+/* Terminal theme. Scoped to the terminal page; the home page keeps the base tokens. */
+.term-page {
+  --term-bg: #1b1917;
+  --term-fg: #e9e5de;
+  --term-muted: #948d83;
+  --term-rule: #34302c;
+  --term-accent: #e07a5f;
+  --term-ok: #7fb88a;
+  --term-fail: #e57373;
+
+  background: var(--term-bg);
+  color: var(--term-fg);
+  font: 400 15px/1.6 var(--font-mono);
+  min-height: 100vh;
+}
+.term-page a { color: var(--term-accent); text-decoration: none; }
+.term-page a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.term-page a:focus-visible { outline: 2px solid var(--term-accent); outline-offset: 3px; border-radius: 4px; }
+.term-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-bottom: 1px solid var(--term-rule); }
+.term-title { font-weight: 500; }
+.term-back { white-space: nowrap; }
+.term-main { padding: 28px 16px; max-width: 80ch; }
+.term-scope { color: var(--term-muted); margin: 0 0 18px; }
+.term-static { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: inherit; color: var(--term-fg); }
+.term-foot { border-top: 1px solid var(--term-rule); padding: 16px; color: var(--term-muted); font-size: 12px; }
+.term-foot p { margin: 0; }

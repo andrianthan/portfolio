@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import { profile } from '../data/profile';
+import '../styles/terminal.css';
+
+const preview = `deterministic agent: rules and retrieval, no LLM
+
+The live agent is being built in the open and is not in this build yet. This is
+where it will live: a question goes to one router, the router picks a tool, the
+tool retrieves from this site's published content, and a verifier checks every
+number in the answer before it is shown.
+
+It will answer from: experience, projects, resume, about, skills, contact.`;
+---
+<Base
+  title="terminal · Andrian Than"
+  description="A deterministic agent that answers from this portfolio's published content: rules and retrieval, no LLM."
+  path="/terminal"
+>
+  <div class="term-page">
+    <div class="term-bar">
+      <span class="term-title">andrian@portfolio · terminal</span>
+      <a class="term-back" href="/">← site</a>
+    </div>
+    <main class="term-main">
+      <p class="term-scope">deterministic agent: rules and retrieval, no LLM</p>
+      <pre class="term-static">{preview}</pre>
+    </main>
+    <footer class="term-foot">
+      <p>{profile.disclaimer}</p>
+    </footer>
+  </div>
+</Base>
