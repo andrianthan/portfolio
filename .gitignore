@@ -1,0 +1,8 @@
+design-reference/
+node_modules/
+dist/
+.astro/
+.vercel/
+.env*
+drafts/
+.DS_Store
