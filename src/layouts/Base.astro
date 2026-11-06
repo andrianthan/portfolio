@@ -33,5 +33,6 @@ const og = new URL(ogImage, Astro.site).toString();
   <body>
     <slot />
     <Analytics />
+    <script>import '../scripts/enhance.ts';</script>
   </body>
 </html>
