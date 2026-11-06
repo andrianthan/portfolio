@@ -38,8 +38,9 @@ export function createBlip(): Blip | null {
   let context: AudioContext | null = null;
   return {
     play() {
+      try {
         if (!context) context = new Ctor();
-        if (context.state === 'suspended') void context.resume();
+        if (context.state === 'suspended') silence(context.resume());
         const oscillator = context.createOscillator();
         const gain = context.createGain();
         oscillator.type = 'square';
@@ -50,6 +51,9 @@ export function createBlip(): Blip | null {
         oscillator.connect(gain).connect(context.destination);
         oscillator.start();
         oscillator.stop(context.currentTime + 0.02);
+      } catch {
+        /* audio unavailable — a failed blip must never break the caller */
+      }
     },
     close() {
       try {
