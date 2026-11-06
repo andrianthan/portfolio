@@ -1,15 +1,22 @@
 ---
 import RotatingWord from './RotatingWord.tsx';
+import HeroGraph from './HeroGraph.astro';
 import { profile } from '../data/profile';
 ---
 <header class="hero">
-  <div class="pill"><i></i>Graduating Spring 2027 · San Jose, CA</div>
-  <h1><span class="w">Andrian</span> <span class="w">Than<span class="dot">.</span></span></h1>
-  <p class="sub">Software engineer building <RotatingWord client:visible words={['AI agents', 'evals and guardrails', 'forecasting tools', 'data pipelines']} /> that people can trust.</p>
-  <div class="contact">
-    <a class="p" href={profile.contact.resume}>Resume (PDF)</a>
-    <a href={`mailto:${profile.contact.email}`}>Email</a>
-    <a href={profile.contact.linkedin} rel="noopener">LinkedIn</a>
-    <a href={profile.contact.github} rel="noopener">GitHub</a>
+  <div class="hero-copy">
+    <div class="pill"><i></i>Graduating Spring 2027 · San Jose, CA</div>
+    <h1><span class="w">Andrian</span> <span class="w">Than<span class="dot">.</span></span></h1>
+    <p class="sub">Software engineer building <RotatingWord client:visible words={['AI agents', 'evals and guardrails', 'forecasting tools', 'data pipelines']} /> that people can trust.</p>
+    <div class="contact">
+      <a class="p" href={profile.contact.resume}>Resume (PDF)</a>
+      <a href={`mailto:${profile.contact.email}`}>Email</a>
+      <a href={profile.contact.linkedin} rel="noopener">LinkedIn</a>
+      <a href={profile.contact.github} rel="noopener">GitHub</a>
+      <a class="term" href="/terminal">Try the terminal →</a>
+    </div>
+  </div>
+  <div class="hero-side">
+    <HeroGraph />
   </div>
 </header>

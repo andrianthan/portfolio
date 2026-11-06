@@ -46,6 +46,27 @@ export function findBrokenLinks(distDir, files) {
 export const findMissingAlt = (files) =>
   files.filter((f) => /<img(?![^>]*\balt=)[^>]*>/i.test(read(f))).map((f) => `<img> without alt in ${f}`);
 
+/**
+ * Links that must be present in the built pages. A route that nobody links to is unreachable,
+ * so a link that is required by the site has to be checked against the built html.
+ */
+export function findRequiredLinks(files, required) {
+  const all = files.map((f) => read(f)).join('\n');
+  return required
+    .filter((href) => !all.includes(`href="${href}"`))
+    .map((href) => `required link "${href}" is not present in the built pages`);
+}
+
+/**
+ * Routes that must exist in the built output. A page that was never built is a dead end, even
+ * when another page links to it.
+ */
+export function findMissingRoutes(distDir, routes) {
+  return routes
+    .filter((route) => !fs.existsSync(path.join(distDir, route.replace(/^\//, ''), 'index.html')))
+    .map((route) => `missing route ${route} (expected ${route.replace(/^\//, '')}/index.html in dist)`);
+}
+
 // A distinctive prose snippet from a Markdown body that survives rendering to HTML.
 export function bodyNeedle(body) {
   for (const raw of body.split(/\r?\n/)) {

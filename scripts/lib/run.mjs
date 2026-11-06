@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { listHtml, listText, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, readEntries } from './checks.mjs';
+import { listHtml, listText, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, readEntries, findRequiredLinks, findMissingRoutes } from './checks.mjs';
 
 export function runChecks({ distDir, contentDir }) {
   if (!fs.existsSync(distDir)) return { problems: [`dist not found: ${distDir}; run astro build first`], pages: 0, entries: 0 };
@@ -14,6 +14,8 @@ export function runChecks({ distDir, contentDir }) {
     ...findMissingAlt(html),
     ...findBrokenLinks(distDir, html),
     ...findLeaks(distDir, text, entries),
+    ...findRequiredLinks(html, ['/terminal']),
+    ...findMissingRoutes(distDir, ['/terminal']),
   );
   return { problems, pages: html.length, entries: entries.length };
 }

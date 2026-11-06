@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles } from './checks.mjs';
+import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles, findRequiredLinks, findMissingRoutes } from './checks.mjs';
 import { runChecks } from './run.mjs';
 
 let dir;
@@ -177,6 +177,28 @@ describe('readEntries', () => {
   });
 });
 
+describe('findRequiredLinks', () => {
+  it('passes when the required href is present', () => {
+    write('index.html', '<a href="/terminal">terminal</a>');
+    expect(findRequiredLinks(listHtml(dir), ['/terminal'])).toEqual([]);
+  });
+  it('fails when the required href is missing', () => {
+    write('index.html', '<a href="/">home</a>');
+    expect(findRequiredLinks(listHtml(dir), ['/terminal'])).toHaveLength(1);
+  });
+});
+
+describe('findMissingRoutes', () => {
+  it('passes when the route was built', () => {
+    write('terminal/index.html', '<!doctype html>');
+    expect(findMissingRoutes(dir, ['/terminal'])).toEqual([]);
+  });
+  it('fails when the route is missing', () => {
+    write('index.html', '<!doctype html>');
+    expect(findMissingRoutes(dir, ['/terminal'])).toHaveLength(1);
+  });
+});
+
 describe('runChecks fail-closed', () => {
   it('reports a problem on an empty dist', () => {
     const content = path.join(dir, 'content');
@@ -188,16 +210,27 @@ describe('runChecks fail-closed', () => {
     expect(problems.join('\n')).toMatch(/no html/i);
   });
   it('reports a problem when the entries list is empty', () => {
-    write('dist/index.html', '<p>ok</p>');
+    write('dist/index.html', '<a href="/terminal">terminal</a>');
+    write('dist/terminal/index.html', '<!doctype html>');
     fs.mkdirSync(path.join(dir, 'content'));
     const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: path.join(dir, 'content') });
     expect(problems.join('\n')).toMatch(/no content entries/i);
   });
   it('is clean for a good dist', () => {
-    write('dist/index.html', '<p>ok</p>');
+    write('dist/index.html', '<a href="/terminal">terminal</a>');
+    write('dist/terminal/index.html', '<!doctype html>');
     const content = path.join(dir, 'content');
     fs.mkdirSync(path.join(content, 'work'), { recursive: true });
     fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
     expect(runChecks({ distDir: path.join(dir, 'dist'), contentDir: content }).problems).toEqual([]);
+  });
+  it('reports a terminal link that is missing and a terminal route that was not built', () => {
+    write('dist/index.html', '<p>ok</p>');
+    const content = path.join(dir, 'content');
+    fs.mkdirSync(path.join(content, 'work'), { recursive: true });
+    fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
+    const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: content });
+    expect(problems.join('\n')).toMatch(/required link "\/terminal"/);
+    expect(problems.join('\n')).toMatch(/missing route \/terminal/);
   });
 });
