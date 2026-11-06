@@ -3,13 +3,8 @@ import { useTerminal } from './useTerminal';
 
 const CHIPS = ['/help', '/experience', '/projects', '/resume', '/about', '/skills', '/contact', '/hire'];
 
-export interface TerminalProps {
-  /** Home-page panel: no auto-run, no focus grab, an empty-state hint, no back link. */
-  embedded?: boolean;
-}
-
-export default function Terminal({ embedded = false }: TerminalProps = {}) {
-  const term = useTerminal({ autoHelp: !embedded });
+export default function Terminal() {
+  const term = useTerminal();
   const input = useRef<HTMLInputElement | null>(null);
   const log = useRef<HTMLDivElement | null>(null);
 
@@ -19,31 +14,18 @@ export default function Terminal({ embedded = false }: TerminalProps = {}) {
   }, [term.lines]);
 
   return (
-    <div className={embedded ? 'term-app term-app-embedded' : 'term-app'}>
+    <div className="term-app">
       <div className="term-bar">
-        {embedded ? (
-          <span className="term-title">andrian@portfolio · terminal</span>
-        ) : (
-          <h1 className="term-title">andrian@portfolio · terminal</h1>
-        )}
+        <h1 className="term-title">andrian@portfolio · terminal</h1>
         <span className="term-bar-actions">
           <button type="button" className="term-sound" aria-pressed={term.soundOn} onClick={term.toggleSound}>
             {`sound ${term.soundOn ? 'on' : 'off'}`}
           </button>
-          {embedded ? (
-            <a className="term-back" href="/terminal">full screen ↗</a>
-          ) : (
-            <a className="term-back" href="/">← site</a>
-          )}
+          <a className="term-back" href="/">← site</a>
         </span>
       </div>
 
       <div className="term-log" role="log" aria-live="polite" ref={log} onClick={term.flush}>
-        {embedded && term.lines.length === 0 && !term.busy ? (
-          <div className="term-line term-status-info">
-            Ask about Andrian's work in plain words, or tap a command below. Answers come from this site's content: rules and retrieval, no LLM.
-          </div>
-        ) : null}
         {term.lines.map((line) => (
           <div
             key={line.id}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { runAgent } from '../../agent/run';
-import type { Snapshot, Source } from '../../agent/types';
+import { isBareRoute } from '../../agent/navigate';
+import type { NavTarget, Snapshot, Source } from '../../agent/types';
 import { createBlip, readSound, writeSound, type Blip } from './sound';
 
 export const COMMANDS = [
@@ -67,9 +68,13 @@ export function getSnapshot(): Promise<Snapshot> {
 export interface TerminalOptions {
   /** Run /help on mount. The embedded home-page panel leaves the log empty instead. */
   autoHelp?: boolean;
+  /** Called for a bare route (a slash command or one word) that has a place on the page. */
+  onNavigate?: (target: NavTarget) => void;
 }
 
-export function useTerminal({ autoHelp = true }: TerminalOptions = {}) {
+export function useTerminal({ autoHelp = true, onNavigate }: TerminalOptions = {}) {
+  const navigateRef = useRef(onNavigate);
+  navigateRef.current = onNavigate;
   const [lines, setLines] = useState<LogLine[]>([]);
   const [value, setValue] = useState('');
   const [busy, setBusy] = useState(false);
@@ -158,6 +163,12 @@ export function useTerminal({ autoHelp = true }: TerminalOptions = {}) {
         return;
       }
       if (result.effects?.sound) applySound(result.effects.sound);
+      const target = result.effects?.navigate;
+      if (target && navigateRef.current && isBareRoute(query)) {
+        navigateRef.current(target);
+        enqueue([{ id: nextId.current++, kind: 'trace', text: `→ ${target.label}`, status: 'ok' }]);
+        return;
+      }
       const items: LogLine[] = result.steps.map((step) => ({
         id: nextId.current++,
         kind: 'trace' as const,
@@ -169,7 +180,9 @@ export function useTerminal({ autoHelp = true }: TerminalOptions = {}) {
           id: nextId.current++,
           kind: 'answer' as const,
           text: result.answer.text,
-          sources: result.answer.sources,
+          sources: target && navigateRef.current
+            ? [...result.answer.sources, { title: `open ${target.label}`, url: target.href }]
+            : result.answer.sources,
           refused: result.refused,
         });
       }
