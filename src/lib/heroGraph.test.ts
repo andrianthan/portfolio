@@ -1,10 +1,26 @@
 import { describe, it, expect } from 'vitest';
+import type { GraphNode } from './heroGraph';
 import {
   GRAPH_CENTER, GRAPH_EDGES, GRAPH_LINKS, GRAPH_NODES, GRAPH_VIEWBOX,
-  edgeMidpoint, edgePath, lerpNodes, pullNodes,
+  controlPoint, edgeMidpoint, edgePath, lerpNodes, pullNodes,
 } from './heroGraph';
 
 const byId = (id: string) => GRAPH_NODES.find((n) => n.id === id)!;
+
+const [, , VIEW_W, VIEW_H] = GRAPH_VIEWBOX.split(' ').map(Number);
+const LABEL_OFFSET = 13; // the label is drawn at node.y + node.r + 13
+const LABEL_HEIGHT = 8; // room for the text itself below that slot
+const BOW = 0.45;
+
+const quadratic = (p0: { x: number; y: number }, c: { x: number; y: number }, p1: { x: number; y: number }, t: number) => ({
+  x: (1 - t) ** 2 * p0.x + 2 * t * (1 - t) * c.x + t * t * p1.x,
+  y: (1 - t) ** 2 * p0.y + 2 * t * (1 - t) * c.y + t * t * p1.y,
+});
+
+const curvePoints = (from: GraphNode, to: GraphNode, bow = BOW, n = 400) => {
+  const c = controlPoint(from, to, GRAPH_CENTER, bow);
+  return Array.from({ length: n + 1 }, (_, i) => quadratic(from, c, to, i / n));
+};
 
 describe('graph geometry', () => {
   it('has seven nodes with unique ids', () => {
@@ -51,9 +67,18 @@ describe('graph geometry', () => {
     expect(GRAPH_VIEWBOX).toBe('0 0 320 240');
     for (const n of GRAPH_NODES) {
       expect(n.x - n.r).toBeGreaterThanOrEqual(0);
-      expect(n.x + n.r).toBeLessThanOrEqual(320);
+      expect(n.x + n.r).toBeLessThanOrEqual(VIEW_W);
       expect(n.y - n.r).toBeGreaterThanOrEqual(0);
-      expect(n.y + n.r).toBeLessThanOrEqual(240);
+      expect(n.y + n.r).toBeLessThanOrEqual(VIEW_H);
+    }
+  });
+
+  it('leaves room for the label drawn below every node', () => {
+    for (const n of GRAPH_NODES) {
+      const slot = n.y + n.r + LABEL_OFFSET;
+      expect(slot + LABEL_HEIGHT).toBeLessThanOrEqual(VIEW_H);
+      expect(n.x).toBeGreaterThanOrEqual(0);
+      expect(n.x).toBeLessThanOrEqual(VIEW_W);
     }
   });
 
@@ -74,13 +99,46 @@ describe('graph geometry', () => {
     expect(cx).toBeLessThan(Number(straightControl.split(',')[0]));
   });
 
+  it('keeps every check edge at least 20 units clear of the orchestrator', () => {
+    const checks = GRAPH_EDGES.filter((e) => e.check);
+    expect(checks).toHaveLength(5);
+    for (const e of checks) {
+      const from = byId(e.from);
+      const to = byId(e.to);
+      let min = Infinity;
+      for (const p of curvePoints(from, to)) {
+        min = Math.min(min, Math.hypot(p.x - GRAPH_CENTER.x, p.y - GRAPH_CENTER.y));
+      }
+      expect(min).toBeGreaterThanOrEqual(20);
+    }
+  });
+
+  it('never runs a check edge along an orchestrator spoke', () => {
+    const verify = byId('verify');
+    const vx = verify.x - GRAPH_CENTER.x;
+    const vy = verify.y - GRAPH_CENTER.y;
+    const len = Math.hypot(vx, vy);
+    for (const e of GRAPH_EDGES.filter((e) => e.check)) {
+      const from = byId(e.from);
+      // the tool must sit off the centre -> verifier line, or the edge would lie on its own spoke
+      const off = Math.abs((from.x - GRAPH_CENTER.x) * vy - (from.y - GRAPH_CENTER.y) * vx) / len;
+      expect(off).toBeGreaterThan(10);
+    }
+  });
+
   it('places the check mark at the edge midpoint', () => {
     const m = edgeMidpoint(byId('skills'), byId('verify'), GRAPH_CENTER, 0.45);
     expect(Number.isFinite(m.x)).toBe(true);
     expect(Number.isFinite(m.y)).toBe(true);
-    // the mark rides the outward-bowed arc: below the tool node, above the verifier
-    expect(m.y).toBeGreaterThan(byId('skills').y);
-    expect(m.y).toBeLessThan(byId('verify').y);
+    // the mark rides the edge itself
+    const onEdge = curvePoints(byId('skills'), byId('verify')).some((p) => Math.hypot(p.x - m.x, p.y - m.y) < 0.01);
+    expect(onEdge).toBe(true);
+    // and it stays clear of the hub and inside the box
+    expect(Math.hypot(m.x - GRAPH_CENTER.x, m.y - GRAPH_CENTER.y)).toBeGreaterThan(byId('orchestrator').r);
+    expect(m.x).toBeGreaterThanOrEqual(0);
+    expect(m.x).toBeLessThanOrEqual(VIEW_W);
+    expect(m.y).toBeGreaterThanOrEqual(0);
+    expect(m.y).toBeLessThanOrEqual(VIEW_H);
   });
 });
 
@@ -88,17 +146,20 @@ describe('pointer reaction', () => {
   const opts = { radius: 70, maxShift: 12 };
 
   it('does not move anything without a pointer', () => {
-    expect(pullNodes(GRAPH_NODES, null, opts).map((n) => [n.x, n.y])).toEqual(GRAPH_NODES.map((n) => [n.x, n.y]));
+    const base = GRAPH_NODES.map((n) => [n.x, n.y]);
+    expect(pullNodes(GRAPH_NODES, null, opts).map((n) => [n.x, n.y])).toEqual(base);
   });
 
   it('does not move anything under reduced motion', () => {
+    const base = GRAPH_NODES.map((n) => [n.x, n.y]);
     const p = { x: GRAPH_CENTER.x, y: GRAPH_CENTER.y };
-    expect(pullNodes(GRAPH_NODES, p, { ...opts, reduced: true }).map((n) => [n.x, n.y])).toEqual(GRAPH_NODES.map((n) => [n.x, n.y]));
+    expect(pullNodes(GRAPH_NODES, p, { ...opts, reduced: true }).map((n) => [n.x, n.y])).toEqual(base);
   });
 
   it('leaves nodes outside the radius alone', () => {
+    const base = GRAPH_NODES.map((n) => [n.x, n.y]);
     const p = { x: -500, y: -500 };
-    expect(pullNodes(GRAPH_NODES, p, opts).map((n) => [n.x, n.y])).toEqual(GRAPH_NODES.map((n) => [n.x, n.y]));
+    expect(pullNodes(GRAPH_NODES, p, opts).map((n) => [n.x, n.y])).toEqual(base);
   });
 
   it('pulls a node toward the pointer and caps the shift', () => {
@@ -109,6 +170,49 @@ describe('pointer reaction', () => {
     expect(Math.hypot(moved.x - target.x, moved.y - target.y)).toBeLessThanOrEqual(opts.maxShift + 0.0001);
     expect(moved.x).toBeGreaterThan(target.x);
     expect(moved.y).toBeGreaterThan(target.y);
+  });
+
+  it('moves a node a visible distance when the pointer is at half the radius', () => {
+    for (const n of GRAPH_NODES) {
+      const p = { x: n.x + opts.radius / 2, y: n.y };
+      const moved = pullNodes(GRAPH_NODES, p, opts).find((m) => m.id === n.id)!;
+      expect(Math.hypot(moved.x - n.x, moved.y - n.y)).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it('caps the shift at maxShift when the cap bites', () => {
+    const target = byId('projects');
+    const p = { x: target.x + 30, y: target.y + 30 };
+    const moved = pullNodes(GRAPH_NODES, p, { radius: 70, maxShift: 1 }).find((n) => n.id === 'projects')!;
+    expect(Math.hypot(moved.x - target.x, moved.y - target.y)).toBeCloseTo(1, 6);
+  });
+
+  it('never pushes a node outside the view box', () => {
+    const pointers = [
+      { x: 0, y: 0 },
+      { x: VIEW_W, y: 0 },
+      { x: 0, y: VIEW_H },
+      { x: VIEW_W, y: VIEW_H },
+      { x: 160, y: -100 },
+      { x: -500, y: -500 },
+    ];
+    for (const p of pointers) {
+      for (const o of [{ radius: 70, maxShift: 12 }, { radius: 400, maxShift: 400 }]) {
+        for (const n of pullNodes(GRAPH_NODES, p, o)) {
+          expect(n.x - n.r).toBeGreaterThanOrEqual(0);
+          expect(n.x + n.r).toBeLessThanOrEqual(VIEW_W);
+          expect(n.y - n.r).toBeGreaterThanOrEqual(0);
+          expect(n.y + n.r).toBeLessThanOrEqual(VIEW_H);
+        }
+      }
+    }
+  });
+
+  it('does not mutate the nodes it is given', () => {
+    const base = GRAPH_NODES.map((n) => [n.x, n.y]);
+    const moved = pullNodes(GRAPH_NODES, { x: 200, y: 100 }, opts);
+    expect(GRAPH_NODES.map((n) => [n.x, n.y])).toEqual(base);
+    expect(moved).not.toBe(GRAPH_NODES);
   });
 
   it('is deterministic', () => {
@@ -130,5 +234,21 @@ describe('lerp', () => {
     const b = GRAPH_NODES.map((n) => ({ ...n, x: n.x + 10, y: n.y + 10 }));
     const mid = lerpNodes(a, b, 0.5);
     expect(mid[0].x).toBeCloseTo(a[0].x + 5);
+  });
+
+  it('matches the second array by id, not by position', () => {
+    const a = GRAPH_NODES.map((n) => ({ ...n }));
+    const b = GRAPH_NODES.map((n) => ({ ...n, x: n.x + 10, y: n.y + 10 }));
+    const shuffled = [...b].reverse();
+    expect(lerpNodes(a, shuffled, 0.5).map((n) => [n.x, n.y])).toEqual(lerpNodes(a, b, 0.5).map((n) => [n.x, n.y]));
+  });
+
+  it('keeps the first position when an id is missing from the second array', () => {
+    const a = GRAPH_NODES.map((n) => ({ ...n }));
+    const b = GRAPH_NODES.filter((n) => n.id !== 'skills').map((n) => ({ ...n, x: n.x + 10, y: n.y + 10 }));
+    const mid = lerpNodes(a, b, 0.5);
+    const skills = mid.find((n) => n.id === 'skills')!;
+    expect(skills.x).toBe(byId('skills').x);
+    expect(skills.y).toBe(byId('skills').y);
   });
 });
