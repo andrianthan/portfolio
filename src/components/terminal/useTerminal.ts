@@ -70,9 +70,13 @@ export interface TerminalOptions {
   autoHelp?: boolean;
   /** Called for a bare route (a slash command or one word) that has a place on the page. */
   onNavigate?: (target: NavTarget) => void;
+  /** A short, honest pause while the agent works, so an answer does not just pop in. Skipped under reduced motion. */
+  thinkMs?: number;
+  /** On a refusal show only the friendly line, not the internal trace that led to it. */
+  quietRefusals?: boolean;
 }
 
-export function useTerminal({ autoHelp = true, onNavigate }: TerminalOptions = {}) {
+export function useTerminal({ autoHelp = true, onNavigate, thinkMs = 0, quietRefusals = false }: TerminalOptions = {}) {
   const navigateRef = useRef(onNavigate);
   navigateRef.current = onNavigate;
   const [lines, setLines] = useState<LogLine[]>([]);
@@ -169,7 +173,9 @@ export function useTerminal({ autoHelp = true, onNavigate }: TerminalOptions = {
         enqueue([{ id: nextId.current++, kind: 'trace', text: `→ ${target.label}`, status: 'ok' }]);
         return;
       }
-      const items: LogLine[] = result.steps.map((step) => ({
+      if (thinkMs > 0 && !reduced.current) await new Promise((resolve) => setTimeout(resolve, thinkMs));
+      const steps = quietRefusals && result.refused ? [] : result.steps;
+      const items: LogLine[] = steps.map((step) => ({
         id: nextId.current++,
         kind: 'trace' as const,
         text: `${step.actor}: ${step.text}`,
@@ -192,7 +198,7 @@ export function useTerminal({ autoHelp = true, onNavigate }: TerminalOptions = {
     } finally {
       setBusy(false);
     }
-  }, [value, applySound, enqueue, flush]);
+  }, [value, applySound, enqueue, flush, thinkMs, quietRefusals]);
 
   const runCommand = useCallback((query: string) => {
     void submit(query);
