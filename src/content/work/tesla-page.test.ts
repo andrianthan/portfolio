@@ -22,6 +22,6 @@ describe('the tesla page in the template', () => {
   it('sizes the sticky contents list for six rows', () => {
     const m = css.match(/--toc-list-height:\s*(\d+)px/);
     expect(m).not.toBeNull();
-    expect(Number(m![1])).toBeGreaterThanOrEqual(280);
+    expect(Number(m![1])).toBeGreaterThanOrEqual(340);
   });
 });

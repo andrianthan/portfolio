@@ -22,9 +22,9 @@ export default function WorklogDemo() {
         <span className="qa-title">{WORKLOG.title} · {WORKLOG.subtitle}</span>
         <span className="qa-sample">sample data</span>
       </div>
-      <div className="wl-tabs" role="tablist" aria-label="Work log sections">
+      <div className="wl-tabs" role="group" aria-label="Work log sections">
         <button
-          type="button" role="tab" aria-selected={section === null}
+          type="button" aria-pressed={section === null}
           className={section === null ? 'on' : ''}
           onClick={() => setState(selectHeadline(state))}
         >
@@ -32,7 +32,7 @@ export default function WorklogDemo() {
         </button>
         {WORKLOG.sections.map((s) => (
           <button
-            key={s.id} type="button" role="tab" aria-selected={section?.id === s.id}
+            key={s.id} type="button" aria-pressed={section?.id === s.id}
             className={section?.id === s.id ? 'on' : ''}
             onClick={() => setState(selectSection(state, s.id))}
           >
@@ -40,7 +40,7 @@ export default function WorklogDemo() {
           </button>
         ))}
       </div>
-      <div className="wl-body" role="tabpanel" aria-label={section ? section.title : 'Headline'}>
+      <div className="wl-body" role="region" aria-label={section ? section.title : 'Headline'}>
         {entries.map((e) => {
           const key = `${panel}:${e.label}`;
           const open = state.expanded.includes(key);

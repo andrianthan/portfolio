@@ -24,7 +24,7 @@ Demand planners were already asking an LLM questions about consumption data, and
 ### What it does
 
 - **Answers only from tool results.** An output rail extracts every number in a draft answer and checks each one against the tool results in the conversation. A figure with no source is stripped, and the answer ships without it.
-- **Forces tool use where it matters.** A code-gated routing floor sends data questions to a tool before the model can free-form an answer. On the routing evals that floor takes coverage to 35/35 metric intents with 0% free-route answers.
+- **Forces tool use where it matters.** A code-gated routing floor sends data questions to a tool before the model can free-form an answer. On the routing evals that floor takes tool-routing coverage to 35/35 with 0% free-route answers.
 - **Grades metric understanding.** Metric questions — error rates, deltas, forecast quality — grade 17/17 on the metric eval set.
 - **Stops silent verdict flips.** Every answer ends in a typed verdict stating what the data supports, so a conclusion cannot quietly change between runs.
 - **Runs a sandboxed Python tool.** Numeric questions go to a Python tool that accepts an allow-listed subset of the language and touches no network, returning a checked result into the conversation.
@@ -36,7 +36,7 @@ The shape is a pipeline with one mandatory gate. A planner's question enters the
 The rail sits after the model rather than inside it because grounding is a checkable property, not a style the model can be prompted into. Putting the guarantee in code makes it testable in CI: a fabricated number either survives the rail or the build fails.
 
 <figure class="arch">
-<svg viewBox="0 0 640 300" role="img" aria-label="Ask SDP architecture: a planner question flows through a code-gated routing floor, then to a Python tool and a retrieval tool, and the draft answer passes an output rail that checks every number against tool results before a typed verdict ships.">
+<svg viewBox="0 0 640 300" role="img" aria-label="Ask SDP architecture: a planner question flows through a code-gated routing floor, then to a sandboxed Python tool and a data tool over live consumption, and the draft answer passes an output rail that checks every number against tool results before a typed verdict ships.">
   <defs>
     <marker id="at1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>
   </defs>
@@ -51,9 +51,8 @@ The rail sits after the model rather than inside it because grounding is a check
     <path d="M310 138 C 340 120, 340 96, 364 90" marker-end="url(#at1)"/>
     <path d="M310 162 C 340 180, 340 204, 364 210" marker-end="url(#at1)"/>
     <path d="M480 87 H 504" marker-end="url(#at1)"/>
-    <path d="M480 213 H 504" marker-end="url(#at1)"/>
+    <path d="M480 213 C 498 213, 498 100, 504 97" marker-end="url(#at1)"/>
     <path d="M565 114 V 180" marker-end="url(#at1)"/>
-    <path d="M565 186 V 114" marker-end="url(#at1)"/>
   </g>
   <g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
     <text x="75" y="145">Planner's</text><text x="75" y="162" font-size="11" style="fill:var(--color-muted)">question</text>
@@ -82,7 +81,7 @@ The rail sits after the model rather than inside it because grounding is a check
 
 ### Impact
 
-- Routing coverage 35/35 metric intents with 0% free-route answers.
+- Tool-routing coverage 35/35 with 0% free-route answers.
 - Metric intents grade 17/17.
 - Grounding grades at micro-F1 0.854 against a 0.80 threshold.
 - No answer ships with a number that did not come from a tool result.
@@ -190,10 +189,10 @@ The facade is deliberately the only path to data. One path means one place to ad
     <rect x="180" y="125" width="150" height="50" rx="10"/>
     <rect x="180" y="210" width="150" height="50" rx="10"/>
     <rect x="420" y="40" width="200" height="220" rx="10"/>
-    <path d="M120 150 H 174" marker-end="url(#at3)"/>
-    <path d="M330 65 C 380 55, 380 55, 414 60" marker-end="url(#at3)"/>
-    <path d="M330 150 H 414" marker-end="url(#at3)"/>
-    <path d="M330 235 C 380 245, 380 245, 414 240" marker-end="url(#at3)"/>
+    <path d="M120 150 C 150 120, 150 80, 174 70" marker-end="url(#at3)"/>
+    <path d="M255 90 V 119" marker-end="url(#at3)"/>
+    <path d="M255 175 V 204" marker-end="url(#at3)"/>
+    <path d="M330 235 H 414" marker-end="url(#at3)"/>
   </g>
   <g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
     <text x="70" y="145">Browser</text><text x="70" y="162" font-size="11" style="fill:var(--color-muted)">planners</text>
@@ -259,10 +258,10 @@ The gates are separate because they fail for different reasons: routing and metr
     <rect x="180" y="238" width="110" height="50" rx="10"/>
     <rect x="530" y="122" width="90" height="50" rx="10"/>
     <path d="M120 147 H 174" marker-end="url(#at4)"/>
-    <path d="M290 120 V 86" marker-end="url(#at4)"/>
-    <path d="M290 174 V 208" marker-end="url(#at4)"/>
+    <path d="M290 135 C 330 110, 330 60, 354 55" marker-end="url(#at4)"/>
     <path d="M290 147 H 354" marker-end="url(#at4)"/>
-    <path d="M290 263 C 320 263, 320 200, 354 165" marker-end="url(#at4)"/>
+    <path d="M290 160 C 330 185, 330 235, 354 239" marker-end="url(#at4)"/>
+    <path d="M290 263 H 354" marker-end="url(#at4)"/>
     <path d="M470 55 C 510 60, 510 105, 524 116" marker-end="url(#at4)"/>
     <path d="M470 147 H 524" marker-end="url(#at4)"/>
     <path d="M470 239 C 510 234, 510 189, 524 178" marker-end="url(#at4)"/>
@@ -281,7 +280,7 @@ The gates are separate because they fail for different reasons: routing and metr
 </figure>
 
 - The golden set is versioned with the code that grades it, so a grade always means the same thing.
-- The negative control has failed real changes: when the output rail was being built, the control proved the gap the rail closed.
+- The negative control is what makes the grounding gate falsifiable: a change that lets an invented figure through fails the run by construction.
 - Staging and the draft PR are plumbing around the same pipeline, not a second one.
 
 ### Key decisions

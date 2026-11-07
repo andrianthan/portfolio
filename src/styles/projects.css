@@ -51,12 +51,14 @@ html:has(.toc) { scroll-behavior: auto; }
     /* The height the list occupies: its label, one row per project, their
        padding and the band it covers below itself. It is content-driven, so a
        title that wraps to two lines — or a page with more rows — makes the
-       list taller and this value has to grow with it. Three hundred covers the
-       Tesla page's six rows. It holds only from 900px to 1199px, where the
+       list taller and this value has to grow with it. Three hundred and
+       eighty covers the Tesla page's six rows; the Hanna and Blue Dome pages
+       have three rows, so their jumps land higher than strictly needed. It
+       holds only from 900px to 1199px, where the
        list is stuck at the top of the viewport and the content scrolls behind
        it; from 1200px the list is a rail in the gutter and the project scroll
        margin is reset, so it constrains nothing. */
-    --toc-list-height: 300px;
+    --toc-list-height: 380px;
     /* The clearance between the bottom of the list and the heading an anchor
        jump lands on. */
     --toc-clearance: 32px;

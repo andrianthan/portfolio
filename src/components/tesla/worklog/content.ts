@@ -28,7 +28,7 @@ export const WORKLOG: WorklogDoc = {
       title: 'Ask SDP',
       entries: [
         { label: 'The grounding rule', detail: 'An answer may only contain a number that a tool returned. An output rail reads every draft answer, extracts each figure, and checks it against the tool results before the answer ships. A number with no source is stripped, and the answer ships without it.' },
-        { label: 'Routing floor', detail: 'Free-route answers scored 0% on the routing evals: if the question needs data, the model must call a tool. A code-gated floor forces the call, so routing coverage is 35/35 metric intents, and metric intents grade 17/17.' },
+        { label: 'Routing floor', detail: 'Free-route answers scored 0% on the routing evals: if the question needs data, the model must call a tool. A code-gated floor forces the call, so tool-routing coverage is 35/35 with 0% free-route answers, and metric intents grade 17/17.' },
         { label: 'Typed verdict', detail: 'The model may not flip a conclusion silently. Each answer ends in a typed verdict that states what the data supports, so a disagreement between runs is visible instead of buried in prose. The grounding grade scored 0.854 against a 0.80 bar.' },
         { label: 'The tool it calls', detail: 'A sandboxed Python tool answers numeric questions. It accepts an allow-listed subset of the language, reads no network, and returns its result into the conversation as a checked fact the rail can verify.' },
       ],
@@ -54,8 +54,8 @@ export const WORKLOG: WorklogDoc = {
       id: 'evals-ci',
       title: 'Evals and CI',
       entries: [
-        { label: 'Golden set', detail: 'A golden set of graded questions gates routing, metric and grounding changes in CI. Its negative control is a fabricated number: a change that lets an invented figure through must fail the run, and did, more than once, before the rail made it impossible.' },
-        { label: 'The bar', detail: 'The grounding grade holds at 0.854 against a 0.80 threshold; routing and metric intents grade at 35/35 and 17/17. A change that drops a grade is a revert, not a debate.' },
+        { label: 'Golden set', detail: 'A golden set of graded questions gates routing, metric and grounding changes in CI. Its negative control is a fabricated number: a change that lets an invented figure through must fail the run — that is the point of the control.' },
+        { label: 'The bar', detail: 'The grounding grade holds at 0.854 against a 0.80 threshold; tool routing grades at 35/35 and metric intents at 17/17. A change that drops a grade is a revert, not a debate.' },
         { label: 'Shipping pipeline', detail: 'The team was pushing untested code to main, so the fix was plumbing: per-branch staging deploys, auto-opened draft PRs, prod deploys on merge. It now supports 200+ staging deploys a week across 10+ data analysts and demand planners.' },
       ],
     },
