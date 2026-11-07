@@ -70,13 +70,27 @@ I wrote the design spec for the production version, then built it. [to confirm]
 - **Metadata** (images, AI labels, verdicts, users) lives in the database. [to confirm]
 - **Why Postgres in the target:** SQLite allows one writer at a time, and many analysts saving verdicts at once is its weakest case. Postgres adds concurrent writes, managed backups and filtered queries across labels, reviewers and status.
 
-### Results and lessons
+### Impact
 
-Shipped as a production-ready tool. [to confirm]
+- **Time to review one image:** [to confirm] before, [to confirm] after
+- **Clicks per image:** [to confirm] before, [to confirm] after
+- **Analysts using it:** [to confirm]
+- **Images reviewed per week:** [to confirm]
+- **Delivered in:** 3 sprints, with a product manager and a UI/UX designer
+
+[to confirm] (no numbers here are estimated; each one needs to be measured or remembered.)
+
+### Lessons
+
+[to confirm]
 
 ## Guideline Chatbot
 
 A chatbot I built that answers analysts' labeling questions from the written guidelines, using retrieval-augmented generation (RAG) with vector embeddings. [to confirm]
+
+### Problem
+
+Analysts hit edge cases the guide doesn't make obvious, such as a partly hidden sign or a faded marking, and had to dig through a long document or ask a lead. That slows reviews and leads to inconsistent calls. [to confirm] Interview studies of annotation teams name [ambiguous guidelines and edge cases](https://arxiv.org/html/2511.16410v1) among the main causes of inconsistent labels.
 
 ### What it does
 
@@ -118,6 +132,16 @@ A retrieval-augmented generation (RAG) pipeline in two parts. [to confirm]
 
 (Still to fill in: the embedding model, the vector store, which LLM, how guidelines were loaded and re-indexed when they change, and how the chatbot connects to the QA tool.)
 
+### Impact
+
+- **Questions answered per week:** [to confirm]
+- **Answers with a cited clause:** [to confirm]
+- **Accuracy on a test set of real questions:** [to confirm]
+- **"Ask a lead" interruptions before and after:** [to confirm]
+- **Answer time:** [to confirm] seconds
+
+[to confirm] (none of these are estimated.)
+
 ### About the demo
 
 The window above is a stand-in that runs in your browser: a made-up guide, keyword plus local LSA vector retrieval, and templated answers that quote and cite the matching clause. It shows the shape of the feature, not the production system.
@@ -125,6 +149,10 @@ The window above is a stand-in that runs in your browser: a made-up guide, keywo
 ## Image Search
 
 A search tool over the labeled road-scene images that finds images by description, finds images similar to one you pick, and flags near-duplicates, using CLIP-style image and text embeddings. [to confirm]
+
+### Problem
+
+Finding more examples of an edge case meant paging through image folders, and repeated scenes got reviewed more than once, which wasted analyst time and skewed the training data. [to confirm]
 
 ### What it does
 
@@ -190,6 +218,16 @@ Every image is turned into a vector once, and all three features read from the s
 - **Duplicates:** a scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group. [to confirm]
 
 (Still to fill in: the embedding model, the vector index, how duplicates were thresholded, how often indexing ran, and how it connects to the QA tool.)
+
+### Impact
+
+- **Time to find examples of an edge case:** [to confirm] before, [to confirm] after
+- **Search quality on a set of test queries (for example top-5 relevant):** [to confirm]
+- **Images in the index:** [to confirm]
+- **Near-duplicates found:** [to confirm] ([to confirm]% of the set)
+- **Review hours saved:** [to confirm]
+
+[to confirm] (none of these are estimated.)
 
 ### About the demo
 
