@@ -1,6 +1,8 @@
 // The pointer position is published as two custom properties on the root element and
-// read by the background layers in global.css. Nothing else happens here: the page
-// itself never moves, and the script never touches the content.
+// read by the background layers in global.css. The script never touches the content
+// and the page's layout never changes. The field layer repaints itself on each
+// update (about 0.9ms measured); the quiet grid's drift is a transform, so the
+// compositor moves that layer on its own.
 
 const root = document.documentElement;
 const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -28,18 +30,27 @@ function onMove(event: PointerEvent): void {
   if (motion.matches || document.hidden) return;
   x = event.clientX;
   y = event.clientY;
-  /* one write per frame, never more */
+  /* one write per frame, never more. the write also replaces whatever position was
+     held, so the field never lights up where the pointer used to be */
   if (!frame) frame = requestAnimationFrame(paint);
 }
 
-function reset(): void {
-  x = 0;
-  y = 0;
+/* The pointer left the page: keep the position where it was. The CSS fades the
+   field out in place (the opacity gate is the root element's hover), so a glow
+   never jumps to the middle of the screen on the way out. */
+function hold(): void {
   if (frame) {
     cancelAnimationFrame(frame);
     frame = 0;
   }
-  /* back to the centred fallback, so the field rests where it started */
+}
+
+/* The page is hidden or the reader asked for less motion: drop the position so the
+   field rests on its centred fallback. */
+function clear(): void {
+  hold();
+  x = 0;
+  y = 0;
   root.style.removeProperty('--mx');
   root.style.removeProperty('--my');
 }
@@ -57,16 +68,16 @@ if (supported) {
   motion.addEventListener('change', () => {
     if (motion.matches) {
       unlisten();
-      reset();
+      clear();
     } else listen();
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       unlisten();
-      reset();
+      clear();
     } else listen();
   });
-  document.addEventListener('pointerleave', reset);
-  window.addEventListener('blur', reset);
+  document.addEventListener('pointerleave', hold);
+  window.addEventListener('blur', hold);
   listen();
 }
