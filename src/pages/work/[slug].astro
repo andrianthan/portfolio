@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import Detail from '../../layouts/Detail.astro';
 import { cleared, neighbors } from '../../lib/content';
 import QaDemo from '../../components/qa/QaDemo';
+import ImageSearchDemo from '../../components/imgsearch/ImageSearchDemo';
 import GuideDemo from '../../components/guide/GuideDemo';
 import '../../styles/projects.css';
 
@@ -68,14 +69,16 @@ if (multi) {
   {multi
     ? projects.map((p, i) => {
         const qa = p.id.startsWith('qa-analyst');
+        const img = p.id.startsWith('image-search');
         const guide = p.id.startsWith('guideline-chatbot');
         return (
           <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
             <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
             <Fragment set:html={p.intro} />
-            {(qa || guide) && (
+            {(qa || guide || img) && (
               <div class="demo-slot">
                 {qa && <QaDemo client:visible />}
+                {img && <ImageSearchDemo client:visible />}
                 {guide && <GuideDemo client:visible />}
                 <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
               </div>

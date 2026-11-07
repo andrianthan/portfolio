@@ -57,3 +57,23 @@ Guidelines are split into chunks, embedded as vectors and retrieved by similarit
 ### About the demo
 
 The window above is a stand-in that runs in your browser: a made-up guide, keyword plus local LSA vector retrieval, and templated answers that quote and cite the matching clause. It shows the shape of the feature, not the production system.
+
+## Image Search
+
+A search tool over the labeled road-scene images that finds images by description, finds images similar to one you pick, and flags near-duplicates, using CLIP-style image and text embeddings. [to confirm]
+
+### What it does
+
+- **Search by text:** type a description like "faded lane marking at night" and get matching road scenes.
+- **Similar images:** pick an image and see its nearest neighbors, to find more examples of an edge case.
+- **Near-duplicates:** flag images that are almost identical, so analysts don't review the same scene twice and training data isn't skewed.
+
+[to confirm]
+
+### Architecture
+
+Images and text queries are embedded into one shared vector space and compared by similarity, so a text query can be matched against images directly. [to confirm] (still to fill in: the embedding model, how vectors were stored and searched, how duplicates were thresholded, and how it connects to the QA tool.)
+
+### About the demo
+
+The window above is a stand-in that runs in your browser: a made-up set of 27 scenes and a small hand-built attribute space instead of CLIP. Search, nearest neighbors and the duplicate threshold are real logic over that space. It shows the shape of the feature, not the production system.

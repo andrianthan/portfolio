@@ -1,0 +1,28 @@
+.igs .qa-body { grid-template-columns: 200px 1fr; min-height: 360px; }
+.igs-modes li { padding: 0; }
+.igs-modes li button { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 6px; width: 100%; padding: 7px 8px; cursor: pointer; border-radius: 8px; font-size: 13px; }
+.igs-modes li button:focus-visible { outline: 2px solid var(--color-accent); }
+.igs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.igs-pick { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.igs-thumb { position: relative; display: block; padding: 0 !important; border: 1px solid var(--color-rule) !important; border-radius: 8px !important; overflow: hidden; background: var(--color-card); min-height: 0 !important; text-align: left; }
+.igs-thumb.on { border-color: var(--color-accent) !important; box-shadow: 0 0 0 1px var(--color-accent); }
+.igs-art { display: block; width: 100%; aspect-ratio: 320 / 180; --qa-sky: #aebfd6; --qa-road: #3a3d46; }
+.igs-cap { display: flex; flex-direction: column; padding: 4px 6px 6px; font: 10.5px/1.3 var(--font-mono); color: var(--color-muted); }
+.igs-pick .igs-cap span:last-child { display: none; }
+.igs-score { position: absolute; top: 5px; right: 5px; font: 600 11px var(--font-mono); background: var(--color-bg); color: var(--color-fg); padding: 1px 6px; border-radius: 6px; border: 1px solid var(--color-rule); }
+.igs-hint { margin: 2px 0 0; font-size: 13px; color: var(--color-muted); }
+.igs-slider { display: grid; gap: 6px; font-size: 13px; color: var(--color-muted); }
+.igs-slider b { color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.igs-slider input { width: 100%; accent-color: var(--color-accent); }
+.igs-dup { border-top: 1px solid var(--color-rule); padding-top: 10px; }
+.igs-dup .igs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 320px; }
+@media (max-width: 640px) {
+  .igs .qa-body { grid-template-columns: 1fr; }
+  .igs-modes { display: flex; overflow-x: auto; }
+  .igs-modes li button { grid-template-columns: auto auto; }
+  .igs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .igs-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.igs-modes li { display: block; }
+.igs .gd-trace li { overflow-wrap: anywhere; }
+.igs .qa-main { min-width: 0; }
