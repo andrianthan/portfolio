@@ -3,6 +3,8 @@ import { getCollection, render } from 'astro:content';
 import Detail from '../../layouts/Detail.astro';
 import { cleared, neighbors } from '../../lib/content';
 import QaDemo from '../../components/qa/QaDemo';
+import GuideDemo from '../../components/guide/GuideDemo';
+import '../../styles/projects.css';
 
 export async function getStaticPaths() {
   const all = cleared(await getCollection('work'));
@@ -12,9 +14,34 @@ export async function getStaticPaths() {
   });
 }
 
+// Pages that hold several projects: each `##` heading is a project, and its demo (if any)
+// renders right after the project's first paragraph.
+// Demos are matched by heading id prefix. Astro needs static component references to hydrate.
+const MULTI = new Set(['bluedome']);
+
 const { entry, prev, next } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
+
+const multi = MULTI.has(entry.id);
+interface Project { id: string; title: string; head: string; intro: string; rest: string }
+const projects: Project[] = [];
+if (multi) {
+  const html = entry.rendered?.html ?? '';
+  for (const chunk of html.split(/(?=<h2[ >])/).filter((c) => c.trim().startsWith('<h2'))) {
+    const m = chunk.match(/^<h2[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/);
+    if (!m) continue;
+    const after = chunk.slice(m[0].length);
+    const split = after.search(/<h3[ >]/);
+    projects.push({
+      id: m[1],
+      title: m[2].replace(/<[^>]+>/g, ''),
+      head: m[0],
+      intro: split === -1 ? after : after.slice(0, split),
+      rest: split === -1 ? '' : after.slice(split),
+    });
+  }
+}
 ---
 <Detail
   kicker={`Role · ${d.project}`}
@@ -26,12 +53,36 @@ const d = entry.data;
   next={next ? { href: `/work/${next.id}`, label: next.data.company } : null}
   backHref="/#experience"
   backLabel="experience"
+  noShot={multi}
 >
-  {entry.id === 'bluedome' && (
-    <div slot="hero" class="app-wrap">
-      <QaDemo client:visible />
-      <noscript><p class="app-nojs">Interactive sample of the review tool (needs JavaScript): accept, reject or fix an AI label on a fictional road scene with keys A, R, F and U.</p></noscript>
-    </div>
+  {multi && projects.length > 1 && (
+    <nav slot="toc" class="toc" aria-label="Projects on this page">
+      <p class="toc-label">Projects</p>
+      <ol>
+        {projects.map((p, i) => (
+          <li><a href={`#${p.id}`}><span class="n">{String(i + 1).padStart(2, '0')}</span><span class="t">{p.title}</span><span class="go" aria-hidden="true">↓</span></a></li>
+        ))}
+      </ol>
+    </nav>
   )}
-  <Content />
+  {multi
+    ? projects.map((p, i) => {
+        const qa = p.id.startsWith('qa-analyst');
+        const guide = p.id.startsWith('guideline-assistant');
+        return (
+          <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
+            <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
+            <Fragment set:html={p.intro} />
+            {(qa || guide) && (
+              <div class="demo-slot">
+                {qa && <QaDemo client:visible />}
+                {guide && <GuideDemo client:visible />}
+                <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
+              </div>
+            )}
+            <Fragment set:html={p.rest} />
+          </section>
+        );
+      })
+    : <Content />}
 </Detail>

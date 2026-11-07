@@ -1,0 +1,28 @@
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.gd .qa-body { min-height: 360px; }
+.gd-clauses .qa-m { font: 11px var(--font-mono); width: auto; min-width: 18px; }
+.gd-clauses li { grid-template-columns: 22px 1fr auto; }
+.gd-main { gap: 10px; }
+.gd-log { min-height: 150px; max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.gd-empty { margin: 0; color: var(--color-muted); font-size: 14px; }
+.gd-turn p { margin: 0; }
+.gd-q { font-size: 14px; color: var(--color-muted); }
+.gd-q::before { content: '> '; color: var(--color-accent); font-family: var(--font-mono); }
+.gd-a { font-size: 15px; line-height: 1.5; margin-top: 4px !important; }
+.gd-a.refused { color: var(--color-accent); }
+.gd-cite { font: 600 11px var(--font-mono); letter-spacing: .05em; color: var(--color-muted); margin-top: 6px !important; }
+.gd-trace { list-style: none; margin: 8px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--color-rule); display: grid; gap: 2px; font: 11.5px/1.45 var(--font-mono); color: var(--color-muted); }
+.gd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gd-chips button { font: 500 12.5px var(--font-sans) !important; padding: 6px 10px !important; min-height: 32px !important; color: var(--color-muted) !important; }
+.gd-form { display: flex; gap: 8px; align-items: center; }
+.gd-form input { flex: 1; min-width: 0; font: 15px var(--font-sans); color: var(--color-fg); background: transparent; border: 0; border-bottom: 1px solid var(--color-rule); padding: 10px 2px; }
+.gd-form input:focus { outline: none; border-bottom-color: var(--color-accent); }
+.gd-map { width: 100%; max-width: 360px; height: auto; border: 1px solid var(--color-rule); border-radius: 8px; }
+.gd-seg { display: inline-flex; border: 1px solid var(--color-rule); border-radius: 8px; overflow: hidden; }
+.gd-seg button { border: 0 !important; border-radius: 0 !important; font: 600 12px var(--font-sans) !important; padding: 6px 12px !important; min-height: 32px !important; color: var(--color-muted) !important; }
+.gd-seg button.on { background: var(--color-glow) !important; color: var(--color-fg) !important; }
+.gd-maptoggle { margin-left: auto; font: 500 12px var(--font-sans) !important; padding: 6px 10px !important; min-height: 32px !important; color: var(--color-muted) !important; }
+@media (max-width: 640px) { .gd-clauses .qa-l { display: none; } .gd-clauses li { grid-template-columns: auto auto; } }
+
+.gd .qa-body { grid-template-columns: 236px 1fr; }
+@media (max-width: 640px) { .gd .qa-body { grid-template-columns: 1fr; } }

@@ -10,9 +10,9 @@ interface Props {
   links: Link[];
   prev: Nav | null; next: Nav | null;
   backHref: string; backLabel: string;
-  shot?: string; shotAlt?: string;
+  shot?: string; shotAlt?: string; noShot?: boolean;
 }
-const { kicker, title, lede, meta, links, prev, next, backHref, backLabel, shot, shotAlt } = Astro.props;
+const { kicker, title, lede, meta, links, prev, next, backHref, backLabel, shot, shotAlt, noShot } = Astro.props;
 ---
 <Base title={`${title} · Andrian Than`} description={lede}>
   <div class="detail">
@@ -32,8 +32,10 @@ const { kicker, title, lede, meta, links, prev, next, backHref, backLabel, shot,
         )}
       </header>
 
-      {Astro.slots.has('hero')
-        ? <slot name="hero" />
+      <slot name="toc" />
+
+      {noShot
+        ? null
         : shot
           ? <img class="shot-img" src={shot} alt={shotAlt ?? ''} width="1280" height="720" loading="lazy" />
           : <div class="shot">screenshot</div>}

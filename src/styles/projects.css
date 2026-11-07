@@ -1,0 +1,22 @@
+/* Multi-project detail pages: contents list + one section per project. */
+.toc { margin: 0 0 var(--space-lg); }
+.toc-label { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 10px; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--color-rule); color: var(--color-fg); text-decoration: none; }
+.toc a:hover, .toc a:focus-visible { color: var(--color-accent); text-decoration: none; }
+.toc .n { font: 500 12px var(--font-mono); color: var(--color-muted); }
+.toc .t { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.toc .go { color: var(--color-muted); }
+.project { margin-top: var(--space-xl); scroll-margin-top: 24px; }
+.project:first-of-type { margin-top: var(--space-lg); }
+.project > h2 { display: block; font: 700 clamp(26px, 4vw, 34px)/1.15 var(--font-sans); letter-spacing: -0.03em; text-transform: none; color: var(--color-fg); margin: 0 0 var(--space-md); }
+.project > h2::after { content: none; }
+.project > h2 .n { display: block; font: 500 12px var(--font-mono); letter-spacing: .1em; color: var(--color-muted); margin-bottom: 8px; }
+.project h3 { display: flex; align-items: center; gap: var(--space-md); font: 500 13px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: var(--space-xl) 0 var(--space-md); }
+.project h3::after { content: ""; flex: 1; height: 1px; background: var(--color-rule); }
+.project > p { margin: 0 0 var(--space-md); }
+.project ul, .project ol { margin: 0 0 var(--space-md); padding-left: 1.4em; }
+.project li { margin: 0 0 6px; }
+.project .concept { font: 600 11px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 var(--space-md); }
+.project .demo-slot { margin: var(--space-lg) 0; }
+.project a { text-decoration: underline; text-underline-offset: 3px; }
