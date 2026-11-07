@@ -43,7 +43,7 @@ export default function QaDemo() {
               <li key={x.id} className={on ? 'on' : v ? 'done' : ''} aria-current={on ? 'true' : undefined}>
                 <span className="qa-n">{i + 1}</span>
                 <span className="qa-l">{v?.kind === 'relabel' ? v.label : x.label}</span>
-                <span className="qa-m" aria-label={v ? v.kind : on ? 'current' : 'pending'}>{v ? MARK[v.kind] : on ? '●' : ''}</span>
+                <span className="qa-m" role="img" aria-label={v ? v.kind : on ? 'current' : 'pending'}>{v ? MARK[v.kind] : on ? '●' : ''}</span>
               </li>
             );
           })}
