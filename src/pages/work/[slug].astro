@@ -8,6 +8,7 @@ import GrantsDemo from '../../components/hanna/grants/GrantsDemo';
 import IrDemo from '../../components/hanna/ir/IrDemo';
 import NoteCoachDemo from '../../components/hanna/notes/NoteCoachDemo';
 import GuideDemo from '../../components/guide/GuideDemo';
+import WorklogDemo from '../../components/tesla/worklog/WorklogDemo';
 import '../../styles/projects.css';
 
 export async function getStaticPaths() {
@@ -21,9 +22,9 @@ export async function getStaticPaths() {
 // Pages that hold several projects: each `##` heading is a project, and its demo (if any)
 // renders right after the project's first paragraph.
 // Demos are matched by heading id prefix. Astro needs static component references to hydrate.
-const MULTI = new Set(['bluedome', 'hanna']);
+const MULTI = new Set(['bluedome', 'hanna', 'tesla']);
 
-type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide';
+type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'worklog';
 
 // Which demo a project renders, if any. The page's mock-data note uses the same
 // lookup, so a page that shows a demo always carries the note.
@@ -34,6 +35,7 @@ function demoFor(id: string): Demo | null {
   if (id.startsWith('ir-updater')) return 'ir';
   if (id.startsWith('case-note-coach')) return 'notes';
   if (id.startsWith('guideline-chatbot')) return 'guide';
+  if (id.startsWith('work-log')) return 'worklog';
   return null;
 }
 
@@ -125,6 +127,7 @@ const hasDemos = projects.some((p) => p.demo !== null);
                     case 'ir': return <IrDemo client:visible />;
                     case 'notes': return <NoteCoachDemo client:visible />;
                     case 'guide': return <GuideDemo client:visible />;
+                    case 'worklog': return <WorklogDemo client:visible />;
                     default: return unhandledDemo(demo);
                   }
                 })()}
