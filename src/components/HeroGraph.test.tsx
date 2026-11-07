@@ -58,7 +58,10 @@ describe('HeroGraph', () => {
     // a group, not an image: role="img" makes the subtree presentational and hides the node links
     expect(html).toContain('role="group"');
     expect(html).not.toContain('role="img"');
-    expect(html).toContain('aria-labelledby="hg-title hg-desc"');
+    // the title names the group; the description is a description, not part of the name
+    expect(html).toContain('aria-labelledby="hg-title"');
+    expect(html).toContain('aria-describedby="hg-desc"');
+    expect(html).not.toContain('aria-labelledby="hg-title hg-desc"');
     expect(html).toContain('<title id="hg-title">');
     expect(html).toContain('<desc id="hg-desc">');
   });

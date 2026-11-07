@@ -5,11 +5,11 @@ html, body { overflow-x: clip; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--color-bg); color: var(--color-fg); font: 400 17px/1.65 var(--font-sans); -webkit-font-smoothing: antialiased; position: relative; }
 /* the glow and the dot grid sit behind everything, anchored to the top of the page */
-body::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 760px; z-index: -1; pointer-events: none;
+body::before { content: ""; position: absolute; inset: 0 0 auto 0; height: min(760px, 100vh); z-index: -1; pointer-events: none;
   background:
     radial-gradient(ellipse 60% 55% at 50% 0%, var(--color-glow), transparent 70%),
     radial-gradient(var(--color-dot) 1.1px, transparent 1.1px) 0 0 / 24px 24px;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 95%); mask-image: linear-gradient(to bottom, #000 0%, transparent 95%); }
+  -webkit-mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); }
 a { color: var(--color-accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
@@ -72,7 +72,7 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -we
 .intro-input::placeholder { color: var(--color-muted); }
 .full { margin-top: var(--space-md); font-size: 15px; color: var(--color-muted); }
 .full:hover { color: var(--color-fg); text-decoration: none; }
-.intro-out:empty::before { content: "Answers show up here."; color: var(--color-muted); }
+.js .intro-out:empty::before { content: "Answers show up here."; color: var(--color-muted); }
 .hero-graph { width: min(360px, 100%); aspect-ratio: 4 / 3; margin: 0 auto; }
 .hero-graph .hg-svg { display: block; width: 100%; height: 100%; overflow: visible; font-family: var(--font-mono); }
 .hg-edge { fill: none; stroke: var(--color-rule); stroke-width: 1.5; }
@@ -96,9 +96,9 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -we
 .sh h2 { display: inline-block; font: 700 clamp(32px, 5vw, 48px)/1.1 var(--font-sans); letter-spacing: -0.035em; text-transform: none; margin: 0;
   background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 /* the gradient only paints the glyphs where background-clip: text is understood */
-@supports not (background-clip: text) { .sh h2 { color: var(--color-fg); } }
+@supports not (background-clip: text) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } }
 /* forced-colors mode does not paint the gradient, so the title needs a real colour there */
-@media (forced-colors: active) { .sh h2 { color: var(--color-fg); } }
+@media (forced-colors: active) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } }
 .sh h2::after { display: none; }
 h2 { display: flex; align-items: center; gap: var(--space-md); font: 500 13px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 h2::after { content: ""; flex: 1; height: 1px; background: var(--color-rule); }

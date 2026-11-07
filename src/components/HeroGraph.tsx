@@ -123,7 +123,8 @@ export default function HeroGraph({ nodes, edges }: { nodes: GraphNode[]; edges:
       className="hg-svg"
       viewBox={GRAPH_VIEWBOX}
       role="group"
-      aria-labelledby="hg-title hg-desc"
+      aria-labelledby="hg-title"
+      aria-describedby="hg-desc"
       preserveAspectRatio="xMidYMid meet"
     >
       <title id="hg-title">Agent graph</title>

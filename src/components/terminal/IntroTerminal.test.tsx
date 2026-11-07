@@ -7,8 +7,31 @@ const html = renderToStaticMarkup(<IntroTerminal />);
 describe('IntroTerminal', () => {
   it('renders a labelled prompt', () => {
     expect(html).toContain('id="intro-input"');
-    expect(html).toContain('aria-label="Ask a question or type a route"');
+    expect(html).toContain('aria-label="Ask anything about Andrian — a question or a route"');
     expect(html).toContain('for="intro-input"');
+  });
+
+  it('keeps the visible placeholder inside the accessible name', () => {
+    // WCAG 2.5.3 (Label in Name): the visible label must be contained in the accessible name
+    const input = html.match(/<input[^>]*id="intro-input"[^>]*>/)?.[0] ?? '';
+    const placeholder = input.match(/placeholder="([^"]+)"/)?.[1] ?? '';
+    const label = input.match(/aria-label="([^"]+)"/)?.[1] ?? '';
+    expect(placeholder).toBe('Ask anything about Andrian…');
+    expect(label).toContain('Ask anything about Andrian');
+  });
+
+  it('renders the four topic links as real anchors', () => {
+    // the chips are the no-JS navigation path, so they must be links, not buttons
+    const chips = [...html.matchAll(/<a href="(#[^"]+)">([^<]+)<\/a>/g)].map((m) => ({
+      href: m[1],
+      label: m[2],
+    }));
+    expect(chips).toEqual([
+      { href: '#experience', label: 'Experience' },
+      { href: '#projects', label: 'Projects' },
+      { href: '#about', label: 'About' },
+      { href: '#contact', label: 'Contact' },
+    ]);
   });
 
   it('renders an accessible, initially empty output log', () => {

@@ -68,7 +68,7 @@ export default function IntroTerminal() {
         <input
           id="intro-input"
           className="intro-input"
-          aria-label="Ask a question or type a route"
+          aria-label="Ask anything about Andrian — a question or a route"
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
