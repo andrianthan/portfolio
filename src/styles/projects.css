@@ -9,7 +9,8 @@ html:has(.toc) { scroll-behavior: auto; }
 
 /* The note above the demos. The demos run on mock data and show internal
    tools, so there is nothing for a visitor to sign up for. Its label reuses
-   the site's own .eyebrow treatment; the sentence sits at the body's 16px. */
+   the site's own .eyebrow treatment; the sentence sits at the secondary-text
+   size of 16px, one step below the 17px body. */
 .demo-note { margin: 0 0 var(--space-lg); }
 .demo-note-text { margin: 0; font-size: 16px; line-height: 1.55; color: var(--color-fg); }
 
@@ -50,7 +51,10 @@ html:has(.toc) { scroll-behavior: auto; }
     /* The height the list occupies: its label, one row per project, their
        padding and the band it covers below itself. It is content-driven, so a
        fourth project — or a title that wraps to two lines — makes the list
-       taller and this value has to grow with it. */
+       taller and this value has to grow with it. It holds only from 900px to
+       1199px, where the list is stuck at the top of the viewport and the
+       content scrolls behind it; from 1200px the list is a rail in the gutter
+       and the project scroll margin is reset, so it constrains nothing. */
     --toc-list-height: 220px;
     /* The clearance between the bottom of the list and the heading an anchor
        jump lands on. */
@@ -91,17 +95,23 @@ html:has(.toc) { scroll-behavior: auto; }
     --toc-rail-gap: 32px;
     /* The top of the rail: the top bar's measured height (73px: 20px of
        padding above and below its 33px of content) plus 17px, so the rail
-       starts below the bar and never covers its back link. */
+       starts below the bar and never covers its back link. The bar's height is
+       content-driven, so if the bar's content changes, this value has to be
+       measured again. */
     --toc-rail-top: 90px;
   }
   .toc {
     position: fixed;
     top: var(--toc-rail-top);
-    /* The column's left edge is 50% - 368px (half of the 46rem column). The
-       max(16px, ...) keeps the rail on screen when the gutter is narrower than
-       the rail. */
-    left: max(16px, calc(50% - 368px - var(--toc-rail-gap) - var(--toc-rail-width)));
-    width: var(--toc-rail-width);
+    /* The column's left edge is 50% - 23rem: half of the column's 46rem
+       measure. It is in rem, not pixels, so the rail keeps its distance from
+       the column at any root font size. The max(16px, ...) keeps the rail on
+       screen when the gutter is narrower than the rail. */
+    left: max(16px, calc(50% - 23rem - var(--toc-rail-gap) - var(--toc-rail-width)));
+    /* The rail is never wider than the gutter it sits in, so it can never
+       print over the column's text. The 96px floor keeps it readable if the
+       gutter is very narrow. */
+    width: min(var(--toc-rail-width), max(96px, calc(50% - 23rem - var(--toc-rail-gap))));
     z-index: 5;
     margin: 0;
     padding: 0;

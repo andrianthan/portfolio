@@ -37,6 +37,12 @@ function demoFor(id: string): Demo | null {
   return null;
 }
 
+// The demo the template's switch has no case for. Its parameter is typed never,
+// so a demo that no case handles is a type error, not an empty demo slot.
+function unhandledDemo(_demo: never): null {
+  return null;
+}
+
 const { entry, prev, next } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
@@ -77,6 +83,9 @@ const hasDemos = projects.some((p) => p.demo !== null);
   backLabel="experience"
   noShot={multi}
 >
+  {/* The note goes in the toc slot because the prose slot sits below the
+      project index, so a note placed there would land after the TOC instead of
+      before it. */}
   <Fragment slot="toc">
     {hasDemos && (
       <div class="demo-note">
@@ -104,12 +113,21 @@ const hasDemos = projects.some((p) => p.demo !== null);
             <Fragment set:html={p.intro} />
             {demo && (
               <div class="demo-slot">
-                {demo === 'qa' && <QaDemo client:visible />}
-                {demo === 'img' && <ImageSearchDemo client:visible />}
-                {demo === 'grants' && <GrantsDemo client:visible />}
-                {demo === 'ir' && <IrDemo client:visible />}
-                {demo === 'notes' && <NoteCoachDemo client:visible />}
-                {demo === 'guide' && <GuideDemo client:visible />}
+                {/* A switch with a never-typed default: a demo no case handles is
+                    a type error, not an empty demo slot. The component references
+                    have to stay literal here, because Astro can only hydrate a
+                    component it can see the import of. */}
+                {(() => {
+                  switch (demo) {
+                    case 'qa': return <QaDemo client:visible />;
+                    case 'img': return <ImageSearchDemo client:visible />;
+                    case 'grants': return <GrantsDemo client:visible />;
+                    case 'ir': return <IrDemo client:visible />;
+                    case 'notes': return <NoteCoachDemo client:visible />;
+                    case 'guide': return <GuideDemo client:visible />;
+                    default: return unhandledDemo(demo);
+                  }
+                })()}
                 <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
               </div>
             )}
