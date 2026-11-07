@@ -1,0 +1,37 @@
+/* Shared by the Hanna Center demo windows (on top of qa.css). */
+.hn-tabs { display: inline-flex; flex-wrap: wrap; gap: 2px; }
+.qa .hn-tabs button { border: 0; border-radius: 6px; padding: 6px 10px; min-height: 32px; font: 600 13px var(--font-sans); color: var(--color-muted); background: transparent; }
+.qa .hn-tabs button.on { background: var(--color-glow); color: var(--color-fg); }
+.hn-body { padding: 16px; min-height: 340px; display: flex; flex-direction: column; gap: 12px; }
+.hn-body[hidden] { display: none; }
+.hn-note { margin: 0; font-size: 13px; color: var(--color-muted); }
+.hn-msg { margin: 0; font-size: 14px; }
+.hn-msg.err { color: var(--color-accent); }
+.hn-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.hn-row { border-top: 1px solid var(--color-rule); padding: 10px 0; }
+.hn-row:first-child { border-top: 0; }
+.hn-row.dim { opacity: .5; }
+.qa .hn-head { border: 0; border-radius: 0; background: none; padding: 0; min-height: 0; font: inherit; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; width: 100%; text-align: left; cursor: pointer; color: inherit; }
+.hn-title { font-weight: 600; font-size: 15px; }
+.hn-sub { font-size: 12.5px; color: var(--color-muted); }
+.hn-score { font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; }
+.hn-flags { list-style: none; margin: 8px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--color-rule); display: grid; gap: 3px; font-size: 12.5px; color: var(--color-muted); }
+.hn-flags b { color: var(--color-fg); font-weight: 600; }
+.hn-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.hn-actions button, .hn-form button { font-size: 13px !important; padding: 6px 12px !important; min-height: 36px !important; }
+.hn-status { font: 600 11px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--color-accent); }
+.hn-mail { border: 1px solid var(--color-rule); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; font-size: 14px; }
+.hn-mail .subj { font-weight: 600; }
+.hn-form { display: flex; gap: 8px; align-items: center; }
+.hn-form input, .hn-input { flex: 1; min-width: 0; font: 15px var(--font-sans); color: var(--color-fg); background: transparent; border: 0; border-bottom: 1px solid var(--color-rule); padding: 10px 2px; }
+.hn-form input:focus, .hn-input:focus { outline: none; border-bottom-color: var(--color-accent); }
+.hn-diff { font: 13px var(--font-mono); border-left: 2px solid var(--color-accent); padding: 4px 10px; margin: 0; }
+.hn-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 4px 16px; font-size: 13px; color: var(--color-muted); }
+.hn-kv b { color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.hn-slider { display: inline-flex; align-items: center; gap: 8px; }
+.hn-slider input { accent-color: var(--color-accent); }
+@media (max-width: 640px) { .hn-head { grid-template-columns: 1fr; } }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hn-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.qa .hn-chips button { font: 500 12.5px var(--font-sans); padding: 6px 10px; min-height: 32px; color: var(--color-muted); }

@@ -4,6 +4,7 @@ import Detail from '../../layouts/Detail.astro';
 import { cleared, neighbors } from '../../lib/content';
 import QaDemo from '../../components/qa/QaDemo';
 import ImageSearchDemo from '../../components/imgsearch/ImageSearchDemo';
+import GrantsDemo from '../../components/hanna/grants/GrantsDemo';
 import GuideDemo from '../../components/guide/GuideDemo';
 import '../../styles/projects.css';
 
@@ -18,7 +19,7 @@ export async function getStaticPaths() {
 // Pages that hold several projects: each `##` heading is a project, and its demo (if any)
 // renders right after the project's first paragraph.
 // Demos are matched by heading id prefix. Astro needs static component references to hydrate.
-const MULTI = new Set(['bluedome']);
+const MULTI = new Set(['bluedome', 'hanna']);
 
 const { entry, prev, next } = Astro.props;
 const { Content } = await render(entry);
@@ -70,15 +71,17 @@ if (multi) {
     ? projects.map((p, i) => {
         const qa = p.id.startsWith('qa-analyst');
         const img = p.id.startsWith('image-search');
+        const grants = p.id.startsWith('grants-agent');
         const guide = p.id.startsWith('guideline-chatbot');
         return (
           <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
             <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
             <Fragment set:html={p.intro} />
-            {(qa || guide || img) && (
+            {(qa || guide || img || grants) && (
               <div class="demo-slot">
                 {qa && <QaDemo client:visible />}
                 {img && <ImageSearchDemo client:visible />}
+                {grants && <GrantsDemo client:visible />}
                 {guide && <GuideDemo client:visible />}
                 <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
               </div>
