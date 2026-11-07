@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { COMMANDS, completeCommand, recall } from './useTerminal';
+import { createElement, useRef } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { COMMANDS, completeCommand, recall, useTerminal } from './useTerminal';
 
 describe('tab completion', () => {
   it('completes a unique command', () => {
@@ -41,5 +43,64 @@ describe('history recall', () => {
 
   it('walks back down to an empty draft', () => {
     expect(recall(['newest', 'older'], 0, 1)).toEqual({ value: '', index: -1 });
+  });
+});
+
+interface KeyPress {
+  prevented: number;
+  value: string;
+}
+
+/**
+ * Press a key in the chat input without a DOM: the hook is rendered on the
+ * server, the draft is set during the first pass, and the key is pressed
+ * during the second one. The event is a plain object that counts how often
+ * the handler swallowed the key.
+ */
+function pressKey(input: string, key: string): KeyPress {
+  const press: KeyPress = { prevented: 0, value: '' };
+  const event = {
+    key,
+    ctrlKey: false,
+    preventDefault() {
+      press.prevented += 1;
+    },
+  };
+
+  function Harness() {
+    const terminal = useTerminal({ autoHelp: false });
+    const pass = useRef(0);
+    if (pass.current === 0) {
+      pass.current = 1;
+      terminal.change(input);
+    } else if (pass.current === 1) {
+      pass.current = 2;
+      terminal.keyDown(event);
+    }
+    press.value = terminal.value;
+    return null;
+  }
+
+  renderToStaticMarkup(createElement(Harness));
+  return press;
+}
+
+describe('the tab key', () => {
+  it('gives the key back when there is nothing to complete', () => {
+    const press = pressKey('hello', 'Tab');
+    expect(press.prevented).toBe(0);
+    expect(press.value).toBe('hello');
+  });
+
+  it('gives the key back when the completion is ambiguous', () => {
+    const press = pressKey('/s', 'Tab');
+    expect(press.prevented).toBe(0);
+    expect(press.value).toBe('/s');
+  });
+
+  it('takes the key and completes a unique command', () => {
+    const press = pressKey('/who', 'Tab');
+    expect(press.prevented).toBe(1);
+    expect(press.value).toBe('/whoami');
   });
 });

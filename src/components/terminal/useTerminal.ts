@@ -221,9 +221,11 @@ export function useTerminal({ autoHelp = true, onNavigate, thinkMs = 0, quietRef
       return;
     }
     if (event.key === 'Tab') {
-      event.preventDefault();
       const next = completeCommand(value);
-      if (next !== value) setValue(next);
+      if (next !== value) {
+        event.preventDefault();
+        setValue(next);
+      }
       return;
     }
     if (event.key === 'ArrowUp') {
