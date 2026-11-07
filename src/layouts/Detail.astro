@@ -32,9 +32,11 @@ const { kicker, title, lede, meta, links, prev, next, backHref, backLabel, shot,
         )}
       </header>
 
-      {shot
-        ? <img class="shot-img" src={shot} alt={shotAlt ?? ''} width="1280" height="720" loading="lazy" />
-        : <div class="shot">screenshot</div>}
+      {Astro.slots.has('hero')
+        ? <slot name="hero" />
+        : shot
+          ? <img class="shot-img" src={shot} alt={shotAlt ?? ''} width="1280" height="720" loading="lazy" />
+          : <div class="shot">screenshot</div>}
 
       <div class="prose"><slot /></div>
 

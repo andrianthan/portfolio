@@ -27,13 +27,11 @@ const d = entry.data;
   backHref="/#experience"
   backLabel="experience"
 >
-  <Content />
   {entry.id === 'bluedome' && (
-    <section class="demo" aria-labelledby="demo-h">
-      <h2 id="demo-h">Try it</h2>
-      <p>A small sample of the review loop, with made-up scenes. Click, or use the keys.</p>
+    <div slot="hero" class="app-wrap">
       <QaDemo client:visible />
-      <noscript><p>The demo needs JavaScript. It lets you accept, reject or fix an AI label on a sample road scene, with keys A, R, F and U.</p></noscript>
-    </section>
+      <noscript><p class="app-nojs">Interactive sample of the review tool (needs JavaScript): accept, reject or fix an AI label on a fictional road scene with keys A, R, F and U.</p></noscript>
+    </div>
   )}
+  <Content />
 </Detail>
