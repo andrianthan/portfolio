@@ -10,7 +10,7 @@ stack: [LLM agents, FastAPI, React, DuckDB, GitHub Actions, Evals]
 logo: /logos/tesla.svg
 current: true
 listed: true
-cleared: false
+cleared: true
 order: 1
 ---
 ## Ask SDP

@@ -20,7 +20,8 @@ describe('respond', () => {
     const answer = respond(route('experience'), chunks);
     expect(answer.text).toContain('Tesla');
     expect(answer.text).toContain('32% better than baseline');
-    expect(answer.sources).toEqual([{ title: 'Tesla', url: '/#experience' }]);
+    expect(answer.sources).toContainEqual({ title: 'Tesla', url: '/work/tesla' });
+    expect(answer.sources.every((s) => s.title === 'Tesla')).toBe(true);
   });
 
   it('answers the coffee egg with the fixed cup and no digits', () => {
@@ -113,9 +114,12 @@ describe('verify', () => {
     const published = new Set(
       chunks.flatMap((chunk) => extractNumbers(`${chunk.title} ${chunk.text} ${chunk.facts.join(' ')}`)),
     );
-    expect([...published].sort()).toEqual(['2', '200+', '32%']);
+    expect([...published].sort()).toEqual([
+      '$11.6M', '$17.0M', '0%', '0.80', '0.854', '1', '10', '10+',
+      '165', '17', '2', '20+', '200+', '32%', '35', '77',
+    ]);
     expect(result.ok).toBe(true);
-    expect(result.checked).toBe(3);
+    expect(result.checked).toBe(60);
     expect(result.offending).toEqual([]);
   });
 
@@ -134,8 +138,13 @@ describe('verify', () => {
   });
 
   it('treats a version number and a plain number as different tokens', () => {
-    const tesla = experience(snapshot, ['Tesla']).map((entry) => entry.chunk);
-    const blueDome = experience(snapshot, ['Blue Dome']).map((entry) => entry.chunk);
+    // Summary chunks only: body chunks of other roles publish plain numbers
+    // that would accidentally ground the token under test, which is not what
+    // this test is about — it pins the version/plain distinction.
+    const summaries = (q: string) =>
+      experience(snapshot, [q]).map((entry) => entry.chunk).filter((c) => !c.id.includes('#'));
+    const tesla = summaries('Tesla');
+    const blueDome = summaries('Blue Dome');
     expect(verify({ text: 'TPM 2.0', sources: [] }, tesla).ok).toBe(false);
     expect(verify({ text: 'Chronos-2', sources: [] }, blueDome).ok).toBe(false);
   });

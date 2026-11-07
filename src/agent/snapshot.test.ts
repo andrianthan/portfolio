@@ -82,9 +82,9 @@ describe('snapshot of the real content', () => {
     expect(tesla!.text).not.toContain('**');
   });
 
-  it('points an uncleared entry at the home anchor', () => {
+  it('points a cleared entry at its own route', () => {
     const tesla = snapshot.chunks.find((c) => c.id === 'role:tesla')!;
-    expect(tesla.url).toBe('/#experience');
+    expect(tesla.url).toBe('/work/tesla');
   });
 
   it('carries the profile chunks', () => {
