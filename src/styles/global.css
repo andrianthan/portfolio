@@ -4,12 +4,29 @@
 html, body { overflow-x: clip; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--color-bg); color: var(--color-fg); font: 400 17px/1.65 var(--font-sans); -webkit-font-smoothing: antialiased; position: relative; }
-/* the glow and the dot grid sit behind everything, anchored to the top of the page */
-body::before { content: ""; position: absolute; inset: 0 0 auto 0; height: min(760px, 100vh); z-index: -1; pointer-events: none;
+/* the cursor field: two layers behind everything, both held in the viewport so they
+   stay put (and stay aligned with each other) while the page scrolls */
+body::before, body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; }
+
+/* the quiet grid: the same 24px dot tile as before, drifting against the pointer */
+body::before {
+  inset: -20px; /* room for the drift, so a translated layer never shows an edge */
+  background: radial-gradient(var(--color-dot) 1.1px, transparent 1.1px) 20px 20px / 24px 24px;
+  -webkit-mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
+  transform: translate3d(calc((var(--mx, 50vw) - 50vw) * -0.006), calc((var(--my, 50vh) - 50vh) * -0.006), 0); }
+
+/* the field: bigger, brighter dots and the glow, masked to a soft patch around the
+   pointer. the tile carries the same drift as the grid, so the lit dots land on the
+   quiet ones instead of crossing them */
+body::after {
+  inset: 0;
   background:
-    radial-gradient(ellipse 60% 55% at 50% 0%, var(--color-glow), transparent 70%),
-    radial-gradient(var(--color-dot) 1.1px, transparent 1.1px) 0 0 / 24px 24px;
-  -webkit-mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); }
+    radial-gradient(circle 300px at var(--mx, 50vw) var(--my, 50vh), var(--color-glow), transparent 70%),
+    radial-gradient(color-mix(in srgb, var(--color-fg) 30%, transparent) 1.7px, transparent 1.7px) calc((var(--mx, 50vw) - 50vw) * -0.006) calc((var(--my, 50vh) - 50vh) * -0.006) / 24px 24px;
+  -webkit-mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%); mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%);
+  opacity: 0; transition: opacity .45s ease-out; }
+/* the field is lit while the pointer is over the page; without JS it stays lit and inert */
+html:hover body::after, html:not(.js) body::after { opacity: 1; }
 a { color: var(--color-accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
@@ -251,10 +268,18 @@ header.ph { padding: 48px 0 var(--space-lg); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* the field is frozen: the grid stops drifting and the field is a fixed, soft glow */
+  body::before { transform: none; }
+  body::after { opacity: 1; transition: none; background-image: radial-gradient(circle 300px at 50vw 50vh, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
   h1 .w { animation: none; opacity: 1; filter: none; transform: none; }
   .intro-think::after, .intro-answer, .intro-trace { animation: none; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .more span, #theme-toggle, .topics a, .bar a, .prow, .prow .arrow { transition: none; }
   a.prow:hover { padding-left: 0; } a.prow:hover .arrow { transform: translateY(-50%); }
   .more:hover span { transform: none; }
+}
+/* a touch screen has no cursor to follow: the field falls back to the site's original
+   top glow, so a phone keeps the look it always had */
+@media (hover: none) {
+  body::after { opacity: 1; background-image: radial-gradient(ellipse 60% 45% at 50% 0%, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
 }
