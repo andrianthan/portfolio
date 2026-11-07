@@ -43,7 +43,11 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -we
 .status { font-size: 15px; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 
 /* the chat card */
-.chat { width: min(640px, 100%); text-align: left; background: var(--color-glass); border: 1px solid var(--color-rule); border-radius: 18px; padding: 20px 20px 16px; box-shadow: 0 24px 60px -30px var(--color-glow); }
+.chat { width: min(640px, 100%); text-align: left; background: var(--color-glass); border: 1px solid var(--color-rule); border-radius: 18px; padding: 20px 20px 16px; box-shadow: 0 24px 60px -30px var(--color-glow); backdrop-filter: blur(18px) saturate(1.35); }
+/* the -webkit- alias lives in its own rule: the CSS minifier treats the prefixed and the
+   unprefixed name as one property, so in the same rule it drops the standard one — and
+   Chrome no longer understands the prefixed alias, which would kill the blur entirely */
+@supports (-webkit-backdrop-filter: blur(1px)) { .chat { -webkit-backdrop-filter: blur(18px) saturate(1.35); } }
 .chat-hello { margin: 0 0 var(--space-md); color: var(--color-muted); font-size: 16px; line-height: 1.55; }
 .intro-out { min-height: 120px; max-height: 34svh; overflow-y: auto; font: 400 14px/1.6 var(--font-mono); overflow-wrap: anywhere; }
 .intro-line-out { white-space: pre-wrap; margin: 0 0 4px; color: var(--color-fg); }
@@ -68,7 +72,7 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -we
 .intro-input::placeholder { color: var(--color-muted); }
 .full { margin-top: var(--space-md); font-size: 15px; color: var(--color-muted); }
 .full:hover { color: var(--color-fg); text-decoration: none; }
-.intro-out:empty::before { content: "Answers show up here."; color: var(--color-muted); opacity: .7; }
+.intro-out:empty::before { content: "Answers show up here."; color: var(--color-muted); }
 .hero-graph { width: min(360px, 100%); aspect-ratio: 4 / 3; margin: 0 auto; }
 .hero-graph .hg-svg { display: block; width: 100%; height: 100%; overflow: visible; font-family: var(--font-mono); }
 .hg-edge { fill: none; stroke: var(--color-rule); stroke-width: 1.5; }
@@ -224,6 +228,17 @@ header.ph { padding: 48px 0 var(--space-lg); }
   .dec dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } .dec dd { margin-bottom: 10px; }
   .facts { grid-template-columns: minmax(0, 1fr); }
   .detail { --space-xl: 52px; }
+}
+@media (max-width: 480px) {
+  .avatar { width: 72px; height: 72px; margin-bottom: 10px; }
+  h1 { font-size: clamp(32px, 9vw, 40px); }
+  .status { margin-bottom: var(--space-md); }
+  .chat { padding: 14px 14px 12px; }
+  .intro-out { min-height: 84px; max-height: 26svh; }
+  .topics { margin: 10px 0 10px; }
+  /* the shorter hero pulls the stats strip into the first viewport: show it without
+     waiting for the reveal script, so it never becomes a late LCP candidate */
+  .js .stats.reveal { opacity: 1; transform: none; transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
