@@ -129,10 +129,11 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50
 /* stats */
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg) var(--space-md); margin-bottom: var(--space-xl); text-align: center; }
 .stat { padding: 0 6px; }
-.stat b { display: block; font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; margin-bottom: 10px; background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: grad-drift 26s ease-in-out infinite alternate; transition: background-image .85s ease; }
-/* the pointer passing over a number gathers the gradient into the middle of it. the
-   numbers already drift, so the sweep moves the ramp's shape, not its window */
-.stat b:hover { background-image: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 26%, var(--grad-a) 100%); }
+.stat b { display: block; font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; margin-bottom: 10px; background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: grad-drift 26s ease-in-out infinite alternate; transition: background-size .85s ease; }
+/* the pointer passing over a number opens the ramp, so the magenta lands in the middle
+   of it. the numbers already drift on background-position, and a running animation beats
+   any transition on the same property, so the sweep moves the ramp's size instead */
+.stat b:hover { background-size: 100% 100%; }
 .stat span { font-size: 14px; line-height: 1.45; color: var(--color-muted); display: block; }
 
 /* section head */
@@ -164,9 +165,6 @@ section.s { padding: 0 0 var(--space-xl); }
 .logo img { width: 64%; height: 64%; object-fit: contain; display: block; }
 .logo.fill img { width: 100%; height: 100%; object-fit: cover; }
 .job h3 { font-size: 20px; line-height: 1.3; font-weight: 600; margin: 0; letter-spacing: -0.015em; width: fit-content; transition: color .3s ease; }
-/* the role rows get the treatment the project rows already have: the gradient sweeps
-   into the title. the heading hugs its own text, so the ramp lands on the title */
-.job:hover h3 { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .org { color: var(--color-muted); font-weight: 500; }
 .tag { font: 500 12px var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--color-num); margin-left: 10px; vertical-align: 2px; white-space: nowrap; }
 .job p.dates { font: 400 13px var(--font-mono); line-height: 1.5; color: var(--color-muted); margin: 3px 0 10px; }
@@ -185,12 +183,13 @@ section.s { padding: 0 0 var(--space-xl); }
 a.prow:hover { text-decoration: none; padding-left: 12px; }
 .prow-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
 .prow b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; transition: color .3s ease; }
-/* every project row sweeps the gradient into its title, linked or not */
-.prow:hover b { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .prow .m { font: 400 13px var(--font-mono); color: var(--color-muted); }
 .prow p { margin: 6px 0 0; font-size: 16px; line-height: 1.55; color: var(--color-muted); max-width: 40rem; }
 .prow .arrow { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-muted); transition: transform .2s, color .2s; }
 a.prow:hover .arrow { transform: translate(4px, -50%); color: var(--color-num); }
+/* both row types catch the gradient as the pointer passes: the title takes the ramp.
+   the role row's heading hugs its own text, so the ramp lands on the title */
+.job:hover h3, .prow:hover b { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 /* both row types lift a little under the pointer. the lift is the individual
    translate property, so it never fights the reveal's transform on the same row */
 .job:hover, .prow:hover { translate: 0 -2px; }
@@ -221,7 +220,6 @@ footer a:hover { color: var(--color-fg); }
 .js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out var(--reveal-delay), transform .6s ease-out var(--reveal-delay), translate .2s ease; }
 .js .reveal.in { opacity: 1; transform: none; }
 /* the stagger: the sections arrive one after another, in the order they are read */
-main > .stats { --reveal-step: 0; }
 #experience .job:nth-child(1) { --reveal-step: 1; }
 #experience .job:nth-child(2) { --reveal-step: 2; }
 #experience .job:nth-child(3) { --reveal-step: 3; }
