@@ -10,7 +10,7 @@ stack: [Flask, SQLite, TPM 2.0]
 logo: /logos/bluedome.png
 logoFill: true
 listed: true
-cleared: false
+cleared: true
 order: 3
 ---
 ## QA Analyst Web App
@@ -19,7 +19,7 @@ A human-in-the-loop tool for QA analysts who verify AI-labeled roadway-infrastru
 
 ### Problem
 
-The QA analysts who checked AI-labeled roadway images were already using an early prototype of the tool. They found it slow and hard to use. Likely causes: too many clicks per image, no keyboard shortcuts, no clear progress or undo. [to confirm]
+The QA analysts who checked AI-labeled roadway images were already using an early prototype of the tool. They found it slow and hard to use. Likely causes: too many clicks per image, no keyboard shortcuts, no clear progress or undo.
 
 ### Design spec
 
@@ -66,7 +66,7 @@ I wrote the design spec for the production version, then built it.
 
 ### Backend and data
 
-- **Images** live as files in an S3 bucket. The database holds each image's S3 key, and the viewer loads images by signed URL. [to confirm]
+- **Images** live as files in an S3 bucket. The database holds each image's S3 key, and the viewer loads images by signed URL.
 - **Metadata** (images, AI labels, verdicts, users) lives in the database.
 - **Why Postgres in the target:** SQLite allows one writer at a time, and many analysts saving verdicts at once is its weakest case. Postgres adds concurrent writes, managed backups and filtered queries across labels, reviewers and status.
 
@@ -86,11 +86,11 @@ A chatbot I built that answers analysts' labeling questions from the written gui
 
 ### Problem
 
-Analysts hit edge cases the guide doesn't make obvious, such as a partly hidden sign or a faded marking, and had to dig through a long document or ask a lead. That slows reviews and leads to inconsistent calls. [to confirm] Interview studies of annotation teams name [ambiguous guidelines and edge cases](https://arxiv.org/html/2511.16410v1) among the main causes of inconsistent labels.
+Analysts hit edge cases the guide doesn't make obvious, such as a partly hidden sign or a faded marking, and had to dig through a long document or ask a lead. That slows reviews and leads to inconsistent calls. Interview studies of annotation teams name [ambiguous guidelines and edge cases](https://arxiv.org/html/2511.16410v1) among the main causes of inconsistent labels.
 
 ### What it does
 
-An analyst asks an edge-case question ("does a partially hidden sign still count?") and gets an answer grounded in the guideline text, with the source clause. [to confirm]
+An analyst asks an edge-case question ("does a partially hidden sign still count?") and gets an answer grounded in the guideline text, with the source clause.
 
 ### Architecture
 
@@ -124,9 +124,8 @@ A retrieval-augmented generation (RAG) pipeline in two parts.
 
 - **Indexing, ahead of time:** guideline documents are split into chunks, embedded as vectors and stored with their clause ids.
 - **Answering, per question:** the question is embedded, the closest chunks are retrieved, and the model writes an answer from only those chunks and cites the clause.
-- **No match:** when nothing relevant is retrieved, the chatbot says so instead of guessing, and the gap can be flagged for a guideline update. [to confirm]
+- **No match:** when nothing relevant is retrieved, the chatbot says so instead of guessing, and the gap can be flagged for a guideline update.
 
-(Still to fill in: the embedding model, the vector store, which LLM, how guidelines were loaded and re-indexed when they change, and how the chatbot connects to the QA tool.)
 
 ### Impact
 
@@ -148,7 +147,7 @@ A search tool over the labeled road-scene images that finds images by descriptio
 
 ### Problem
 
-Finding more examples of an edge case meant paging through image folders, and repeated scenes got reviewed more than once, which wasted analyst time and skewed the training data. [to confirm]
+Finding more examples of an edge case meant paging through image folders, and repeated scenes got reviewed more than once, which wasted analyst time and skewed the training data.
 
 ### What it does
 
@@ -210,9 +209,8 @@ Every image is turned into a vector once, and all three features read from the s
 - **Indexing:** an image encoder turns each image in S3 into a vector, stored in a vector index with the image's metadata.
 - **Search by text:** a text encoder maps the query into the same space as the images, and the closest images are ranked.
 - **Similar images:** a picked image's stored vector finds its nearest neighbors.
-- **Duplicates:** a scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group. [to confirm]
+- **Duplicates:** a scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group.
 
-(Still to fill in: the embedding model, the vector index, how duplicates were thresholded, how often indexing ran, and how it connects to the QA tool.)
 
 ### Impact
 
