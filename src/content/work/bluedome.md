@@ -15,19 +15,19 @@ order: 3
 ---
 ## QA Analyst Web App
 
-A human-in-the-loop tool for QA analysts who verify AI-labeled roadway-infrastructure images. I wrote the design spec and built the prototype and the production-ready version. [to confirm]
+A human-in-the-loop tool for QA analysts who verify AI-labeled roadway-infrastructure images. I wrote the design spec and built the prototype and the production-ready version.
 
 ### Problem
 
-The QA analysts who checked AI-labeled roadway images were already using an early prototype of the tool. They found it slow and hard to use. [to confirm] (assumed: too many clicks per image, no keyboard shortcuts, no clear progress or undo.)
+The QA analysts who checked AI-labeled roadway images were already using an early prototype of the tool. They found it slow and hard to use. Likely causes: too many clicks per image, no keyboard shortcuts, no clear progress or undo. [to confirm]
 
 ### Design spec
 
-I wrote the design spec for the production version, then built it. [to confirm]
+I wrote the design spec for the production version, then built it.
 
 ### Architecture
 
-**As shipped.** A Python Flask backend, a JavaScript frontend and a SQLite database for metadata, with images stored in S3. Analysts review each AI-labeled image and validate it, and TPM 2.0-backed authentication ties a login to a trusted device. [to confirm]
+**As shipped.** A Python Flask backend, a JavaScript frontend and a SQLite database for metadata, with images stored in S3. Analysts review each AI-labeled image and validate it, and TPM 2.0-backed authentication ties a login to a trusted device.
 
 **Target architecture.** The same Flask API and frontend, with a managed Postgres in place of SQLite.
 
@@ -61,13 +61,13 @@ I wrote the design spec for the production version, then built it. [to confirm]
 
 ### Key decisions
 
-- Device trust: authentication is backed by TPM 2.0, so a login is tied to a trusted device. [to confirm]
+- Device trust: authentication is backed by TPM 2.0, so a login is tied to a trusted device.
 - Built across a 3-sprint roadmap with a product manager and a UI/UX designer, tracked in Trello, with updates to the founders.
 
 ### Backend and data
 
-- **Images** live as files in an S3 bucket. The database stores only each image's key, and the viewer loads images by signed URL. [to confirm]
-- **Metadata** (images, AI labels, verdicts, users) lives in the database. [to confirm]
+- **Images** live as files in an S3 bucket. The database holds each image's S3 key, and the viewer loads images by signed URL. [to confirm]
+- **Metadata** (images, AI labels, verdicts, users) lives in the database.
 - **Why Postgres in the target:** SQLite allows one writer at a time, and many analysts saving verdicts at once is its weakest case. Postgres adds concurrent writes, managed backups and filtered queries across labels, reviewers and status.
 
 ### Impact
@@ -80,13 +80,9 @@ I wrote the design spec for the production version, then built it. [to confirm]
 
 These figures are estimates, not measured results.
 
-### Lessons
-
-[to confirm]
-
 ## Guideline Chatbot
 
-A chatbot I built that answers analysts' labeling questions from the written guidelines, using retrieval-augmented generation (RAG) with vector embeddings. [to confirm]
+A chatbot I built that answers analysts' labeling questions from the written guidelines, using retrieval-augmented generation (RAG) with vector embeddings.
 
 ### Problem
 
@@ -98,7 +94,7 @@ An analyst asks an edge-case question ("does a partially hidden sign still count
 
 ### Architecture
 
-A retrieval-augmented generation (RAG) pipeline in two parts. [to confirm]
+A retrieval-augmented generation (RAG) pipeline in two parts.
 
 <figure class="arch">
 <svg viewBox="0 0 640 290" role="img" aria-label="Guideline chatbot architecture. Indexing, done ahead of time: guideline documents are split into chunks, embedded by an embedding model, and stored in a vector store. Answering, per question: the analyst's question is embedded, the closest guideline chunks are retrieved from the vector store, an LLM writes an answer from those chunks, and the answer cites its source clause. If nothing relevant is found, the chatbot says so and the gap can be flagged for a guideline update.">
@@ -126,8 +122,8 @@ A retrieval-augmented generation (RAG) pipeline in two parts. [to confirm]
 <figcaption>Guideline chatbot architecture</figcaption>
 </figure>
 
-- **Indexing, ahead of time:** guideline documents are split into chunks, embedded as vectors and stored with their clause ids. [to confirm]
-- **Answering, per question:** the question is embedded, the closest chunks are retrieved, and the model writes an answer from only those chunks and cites the clause. [to confirm]
+- **Indexing, ahead of time:** guideline documents are split into chunks, embedded as vectors and stored with their clause ids.
+- **Answering, per question:** the question is embedded, the closest chunks are retrieved, and the model writes an answer from only those chunks and cites the clause.
 - **No match:** when nothing relevant is retrieved, the chatbot says so instead of guessing, and the gap can be flagged for a guideline update. [to confirm]
 
 (Still to fill in: the embedding model, the vector store, which LLM, how guidelines were loaded and re-indexed when they change, and how the chatbot connects to the QA tool.)
@@ -148,7 +144,7 @@ The window above is a stand-in that runs in your browser: a made-up guide, keywo
 
 ## Image Search
 
-A search tool over the labeled road-scene images that finds images by description, finds images similar to one you pick, and flags near-duplicates, using CLIP-style image and text embeddings. [to confirm]
+A search tool over the labeled road-scene images that finds images by description, finds images similar to one you pick, and flags near-duplicates, using CLIP-style image and text embeddings.
 
 ### Problem
 
@@ -160,11 +156,10 @@ Finding more examples of an edge case meant paging through image folders, and re
 - **Similar images:** pick an image and see its nearest neighbors, to find more examples of an edge case.
 - **Near-duplicates:** flag images that are almost identical, so analysts don't review the same scene twice and training data isn't skewed.
 
-[to confirm]
 
 ### Architecture
 
-Every image is turned into a vector once, and all three features read from the same index. [to confirm]
+Every image is turned into a vector once, and all three features read from the same index.
 
 <figure class="arch">
 <svg viewBox="0 0 640 300" role="img" aria-label="Image search architecture. Images stored in S3 are turned into vectors by an image encoder and stored in a vector index. Three paths read the index. Search by text: a text query is encoded into the same space and the closest images are ranked. Similar images: a picked image's stored vector finds its nearest neighbors. Duplicates: a scheduled job compares all vectors and flags groups of near-identical images for review.">
@@ -212,9 +207,9 @@ Every image is turned into a vector once, and all three features read from the s
 <figcaption>Image search architecture</figcaption>
 </figure>
 
-- **Indexing:** an image encoder turns each image in S3 into a vector, stored in a vector index with the image's metadata. [to confirm]
-- **Search by text:** a text encoder maps the query into the same space as the images, and the closest images are ranked. [to confirm]
-- **Similar images:** a picked image's stored vector finds its nearest neighbors. [to confirm]
+- **Indexing:** an image encoder turns each image in S3 into a vector, stored in a vector index with the image's metadata.
+- **Search by text:** a text encoder maps the query into the same space as the images, and the closest images are ranked.
+- **Similar images:** a picked image's stored vector finds its nearest neighbors.
 - **Duplicates:** a scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group. [to confirm]
 
 (Still to fill in: the embedding model, the vector index, how duplicates were thresholded, how often indexing ran, and how it connects to the QA tool.)
