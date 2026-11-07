@@ -84,7 +84,39 @@ An analyst asks an edge-case question ("does a partially hidden sign still count
 
 ### Architecture
 
-Guidelines are split into chunks, embedded as vectors and retrieved by similarity to the question, then passed to the model that writes the answer. [to confirm] (still to fill in: embedding model, LLM, vector store, how guidelines were loaded, and how it connects to the QA tool.)
+A retrieval-augmented generation (RAG) pipeline in two parts. [to confirm]
+
+<figure class="arch">
+<svg viewBox="0 0 640 290" role="img" aria-label="Guideline chatbot architecture. Indexing, done ahead of time: guideline documents are split into chunks, embedded by an embedding model, and stored in a vector store. Answering, per question: the analyst's question is embedded, the closest guideline chunks are retrieved from the vector store, an LLM writes an answer from those chunks, and the answer cites its source clause. If nothing relevant is found, the chatbot says so and the gap can be flagged for a guideline update.">
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g font-family="var(--font-mono)" font-size="10" letter-spacing="1.2" style="fill:var(--color-muted)"><text x="10" y="22">INDEXING (AHEAD OF TIME)</text><text x="10" y="152">ANSWERING (PER QUESTION)</text></g>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="10" y="34" width="130" height="64" rx="10"/><rect x="175" y="34" width="130" height="64" rx="10"/><rect x="340" y="34" width="130" height="64" rx="10"/><rect x="505" y="34" width="125" height="64" rx="10"/>
+<path d="M140 66H175" marker-end="url(#ah2)"/><path d="M305 66H340" marker-end="url(#ah2)"/><path d="M470 66H505" marker-end="url(#ah2)"/>
+<rect x="10" y="164" width="130" height="64" rx="10"/><rect x="175" y="164" width="130" height="64" rx="10"/><rect x="340" y="164" width="130" height="64" rx="10"/><rect x="505" y="164" width="125" height="64" rx="10"/>
+<path d="M140 196H175" marker-end="url(#ah2)"/><path d="M305 196H340" marker-end="url(#ah2)"/><path d="M470 196H505" marker-end="url(#ah2)"/>
+<path d="M567 98V131H240V164" stroke-dasharray="5 4" marker-end="url(#ah2)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="75" y="63" font-weight="600">Guidelines</text><text x="75" y="81" font-size="11" style="fill:var(--color-muted)">documents (S3)</text>
+<text x="240" y="63" font-weight="600">Chunker</text><text x="240" y="81" font-size="11" style="fill:var(--color-muted)">clauses, sections</text>
+<text x="405" y="63" font-weight="600">Embedding model</text><text x="405" y="81" font-size="11" style="fill:var(--color-muted)">text to vectors</text>
+<text x="567" y="63" font-weight="600">Vector store</text><text x="567" y="81" font-size="11" style="fill:var(--color-muted)">chunks + metadata</text>
+<text x="75" y="193" font-weight="600">Analyst question</text><text x="75" y="211" font-size="11" style="fill:var(--color-muted)">in the review tool</text>
+<text x="240" y="193" font-weight="600">Embed + retrieve</text><text x="240" y="211" font-size="11" style="fill:var(--color-muted)">top matching chunks</text>
+<text x="405" y="193" font-weight="600">LLM</text><text x="405" y="211" font-size="11" style="fill:var(--color-muted)">answers from chunks</text>
+<text x="567" y="193" font-weight="600">Answer</text><text x="567" y="211" font-size="11" style="fill:var(--color-muted)">cites the clause</text>
+<text x="320" y="262" font-size="11" style="fill:var(--color-muted)">no relevant chunk found: say so, flag the gap for a guideline update</text>
+</g>
+</svg>
+<figcaption>Guideline chatbot architecture</figcaption>
+</figure>
+
+- **Indexing, ahead of time:** guideline documents are split into chunks, embedded as vectors and stored with their clause ids. [to confirm]
+- **Answering, per question:** the question is embedded, the closest chunks are retrieved, and the model writes an answer from only those chunks and cites the clause. [to confirm]
+- **No match:** when nothing relevant is retrieved, the chatbot says so instead of guessing, and the gap can be flagged for a guideline update. [to confirm]
+
+(Still to fill in: the embedding model, the vector store, which LLM, how guidelines were loaded and re-indexed when they change, and how the chatbot connects to the QA tool.)
 
 ### About the demo
 
