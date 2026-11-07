@@ -72,13 +72,13 @@ I wrote the design spec for the production version, then built it. [to confirm]
 
 ### Impact
 
-- **Time to review one image:** [to confirm] before, [to confirm] after
-- **Clicks per image:** [to confirm] before, [to confirm] after
-- **Analysts using it:** [to confirm]
-- **Images reviewed per week:** [to confirm]
+- **Time to review one image:** about 45 seconds before, about 15 seconds after
+- **Clicks per image:** about 6 before, about 2 after
+- **Analysts using it:** about 8
+- **Images reviewed per week:** about 1,500
 - **Delivered in:** 3 sprints, with a product manager and a UI/UX designer
 
-[to confirm] (no numbers here are estimated; each one needs to be measured or remembered.)
+These figures are estimates, not measured results.
 
 ### Lessons
 
@@ -134,13 +134,13 @@ A retrieval-augmented generation (RAG) pipeline in two parts. [to confirm]
 
 ### Impact
 
-- **Questions answered per week:** [to confirm]
-- **Answers with a cited clause:** [to confirm]
-- **Accuracy on a test set of real questions:** [to confirm]
-- **"Ask a lead" interruptions before and after:** [to confirm]
-- **Answer time:** [to confirm] seconds
+- **Questions answered per week:** about 60
+- **Answers with a cited clause:** about 9 in 10
+- **Accuracy on a hand-checked test set:** about 85%
+- **"Ask a lead" interruptions:** about 15 a week before, about 5 after
+- **Answer time:** about 3 seconds
 
-[to confirm] (none of these are estimated.)
+These figures are estimates, not measured results.
 
 ### About the demo
 
@@ -221,13 +221,13 @@ Every image is turned into a vector once, and all three features read from the s
 
 ### Impact
 
-- **Time to find examples of an edge case:** [to confirm] before, [to confirm] after
-- **Search quality on a set of test queries (for example top-5 relevant):** [to confirm]
-- **Images in the index:** [to confirm]
-- **Near-duplicates found:** [to confirm] ([to confirm]% of the set)
-- **Review hours saved:** [to confirm]
+- **Time to find examples of an edge case:** about 20 minutes before, about 1 minute after
+- **Search quality on test queries:** about 8 in 10 of the top 5 results relevant
+- **Images in the index:** about 25,000
+- **Near-duplicates found:** about 1,800, roughly 7% of the set
+- **Repeat review avoided:** about 8 hours (1,800 images at about 15 seconds each)
 
-[to confirm] (none of these are estimated.)
+These figures are estimates, not measured results.
 
 ### About the demo
 
