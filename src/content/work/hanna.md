@@ -11,7 +11,7 @@ logo: /logos/hanna.png
 logoFill: true
 current: false
 listed: true
-cleared: false
+cleared: true
 order: 2
 ---
 ## Grants Agent
@@ -164,7 +164,7 @@ The window above is a stand-in that runs in your browser: a Teams-style chat, ma
 
 ## Case Note Coach
 
-A ChatGPT Custom GPT that helps licensed clinicians write progress notes, and check notes they already wrote, against one behavioral-health payer's documentation standards. It expands a clinician's keywords into a note ready for the record, explains every decision, and rates notes pasted in.
+An AI assistant that helps licensed clinicians write progress notes, and check notes they already wrote, against one behavioral-health payer's documentation standards. It expands a clinician's keywords into a note ready for the record, explains every decision, and rates notes pasted in.
 
 ### Problem
 
@@ -179,7 +179,7 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 ### Architecture
 
 <figure class="arch">
-<svg viewBox="0 0 640 225" role="img" aria-label="Case note chatbot architecture. A clinician starts either a new note or a note check. A custom GPT with one set of system instructions answers, searching a knowledge base that is layered by authority, from payer rules at the top down to code lookups. The output is a tier verdict, the note itself, and an expansion breakdown that explains each sentence.">
+<svg viewBox="0 0 640 225" role="img" aria-label="Case note chatbot architecture. A clinician starts either a new note or a note check. An AI assistant with one set of system instructions answers, searching a knowledge base that is layered by authority, from payer rules at the top down to code lookups. The output is a tier verdict, the note itself, and an expansion breakdown that explains each sentence.">
 <defs><marker id="ah6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
 <g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
 <rect x="5" y="30" width="150" height="56" rx="10"/>
@@ -192,7 +192,7 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 </g>
 <g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
 <text x="80" y="54" font-weight="600">Clinician</text><text x="80" y="70" font-size="11" style="fill:var(--color-muted)">new note, or check one</text>
-<text x="320" y="54" font-weight="600">Custom GPT</text><text x="320" y="70" font-size="11" style="fill:var(--color-muted)">instructions + rules</text>
+<text x="320" y="54" font-weight="600">AI assistant</text><text x="320" y="70" font-size="11" style="fill:var(--color-muted)">instructions + rules</text>
 <text x="560" y="54" font-weight="600">Output</text><text x="560" y="70" font-size="11" style="fill:var(--color-muted)">tier, note, breakdown</text>
 <text x="320" y="174" font-weight="600">Knowledge base</text><text x="320" y="190" font-size="11" style="fill:var(--color-muted)">layered by authority: rules, guidance, guides, lookups</text>
 <text x="395" y="126" font-size="11" style="fill:var(--color-muted)">file search</text>
@@ -201,7 +201,7 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 <figcaption>Case note chatbot architecture</figcaption>
 </figure>
 
-- One Custom GPT with no backend code. A single instructions file is the source of truth for the rules, the routing table and the output format.
+- One assistant with no backend code of its own. A single instructions file is the source of truth for the rules, the routing table and the output format.
 - The knowledge base is layered by authority: payer rules first, then audit guidance, sufficiency logic, supporting guides, and structured code and term lookups. When two layers disagree, the higher one wins.
 - The flow runs input, service type, a check of each of the three note sections, one message listing every gap, then the note and its breakdown.
 
@@ -222,4 +222,4 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 
 ### About the demo
 
-The window above is a stand-in that runs in your browser. The real tool is a ChatGPT Custom GPT. The demo uses made-up documentation standards, rule checks for the eight conditions (two of them keyword heuristics), local retrieval for questions, and a note builder where every sentence comes from the input. It is not a language model, and it holds no real clinical content.
+The window above is a stand-in that runs in your browser. The real tool is an AI assistant configured with instructions and a knowledge base. The demo uses made-up documentation standards, rule checks for the eight conditions (two of them keyword heuristics), local retrieval for questions, and a note builder where every sentence comes from the input. It is not a language model, and it holds no real clinical content.
