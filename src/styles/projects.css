@@ -20,3 +20,7 @@
 .project .concept { font: 600 11px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 var(--space-md); }
 .project .demo-slot { margin: var(--space-lg) 0; }
 .project a { text-decoration: underline; text-underline-offset: 3px; }
+
+.project .arch { margin: var(--space-md) 0 var(--space-lg); }
+.project .arch svg { display: block; width: 100%; height: auto; max-width: 640px; }
+.project .arch figcaption { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin-top: 8px; }

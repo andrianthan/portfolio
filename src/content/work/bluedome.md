@@ -27,7 +27,37 @@ I wrote the design spec for the production version, then built it. [to confirm]
 
 ### Architecture
 
-A Python Flask backend, a JavaScript frontend and a SQLite database. Analysts review each AI-labeled image and validate it. [to confirm]
+**As shipped.** A Python Flask backend, a JavaScript frontend and a SQLite database for metadata, with images stored in S3. Analysts review each AI-labeled image and validate it, and TPM 2.0-backed authentication ties a login to a trusted device. [to confirm]
+
+**Target architecture.** The same Flask API and frontend, with a managed Postgres in place of SQLite.
+
+<figure class="arch">
+<svg viewBox="0 0 640 250" role="img" aria-label="Target architecture. The browser talks to a Flask API that does device-trust authentication and reads and writes a Postgres metadata database. Images are uploaded from the browser straight to an S3 bucket using presigned URLs, and the API stores each image's S3 key.">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="16" y="90" width="130" height="64" rx="10"/>
+<rect x="250" y="90" width="150" height="64" rx="10"/>
+<rect x="494" y="20" width="130" height="64" rx="10"/>
+<rect x="494" y="160" width="130" height="64" rx="10"/>
+<path d="M146 122H250" marker-end="url(#ah)"/>
+<path d="M400 108L494 58" marker-end="url(#ah)"/>
+<path d="M400 136L494 190" marker-end="url(#ah)"/>
+<path d="M81 154V232H494" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="81" y="118" font-weight="600">Browser</text><text x="81" y="136" font-size="11" style="fill:var(--color-muted)">JS review UI</text>
+<text x="325" y="118" font-weight="600">Flask API</text><text x="325" y="136" font-size="11" style="fill:var(--color-muted)">TPM 2.0 device auth</text>
+<text x="559" y="48" font-weight="600">Postgres</text><text x="559" y="66" font-size="11" style="fill:var(--color-muted)">labels, verdicts, users</text>
+<text x="559" y="188" font-weight="600">S3 bucket</text><text x="559" y="206" font-size="11" style="fill:var(--color-muted)">image files</text>
+<text x="290" y="226" font-size="11" style="fill:var(--color-muted)">presigned upload (direct)</text>
+</g>
+</svg>
+<figcaption>Target architecture</figcaption>
+</figure>
+
+- The browser uploads images straight to S3 through presigned URLs, so large files never pass through Flask.
+- Flask records each image's S3 key, plus AI labels and analyst verdicts, in Postgres.
+- Device-trust authentication stays at the API.
 
 ### Key decisions
 
@@ -36,7 +66,9 @@ A Python Flask backend, a JavaScript frontend and a SQLite database. Analysts re
 
 ### Backend and data
 
-[to confirm]
+- **Images** live as files in an S3 bucket. The database stores only each image's key, and the viewer loads images by signed URL. [to confirm]
+- **Metadata** (images, AI labels, verdicts, users) lives in the database. [to confirm]
+- **Why Postgres in the target:** SQLite allows one writer at a time, and many analysts saving verdicts at once is its weakest case. Postgres adds concurrent writes, managed backups and filtered queries across labels, reviewers and status.
 
 ### Results and lessons
 
