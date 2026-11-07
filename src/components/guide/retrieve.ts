@@ -158,19 +158,19 @@ export function search(index: Index, query: string, mode: Mode = 'hybrid', topK 
 
 export interface Answer { text: string; citations: string[]; refused: boolean; result: SearchResult }
 
-export function answer(index: Index, query: string, mode: Mode = 'hybrid', corpus = `guide ${GUIDE_VERSION}`): Answer {
+export function answer(index: Index, query: string, mode: Mode = 'hybrid', corpus = `guide ${GUIDE_VERSION}`, noun = 'clause'): Answer {
   const result = search(index, query, mode);
   if (result.refused) {
     return {
-      text: `No clause in ${corpus} covers this. I won't guess. Flag it for a guideline update?`,
+      text: `No ${noun} in ${corpus} covers this. I won't guess. Flag it for a guideline update?`,
       citations: [], refused: true, result,
     };
   }
   const [first, second] = result.hits;
-  const also = second && second.score >= first.score * 0.6 ? ` Also see clause ${second.clause.id} (${second.clause.title}).` : '';
+  const also = second && second.score >= first.score * 0.6 ? ` Also see ${noun} ${second.clause.id} (${second.clause.title}).` : '';
   const citations = [first.clause.id, ...(also ? [second.clause.id] : [])];
   return {
-    text: `Clause ${first.clause.id}, ${first.clause.title}: ${first.clause.text}${also}`,
+    text: `${noun[0].toUpperCase()}${noun.slice(1)} ${first.clause.id}, ${first.clause.title}: ${first.clause.text}${also}`,
     citations, refused: false, result,
   };
 }

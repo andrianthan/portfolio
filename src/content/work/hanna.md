@@ -11,7 +11,7 @@ logo: /logos/hanna.png
 logoFill: true
 current: false
 listed: true
-cleared: true
+cleared: false
 order: 2
 ---
 ## Grants Agent
@@ -161,3 +161,65 @@ To file an incident report, staff had to log into Salesforce directly, which mea
 ### About the demo
 
 The window above is a stand-in that runs in your browser: a Teams-style chat, made-up youth and staff, and the same five-step flow. The dependent picklists, the review screen, the Draft record and the supervisor approval run real logic. Nothing here is real incident data.
+
+## Case Note Coach
+
+A ChatGPT Custom GPT that helps licensed clinicians write progress notes, and check notes they already wrote, against one behavioral-health payer's documentation standards. It expands a clinician's keywords into a note ready for the record, explains every decision, and rates notes pasted in.
+
+### Problem
+
+Progress notes fail payer audits or supervisor review when they leave out the elements that show a session was medically necessary. Clinicians needed help writing notes that pass, and a way to learn what a strong note contains without a supervisor reading every one.
+
+### What it does
+
+- **Start a new note:** the clinician pastes keywords. The GPT lists everything that is missing in one message, then writes the note and an **Expansion Breakdown** that explains where each sentence came from and why.
+- **Check a note:** the clinician pastes an existing note in any format. The GPT rates it Tier 1, 2 or 3 and says exactly what to fix. It evaluates the note and does not rewrite it.
+- **Stays honest:** it never invents symptoms, diagnoses or client responses, and it never softens risk documentation.
+
+### Architecture
+
+<figure class="arch">
+<svg viewBox="0 0 640 225" role="img" aria-label="Case note chatbot architecture. A clinician starts either a new note or a note check. A custom GPT with one set of system instructions answers, searching a knowledge base that is layered by authority, from payer rules at the top down to code lookups. The output is a tier verdict, the note itself, and an expansion breakdown that explains each sentence.">
+<defs><marker id="ah6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="5" y="30" width="150" height="56" rx="10"/>
+<rect x="245" y="30" width="150" height="56" rx="10"/>
+<rect x="485" y="30" width="150" height="56" rx="10"/>
+<rect x="185" y="150" width="270" height="56" rx="10"/>
+<path d="M155 58H245" marker-end="url(#ah6)"/>
+<path d="M395 58H485" marker-end="url(#ah6)"/>
+<path d="M320 150V86" stroke-dasharray="5 4" marker-end="url(#ah6)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="80" y="54" font-weight="600">Clinician</text><text x="80" y="70" font-size="11" style="fill:var(--color-muted)">new note, or check one</text>
+<text x="320" y="54" font-weight="600">Custom GPT</text><text x="320" y="70" font-size="11" style="fill:var(--color-muted)">instructions + rules</text>
+<text x="560" y="54" font-weight="600">Output</text><text x="560" y="70" font-size="11" style="fill:var(--color-muted)">tier, note, breakdown</text>
+<text x="320" y="174" font-weight="600">Knowledge base</text><text x="320" y="190" font-size="11" style="fill:var(--color-muted)">layered by authority: rules, guidance, guides, lookups</text>
+<text x="395" y="126" font-size="11" style="fill:var(--color-muted)">file search</text>
+</g>
+</svg>
+<figcaption>Case note chatbot architecture</figcaption>
+</figure>
+
+- One Custom GPT with no backend code. A single instructions file is the source of truth for the rules, the routing table and the output format.
+- The knowledge base is layered by authority: payer rules first, then audit guidance, sufficiency logic, supporting guides, and structured code and term lookups. When two layers disagree, the higher one wins.
+- The flow runs input, service type, a check of each of the three note sections, one message listing every gap, then the note and its breakdown.
+
+### Key decisions
+
+- **No embellishment.** Every sentence must trace to what the clinician said, because the note is a legal record. Gaps are flagged, not filled.
+- **An authority hierarchy**, so payer rules override generic advice.
+- **Three tiers, with hard fails and soft suggestions kept apart.** Missing administrative details are never graded.
+- **Risk documentation in three proportional categories**, not always required in full.
+- **Telehealth checks are reminders only** and never block a note.
+- **A high-capability reasoning model is required**, because smaller models loosen the ratings.
+
+### Impact
+
+- **Rating:** 3 tiers and 8 hard-fail conditions
+- **Knowledge base:** 15 files, including structured lookups of 259 diagnosis codes and 114 intervention terms
+- **Rebuild:** 15 to 20 minutes, with the smoke tests re-run after every instruction change
+
+### About the demo
+
+The window above is a stand-in that runs in your browser. The real tool is a ChatGPT Custom GPT. The demo uses made-up documentation standards, rule checks for the eight conditions (two of them keyword heuristics), local retrieval for questions, and a note builder where every sentence comes from the input. It is not a language model, and it holds no real clinical content.

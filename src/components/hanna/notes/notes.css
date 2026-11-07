@@ -1,0 +1,18 @@
+.nc .nc-log { min-height: 340px; max-height: 560px; overflow-y: auto; }
+.nc-turn { display: grid; gap: 4px; }
+.nc-turn.you { justify-items: end; text-align: right; }
+.nc-turn p { margin: 0; font-size: 14px; line-height: 1.5; }
+.nc-you { color: var(--color-muted); white-space: pre-wrap; }
+.nc-bot { max-width: 60ch; }
+.nc-tier { font: 600 12px var(--font-mono) !important; letter-spacing: .06em; text-transform: uppercase; }
+.nc-tier.t1 { color: #3fae6a; } .nc-tier.t2 { color: var(--color-accent); } .nc-tier.t3 { color: #e0605a; }
+.nc-list { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; }
+.nc-list.soft { color: var(--color-muted); font-size: 12.5px; }
+.nc-from { font: 11px var(--font-mono); color: var(--color-accent); margin-left: 6px; }
+.nc-note { margin: 4px 0 0; padding: 12px 14px; border: 1px solid var(--color-rule); border-radius: 8px; font: 13px/1.55 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; background: var(--color-bg); text-align: left; }
+.nc-break summary { cursor: pointer; font-size: 12.5px; color: var(--color-muted); }
+.nc-cite { font: 600 11px var(--font-mono) !important; letter-spacing: .05em; color: var(--color-muted); }
+.nc-foot { display: grid; gap: 8px; }
+.nc-form { display: flex; gap: 8px; align-items: flex-end; }
+.nc-form textarea { flex: 1; min-width: 0; font: 14px var(--font-sans); color: var(--color-fg); background: transparent; border: 1px solid var(--color-rule); border-radius: 8px; padding: 8px 10px; resize: vertical; }
+.nc-form textarea:focus { outline: none; border-color: var(--color-accent); }

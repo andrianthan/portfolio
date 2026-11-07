@@ -3,7 +3,7 @@ import { KB, KB_LABEL } from './kb';
 import { buildIndex, answer } from '../../guide/retrieve';
 
 const index = buildIndex(KB);
-const ask = (q: string) => answer(index, q, 'hybrid', KB_LABEL);
+const ask = (q: string) => answer(index, q, 'hybrid', KB_LABEL, 'passage');
 
 describe('sample standards knowledge base', () => {
   it('has a modest set of uniquely numbered passages', () => {
@@ -27,6 +27,9 @@ describe('sample standards knowledge base', () => {
   it('answers a risk question from the risk passage', () => {
     const a = ask('client mentioned suicidal thoughts, what do I document');
     expect(KB.find((c) => c.id === a.citations[0])!.title).toMatch(/risk/i);
+  });
+  it('uses the corpus noun in its answers', () => {
+    expect(ask('do I need an ICD-10 code').text).toMatch(/^Passage 9,/);
   });
   it('refuses an unrelated question and names the corpus', () => {
     const a = ask('what is the weather in paris');
