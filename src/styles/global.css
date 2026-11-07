@@ -75,8 +75,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); 
 h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.05; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 var(--space-sm); overflow-wrap: anywhere; min-width: 0; }
 h1 .w { display: inline-block; opacity: 0; filter: blur(10px); transform: translateY(8px); animation: bi .8s cubic-bezier(.2,.8,.2,1) forwards; }
 h1 .w:nth-child(2) { animation-delay: .12s; }
-h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* the name's gradient drifts. the ramp is drawn twice as wide and folded back on
+   itself (a -> b -> a), so the window that slides across the words always shows a
+   full a-to-b ramp and the fold never shows an edge. the entrance (bi) is repeated
+   here because this rule replaces the one on .w */
+h1 .grad { background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: bi .8s cubic-bezier(.2,.8,.2,1) forwards, grad-drift 26s ease-in-out infinite alternate; }
 @keyframes bi { to { opacity: 1; filter: blur(0); transform: none; } }
+@keyframes grad-drift { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 .status { font-size: 15px; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 
 /* the chat card */
@@ -124,18 +129,25 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -we
 /* stats */
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg) var(--space-md); margin-bottom: var(--space-xl); text-align: center; }
 .stat { padding: 0 6px; }
-.stat b { display: block; font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; margin-bottom: 10px; background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat b { display: block; font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; margin-bottom: 10px; background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: grad-drift 26s ease-in-out infinite alternate; transition: background-image .85s ease; }
+/* the pointer passing over a number gathers the gradient into the middle of it. the
+   numbers already drift, so the sweep moves the ramp's shape, not its window */
+.stat b:hover { background-image: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 26%, var(--grad-a) 100%); }
 .stat span { font-size: 14px; line-height: 1.45; color: var(--color-muted); display: block; }
 
 /* section head */
 .sh { text-align: center; margin: 0 0 var(--space-lg); }
 .eyebrow { font: 500 12px var(--font-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 10px; }
 .sh h2 { display: inline-block; font: 700 clamp(32px, 5vw, 48px)/1.1 var(--font-sans); letter-spacing: -0.035em; text-transform: none; margin: 0;
-  background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  transition: background-position .85s ease; }
+/* the light passes across the heading: the window slides to the far end of the ramp */
+.sh h2:hover { background-position: 100% 50%; }
 /* the gradient only paints the glyphs where background-clip: text is understood */
-@supports not (background-clip: text) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } }
+@supports not (background-clip: text) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } .job:hover h3 { background: none; color: var(--color-fg); } }
 /* forced-colors mode does not paint the gradient, so the title needs a real colour there */
-@media (forced-colors: active) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } }
+@media (forced-colors: active) { .sh h2, h1 .grad, .stat b, .job:hover h3 { color: var(--color-fg); } }
 .sh h2::after { display: none; }
 h2 { display: flex; align-items: center; gap: var(--space-md); font: 500 13px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 h2::after { content: ""; flex: 1; height: 1px; background: var(--color-rule); }
@@ -144,14 +156,17 @@ section.s { padding: 0 0 var(--space-xl); }
 /* timeline */
 .tl { position: relative; padding-left: 36px; max-width: 46rem; margin: 0 auto; }
 .tl::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 1px; background: var(--color-rule); }
-.job { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-md) 18px; margin-bottom: var(--space-xl); }
+.job { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-md) 18px; margin-bottom: var(--space-xl); transition: translate .2s ease; }
 .job:last-child { margin-bottom: 0; }
 .job::before { content: ""; position: absolute; left: -36px; top: 14px; width: 15px; height: 15px; border-radius: 50%; background: var(--color-bg); border: 2px solid var(--color-muted); }
 .job.now::before { background: var(--color-num); border-color: var(--color-num); box-shadow: 0 0 0 5px var(--color-glow); }
 .logo { width: 48px; height: 48px; border-radius: 12px; background: var(--color-logo-bg); border: 1px solid var(--color-rule); display: grid; place-items: center; overflow: hidden; }
 .logo img { width: 64%; height: 64%; object-fit: contain; display: block; }
 .logo.fill img { width: 100%; height: 100%; object-fit: cover; }
-.job h3 { font-size: 20px; line-height: 1.3; font-weight: 600; margin: 0; letter-spacing: -0.015em; }
+.job h3 { font-size: 20px; line-height: 1.3; font-weight: 600; margin: 0; letter-spacing: -0.015em; width: fit-content; transition: color .3s ease; }
+/* the role rows get the treatment the project rows already have: the gradient sweeps
+   into the title. the heading hugs its own text, so the ramp lands on the title */
+.job:hover h3 { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .org { color: var(--color-muted); font-weight: 500; }
 .tag { font: 500 12px var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--color-num); margin-left: 10px; vertical-align: 2px; white-space: nowrap; }
 .job p.dates { font: 400 13px var(--font-mono); line-height: 1.5; color: var(--color-muted); margin: 3px 0 10px; }
@@ -166,15 +181,19 @@ section.s { padding: 0 0 var(--space-xl); }
 
 /* projects */
 .plist { max-width: 46rem; margin: 0 auto; }
-.prow { position: relative; display: block; color: inherit; padding: 28px 40px 28px 0; transition: padding .2s; }
+.prow { position: relative; display: block; color: inherit; padding: 28px 40px 28px 0; transition: padding .2s, translate .2s ease; }
 a.prow:hover { text-decoration: none; padding-left: 12px; }
 .prow-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
-.prow b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-a.prow:hover b { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.prow b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; transition: color .3s ease; }
+/* every project row sweeps the gradient into its title, linked or not */
+.prow:hover b { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .prow .m { font: 400 13px var(--font-mono); color: var(--color-muted); }
 .prow p { margin: 6px 0 0; font-size: 16px; line-height: 1.55; color: var(--color-muted); max-width: 40rem; }
 .prow .arrow { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-muted); transition: transform .2s, color .2s; }
 a.prow:hover .arrow { transform: translate(4px, -50%); color: var(--color-num); }
+/* both row types lift a little under the pointer. the lift is the individual
+   translate property, so it never fights the reveal's transform on the same row */
+.job:hover, .prow:hover { translate: 0 -2px; }
 .shot { aspect-ratio: 16/9; background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 14px; display: grid; place-items: center; color: var(--color-muted); font: 400 12px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; margin: var(--space-lg) 0 var(--space-xl); }
 .detail .shot-img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border: 1px solid var(--color-rule); border-radius: 14px; margin: var(--space-lg) 0 var(--space-xl); }
 
@@ -195,8 +214,23 @@ footer .links { display: flex; flex-wrap: wrap; gap: 20px; }
 footer a { white-space: nowrap; color: var(--color-muted); }
 footer a:hover { color: var(--color-fg); }
 
-.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out, transform .6s ease-out; }
+/* the reveal: each element fades up as it comes into view. the delay is declared
+   once, here, as the step times 70ms, and every section sets its own step — so the
+   stagger is one number per section and the components stay untouched */
+.reveal { --reveal-step: 0; --reveal-delay: calc(var(--reveal-step) * 70ms); }
+.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out var(--reveal-delay), transform .6s ease-out var(--reveal-delay), translate .2s ease; }
 .js .reveal.in { opacity: 1; transform: none; }
+/* the stagger: the sections arrive one after another, in the order they are read */
+main > .stats { --reveal-step: 0; }
+#experience .job:nth-child(1) { --reveal-step: 1; }
+#experience .job:nth-child(2) { --reveal-step: 2; }
+#experience .job:nth-child(3) { --reveal-step: 3; }
+#experience .job:nth-child(4) { --reveal-step: 4; }
+#experience .job:nth-child(n+5) { --reveal-step: 4; }
+#projects .plist { --reveal-step: 5; }
+#about .about { --reveal-step: 6; }
+#how .how-copy { --reveal-step: 7; }
+#how .how-graph { --reveal-step: 8; }
 
 /* detail page (wrap the page in an element or body with class "detail") */
 .detail { --measure: 46rem; --space-xl: 72px; line-height: 1.7; }
@@ -294,8 +328,13 @@ header.ph { padding: 48px 0 var(--space-lg); }
   body::after, html:hover body::after { opacity: 1; transition: none; background-image: radial-gradient(circle 300px at 50vw 50vh, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
   h1 .w { animation: none; opacity: 1; filter: none; transform: none; }
   .intro-think::after, .intro-answer, .intro-trace { animation: none; }
+  /* the foreground is still: the gradient stops drifting, the sweeps land at once
+     and the rows do not lift */
+  h1 .grad, .stat b { animation: none; }
+  .sh h2, .stat b { transition: none; }
+  .job:hover, .prow:hover { translate: none; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
-  .more span, #theme-toggle, .topics a, .bar a, .prow, .prow .arrow { transition: none; }
+  .more span, #theme-toggle, .topics a, .bar a, .prow, .prow .arrow, .job, .job h3, .prow b { transition: none; }
   a.prow:hover { padding-left: 0; } a.prow:hover .arrow { transform: translateY(-50%); }
   .more:hover span { transform: none; }
 }
