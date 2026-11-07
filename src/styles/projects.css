@@ -102,5 +102,11 @@ html:has(.toc) { scroll-behavior: auto; }
     background: none;
   }
   .toc .go { display: none; }
+  /* The rail's rows drop the arrow's empty grid column, so the title gets the
+     10px of gap back and the title column is 162px. The longest title ("QA
+     Analyst Web App") measures 158px at the body's 16px, so the rail's titles
+     are one step smaller at 15px, where it measures 148px. */
+  .toc a { grid-template-columns: 28px 1fr; }
+  .toc .t { font-size: 15px; }
   .project { scroll-margin-top: 24px; }
 }
