@@ -24,3 +24,20 @@
 .project .arch { margin: var(--space-md) 0 var(--space-lg); }
 .project .arch svg { display: block; width: 100%; height: auto; max-width: 640px; }
 .project .arch figcaption { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin-top: 8px; }
+
+/* Desktop: the contents list follows the reader down the page. Below 900px it is
+   three rows tall and would eat the screen, so it stays a normal in-flow list.
+   The list needs its own opaque background because the content scrolls behind it,
+   and the project headings need enough scroll margin to clear the stuck list. */
+@media (min-width: 900px) {
+  .toc {
+    position: sticky;
+    top: 20px;
+    z-index: 5;
+    background: var(--color-bg);
+    padding-bottom: 10px;
+  }
+  /* the stuck list covers the top of the viewport, so an anchor jump has to
+     land the heading below it: 20px offset + 188px list + 32px of clearance */
+  .project { scroll-margin-top: 240px; }
+}
