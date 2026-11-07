@@ -1,0 +1,15 @@
+---
+import SkillsGlobe from './SkillsGlobe.astro';
+import { GLOBE_SKILLS } from '../lib/skillIcons';
+const groups = [...new Set(GLOBE_SKILLS.map((s) => s.group))];
+---
+<section class="s" id="skills">
+  <header class="sh">
+    <p class="eyebrow">Tech Stack</p>
+    <h2>My <span class="grad">Skills</span></h2>
+  </header>
+  <SkillsGlobe />
+  <p class="skills-legend">
+    {groups.map((g) => <span class="skills-legend-chip">{g}</span>)}
+  </p>
+</section>
