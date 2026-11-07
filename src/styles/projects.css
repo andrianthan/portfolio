@@ -1,4 +1,12 @@
 /* Multi-project detail pages: contents list + one section per project. */
+
+/* A click on a contents link has to land on the project it names, but smooth
+   scrolling races the demo islands' hydration: the layout shifts mid-scroll and
+   the jump stops short of its target. These pages jump straight to it instead.
+   Pages without a contents list (the home page, single-project pages) keep the
+   smooth scrolling. */
+html:has(.toc) { scroll-behavior: auto; }
+
 .toc { margin: 0 0 var(--space-lg); }
 .toc-label { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 10px; }
 .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
@@ -30,14 +38,35 @@
    The list needs its own opaque background because the content scrolls behind it,
    and the project headings need enough scroll margin to clear the stuck list. */
 @media (min-width: 900px) {
+  :root {
+    /* The gap between the top of the viewport and the stuck list. */
+    --toc-sticky-top: 20px;
+    /* The height the list occupies: its label, one row per project, their
+       padding and the band it covers below itself. It is content-driven, so a
+       fourth project — or a title that wraps to two lines — makes the list
+       taller and this value has to grow with it. */
+    --toc-list-height: 220px;
+    /* The clearance between the bottom of the list and the heading an anchor
+       jump lands on. */
+    --toc-clearance: 32px;
+    /* Where an anchor jump has to land the heading: the list's offset from the
+       top of the viewport, the height it occupies, and the clearance below it. */
+    --toc-sticky-offset: calc(var(--toc-sticky-top) + var(--toc-list-height) + var(--toc-clearance));
+  }
   .toc {
     position: sticky;
-    top: 20px;
+    top: var(--toc-sticky-top);
     z-index: 5;
     background: var(--color-bg);
-    padding-bottom: 10px;
+    /* The list's bottom margin sat outside its background, so content scrolling
+       behind it showed through the gap under the last row. Moving that space
+       into padding keeps the occupied height the same and lets the background
+       cover the gap. */
+    margin-bottom: 0;
+    padding-bottom: calc(10px + var(--space-lg));
+    /* the list is what the project headings have to clear, so it reserves the
+       same offset they do */
+    scroll-margin-top: var(--toc-sticky-offset);
   }
-  /* the stuck list covers the top of the viewport, so an anchor jump has to
-     land the heading below it: 20px offset + 188px list + 32px of clearance */
-  .project { scroll-margin-top: 240px; }
+  .project { scroll-margin-top: var(--toc-sticky-offset); }
 }
