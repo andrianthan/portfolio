@@ -266,11 +266,11 @@ header.ph { padding: 48px 0 var(--space-lg); }
 .globe-nodes { position: absolute; inset: 0; }
 .globe-node { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; will-change: transform, opacity; }
 .globe-node svg { width: clamp(22px, 4.5vw, 34px); height: clamp(22px, 4.5vw, 34px); color: var(--color-fg); }
-.globe-node svg path { fill: currentColor; }
+.globe-node > svg path { fill: currentColor; }
 .globe-glyph { display: contents; }
 .globe-label { font: 500 10px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--color-fg); text-align: center; max-width: 90px; overflow-wrap: break-word; }
 .skills-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: var(--space-lg) auto 0; max-width: 560px; }
 .skills-legend-chip { font: 500 12px var(--font-mono); letter-spacing: .08em; color: var(--color-fg); border: 1px solid var(--color-rule); border-radius: 8px; padding: 5px 12px; }
 @media (prefers-reduced-motion: reduce) {
-  .globe-node { transition: none; }
+  .globe-node { will-change: auto; }
 }

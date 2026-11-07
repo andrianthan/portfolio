@@ -128,7 +128,16 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
         frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
       });
       ro.observe(root);
-      return () => ro.disconnect();
+      // Theme toggles swap --color-rule on <html>; the wireframe must follow.
+      const themeObs = new MutationObserver(() => {
+        measure();
+        frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
+      });
+      themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      return () => {
+        ro.disconnect();
+        themeObs.disconnect();
+      };
     }
 
     let ry = 0;
@@ -160,7 +169,8 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     };
 
     const io = new IntersectionObserver((entries) => {
-      inView = entries[0].isIntersecting;
+      // Batches can hold several crossings; the newest entry wins.
+      inView = entries[entries.length - 1].isIntersecting;
       if (inView) start();
       else stop();
     });
@@ -175,6 +185,23 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
       if (raf === null) frame(ry, TILT);
     });
     ro.observe(root);
+    const themeObs = new MutationObserver(() => {
+      measure();
+      frame(ry, TILT);
+    });
+    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // The system preference can be turned on while the page is open (HeroGraph does the same):
+    // freeze to the static frame, or resume the loop if it is turned back off.
+    const onMotion = () => {
+      if (reduced.matches) {
+        stop();
+        frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
+      } else {
+        start();
+      }
+    };
+    reduced.addEventListener('change', onMotion);
 
     frame(0, TILT); // first paint before the loop's first tick
     start();
@@ -182,6 +209,8 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
       stop();
       io.disconnect();
       ro.disconnect();
+      themeObs.disconnect();
+      reduced.removeEventListener('change', onMotion);
       document.removeEventListener('visibilitychange', onVis);
     };
   }, [items]);
