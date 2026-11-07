@@ -136,7 +136,60 @@ A search tool over the labeled road-scene images that finds images by descriptio
 
 ### Architecture
 
-Images and text queries are embedded into one shared vector space and compared by similarity, so a text query can be matched against images directly. [to confirm] (still to fill in: the embedding model, how vectors were stored and searched, how duplicates were thresholded, and how it connects to the QA tool.)
+Every image is turned into a vector once, and all three features read from the same index. [to confirm]
+
+<figure class="arch">
+<svg viewBox="0 0 640 300" role="img" aria-label="Image search architecture. Images stored in S3 are turned into vectors by an image encoder and stored in a vector index. Three paths read the index. Search by text: a text query is encoded into the same space and the closest images are ranked. Similar images: a picked image's stored vector finds its nearest neighbors. Duplicates: a scheduled job compares all vectors and flags groups of near-identical images for review.">
+<defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="10" y="20" width="130" height="56" rx="10"/>
+<rect x="175" y="20" width="130" height="56" rx="10"/>
+<rect x="340" y="20" width="130" height="270" rx="10"/>
+<rect x="10" y="112" width="130" height="50" rx="10"/>
+<rect x="175" y="112" width="130" height="50" rx="10"/>
+<rect x="505" y="112" width="125" height="50" rx="10"/>
+<rect x="10" y="176" width="130" height="50" rx="10"/>
+<rect x="175" y="176" width="130" height="50" rx="10"/>
+<rect x="505" y="176" width="125" height="50" rx="10"/>
+<rect x="10" y="240" width="130" height="50" rx="10"/>
+<rect x="175" y="240" width="130" height="50" rx="10"/>
+<rect x="505" y="240" width="125" height="50" rx="10"/>
+<path d="M140 48H175" marker-end="url(#ah3)"/>
+<path d="M305 48H340" marker-end="url(#ah3)"/>
+<path d="M140 137H175" marker-end="url(#ah3)"/>
+<path d="M305 137H340" marker-end="url(#ah3)"/>
+<path d="M470 137H505" marker-end="url(#ah3)"/>
+<path d="M140 201H175" marker-end="url(#ah3)"/>
+<path d="M305 201H340" marker-end="url(#ah3)"/>
+<path d="M470 201H505" marker-end="url(#ah3)"/>
+<path d="M140 265H175" marker-end="url(#ah3)"/>
+<path d="M305 265H340" marker-end="url(#ah3)"/>
+<path d="M470 265H505" marker-end="url(#ah3)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="75" y="45" font-weight="600">Images</text><text x="75" y="62" font-size="11" style="fill:var(--color-muted)">files in S3</text>
+<text x="240" y="45" font-weight="600">Image encoder</text><text x="240" y="62" font-size="11" style="fill:var(--color-muted)">image to vector</text>
+<text x="405" y="150" font-weight="600">Vector index</text><text x="405" y="168" font-size="11" style="fill:var(--color-muted)">vectors + metadata</text>
+<text x="75" y="134" font-weight="600">Text query</text><text x="75" y="151" font-size="11" style="fill:var(--color-muted)">a scene in words</text>
+<text x="240" y="134" font-weight="600">Text encoder</text><text x="240" y="151" font-size="11" style="fill:var(--color-muted)">same space as images</text>
+<text x="567" y="134" font-weight="600">Ranked images</text><text x="567" y="151" font-size="11" style="fill:var(--color-muted)">closest by meaning</text>
+<text x="75" y="198" font-weight="600">Picked image</text><text x="75" y="215" font-size="11" style="fill:var(--color-muted)">an analyst clicks one</text>
+<text x="240" y="198" font-weight="600">Look up its vector</text><text x="240" y="215" font-size="11" style="fill:var(--color-muted)">already indexed</text>
+<text x="567" y="198" font-weight="600">Nearest neighbors</text><text x="567" y="215" font-size="11" style="fill:var(--color-muted)">more of the edge case</text>
+<text x="75" y="262" font-weight="600">Scheduled job</text><text x="75" y="279" font-size="11" style="fill:var(--color-muted)">checks the whole set</text>
+<text x="240" y="262" font-weight="600">Read all vectors</text><text x="240" y="279" font-size="11" style="fill:var(--color-muted)">compare close pairs</text>
+<text x="567" y="262" font-weight="600">Duplicate groups</text><text x="567" y="279" font-size="11" style="fill:var(--color-muted)">flagged for review</text>
+</g>
+</svg>
+<figcaption>Image search architecture</figcaption>
+</figure>
+
+- **Indexing:** an image encoder turns each image in S3 into a vector, stored in a vector index with the image's metadata. [to confirm]
+- **Search by text:** a text encoder maps the query into the same space as the images, and the closest images are ranked. [to confirm]
+- **Similar images:** a picked image's stored vector finds its nearest neighbors. [to confirm]
+- **Duplicates:** a scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group. [to confirm]
+
+(Still to fill in: the embedding model, the vector index, how duplicates were thresholded, how often indexing ran, and how it connects to the QA tool.)
 
 ### About the demo
 
