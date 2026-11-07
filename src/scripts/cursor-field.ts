@@ -64,20 +64,45 @@ function unlisten(): void {
   window.removeEventListener('pointermove', onMove);
 }
 
-if (supported) {
-  motion.addEventListener('change', () => {
-    if (motion.matches) {
-      unlisten();
-      clear();
-    } else listen();
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      unlisten();
-      clear();
-    } else listen();
-  });
+/* The pointer and visibility handlers are attached only while the effect is
+   allowed to run. Under reduced motion the script attaches nothing at all, so
+   the page truly does nothing until the preference is turned off. */
+let attached = false;
+
+function onVisibility(): void {
+  if (document.hidden) {
+    unlisten();
+    clear();
+  } else listen();
+}
+
+function attach(): void {
+  if (attached) return;
+  attached = true;
+  document.addEventListener('visibilitychange', onVisibility);
   document.addEventListener('pointerleave', hold);
   window.addEventListener('blur', hold);
   listen();
+}
+
+function detach(): void {
+  if (!attached) return;
+  attached = false;
+  document.removeEventListener('visibilitychange', onVisibility);
+  document.removeEventListener('pointerleave', hold);
+  window.removeEventListener('blur', hold);
+  unlisten();
+}
+
+if (supported) {
+  /* the media-query listener is the one handler that is always attached: it is
+     what lets the script start listening if the preference is turned off later,
+     and stop again if it is turned back on */
+  motion.addEventListener('change', () => {
+    if (motion.matches) {
+      detach();
+      clear();
+    } else attach();
+  });
+  if (!motion.matches) attach();
 }
