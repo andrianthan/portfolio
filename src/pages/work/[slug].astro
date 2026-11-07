@@ -23,12 +23,26 @@ export async function getStaticPaths() {
 // Demos are matched by heading id prefix. Astro needs static component references to hydrate.
 const MULTI = new Set(['bluedome', 'hanna']);
 
+type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide';
+
+// Which demo a project renders, if any. The page's mock-data note uses the same
+// lookup, so a page that shows a demo always carries the note.
+function demoFor(id: string): Demo | null {
+  if (id.startsWith('qa-analyst')) return 'qa';
+  if (id.startsWith('image-search')) return 'img';
+  if (id.startsWith('grants-agent')) return 'grants';
+  if (id.startsWith('ir-updater')) return 'ir';
+  if (id.startsWith('case-note-coach')) return 'notes';
+  if (id.startsWith('guideline-chatbot')) return 'guide';
+  return null;
+}
+
 const { entry, prev, next } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 
 const multi = MULTI.has(entry.id);
-interface Project { id: string; title: string; head: string; intro: string; rest: string }
+interface Project { id: string; title: string; head: string; intro: string; rest: string; demo: Demo | null }
 const projects: Project[] = [];
 if (multi) {
   const html = entry.rendered?.html ?? '';
@@ -43,9 +57,13 @@ if (multi) {
       head: m[0],
       intro: split === -1 ? after : after.slice(0, split),
       rest: split === -1 ? '' : after.slice(split),
+      demo: demoFor(m[1]),
     });
   }
 }
+
+// A page that shows a demo carries the mock-data note; a page without one does not.
+const hasDemos = projects.some((p) => p.demo !== null);
 ---
 <Detail
   kicker={`Role · ${d.project}`}
@@ -59,36 +77,39 @@ if (multi) {
   backLabel="experience"
   noShot={multi}
 >
-  {multi && projects.length > 1 && (
-    <nav slot="toc" class="toc" aria-label="Projects on this page">
-      <p class="toc-label">Projects</p>
-      <ol>
-        {projects.map((p, i) => (
-          <li><a href={`#${p.id}`}><span class="n">{String(i + 1).padStart(2, '0')}</span><span class="t">{p.title}</span><span class="go" aria-hidden="true">↓</span></a></li>
-        ))}
-      </ol>
-    </nav>
-  )}
+  <Fragment slot="toc">
+    {hasDemos && (
+      <div class="demo-note">
+        <p class="eyebrow">Sample data</p>
+        <p class="demo-note-text">The demos on this page run on mock data, not real records. The tools they show are internal, so there is nothing to sign up for.</p>
+      </div>
+    )}
+    {multi && projects.length > 1 && (
+      <nav class="toc" aria-label="Projects on this page">
+        <p class="toc-label">Projects</p>
+        <ol>
+          {projects.map((p, i) => (
+            <li><a href={`#${p.id}`}><span class="n">{String(i + 1).padStart(2, '0')}</span><span class="t">{p.title}</span><span class="go" aria-hidden="true">↓</span></a></li>
+          ))}
+        </ol>
+      </nav>
+    )}
+  </Fragment>
   {multi
     ? projects.map((p, i) => {
-        const qa = p.id.startsWith('qa-analyst');
-        const img = p.id.startsWith('image-search');
-        const grants = p.id.startsWith('grants-agent');
-        const ir = p.id.startsWith('ir-updater');
-        const notes = p.id.startsWith('case-note-coach');
-        const guide = p.id.startsWith('guideline-chatbot');
+        const demo = p.demo;
         return (
           <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
             <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
             <Fragment set:html={p.intro} />
-            {(qa || guide || img || grants || ir || notes) && (
+            {demo && (
               <div class="demo-slot">
-                {qa && <QaDemo client:visible />}
-                {img && <ImageSearchDemo client:visible />}
-                {grants && <GrantsDemo client:visible />}
-                {ir && <IrDemo client:visible />}
-                {notes && <NoteCoachDemo client:visible />}
-                {guide && <GuideDemo client:visible />}
+                {demo === 'qa' && <QaDemo client:visible />}
+                {demo === 'img' && <ImageSearchDemo client:visible />}
+                {demo === 'grants' && <GrantsDemo client:visible />}
+                {demo === 'ir' && <IrDemo client:visible />}
+                {demo === 'notes' && <NoteCoachDemo client:visible />}
+                {demo === 'guide' && <GuideDemo client:visible />}
                 <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
               </div>
             )}

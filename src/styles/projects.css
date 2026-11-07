@@ -7,6 +7,12 @@
    smooth scrolling. */
 html:has(.toc) { scroll-behavior: auto; }
 
+/* The note above the demos. The demos run on mock data and show internal
+   tools, so there is nothing for a visitor to sign up for. Its label reuses
+   the site's own .eyebrow treatment; the sentence sits at the body's 16px. */
+.demo-note { margin: 0 0 var(--space-lg); }
+.demo-note-text { margin: 0; font-size: 16px; line-height: 1.55; color: var(--color-fg); }
+
 .toc { margin: 0 0 var(--space-lg); }
 .toc-label { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 10px; }
 .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
