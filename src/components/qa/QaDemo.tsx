@@ -2,15 +2,12 @@ import './qa.css';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { init, reduce, current, stats, LOW_CONFIDENCE } from './review';
 import { SCENES, SceneArt, type Scene } from './scenes';
-import GuidePanel from '../guide/GuideDemo';
 
 const MARK = { accept: '✓', reject: '✕', relabel: '✎' } as const;
 
 export default function QaDemo() {
   const [s, dispatch] = useReducer(reduce, SCENES, init);
   const [relabeling, setRelabeling] = useState(false);
-  const [tab, setTab] = useState<'review' | 'ask'>('review');
-  const [pending, setPending] = useState<{ q: string; nonce: number } | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const it = current(s) as Scene | null;
@@ -19,7 +16,7 @@ export default function QaDemo() {
   useEffect(() => { if (relabeling) input.current?.focus(); }, [relabeling]);
 
   function onKey(e: React.KeyboardEvent) {
-    if (tab !== 'review' || relabeling || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (relabeling || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
     if (k === 'a' || k === 'arrowright') { e.preventDefault(); dispatch({ type: 'accept' }); }
     else if (k === 'r' || k === 'arrowleft') { e.preventDefault(); dispatch({ type: 'reject' }); }
@@ -34,13 +31,9 @@ export default function QaDemo() {
       aria-label="Sample label review tool. Keys: A accept, R reject, F fix label, U undo.">
       <div className="qa-top">
         <span className="qa-dots" aria-hidden="true"><i /><i /><i /></span>
-        <span className="qa-tabs" role="tablist" aria-label="Tool sections">
-          <button role="tab" type="button" aria-selected={tab === 'review'} className={tab === 'review' ? 'on' : ''} onClick={() => setTab('review')}>Label review</button>
-          <button role="tab" type="button" aria-selected={tab === 'ask'} className={tab === 'ask' ? 'on' : ''} onClick={() => setTab('ask')}>Ask guide</button>
-        </span>
+        <span className="qa-title">Label review</span>
         <span className="qa-sample">sample data</span>
       </div>
-      <div hidden={tab !== 'review'}>
       <div className="qa-body">
         <ol className="qa-queue" aria-label="Review queue">
           {s.items.map((x, i) => {
@@ -76,7 +69,6 @@ export default function QaDemo() {
                     <button onClick={() => dispatch({ type: 'reject' })}>Reject <kbd>R</kbd></button>
                     <button onClick={() => setRelabeling(true)}>Fix label <kbd>F</kbd></button>
                     <button onClick={() => dispatch({ type: 'undo' })} disabled={s.history.length === 0}>Undo <kbd>U</kbd></button>
-                    <button onClick={() => { setPending({ q: `is a ${it.label} a class I should label?`, nonce: Date.now() }); setTab('ask'); }}>Ask guide</button>
                   </div>
                 )}
               </div>
@@ -99,8 +91,6 @@ export default function QaDemo() {
         <span><b>{st.agreement === null ? '–' : `${st.agreement}%`}</b> agreement</span>
         <span><b>{st.secondLook}</b> second look</span>
       </div>
-      </div>
-      <div hidden={tab !== 'ask'}><GuidePanel pending={pending} /></div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import '../qa/qa.css';
 import './guide.css';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { CLAUSES } from './rulebook';
+import { useMemo, useRef, useState } from 'react';
+import { CLAUSES, GUIDE_VERSION } from './rulebook';
 import { buildIndex, answer, type Answer, type Mode } from './retrieve';
 
 const INDEX = buildIndex(CLAUSES);
@@ -37,7 +37,7 @@ function VectorMap({ query2d }: { query2d: [number, number] | null }) {
   );
 }
 
-export default function GuidePanel({ pending }: { pending?: { q: string; nonce: number } | null }) {
+export default function GuideDemo() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [mode, setMode] = useState<Mode>('hybrid');
   const [showMap, setShowMap] = useState(false);
@@ -55,12 +55,6 @@ export default function GuidePanel({ pending }: { pending?: { q: string; nonce: 
     requestAnimationFrame(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); });
   }
 
-  const seen = useRef(0);
-  useEffect(() => {
-    if (pending && pending.nonce !== seen.current) { seen.current = pending.nonce; ask(pending.q); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pending]);
-
   function switchMode(m: Mode) {
     setMode(m);
     setMsgs((cur) => {
@@ -70,8 +64,13 @@ export default function GuidePanel({ pending }: { pending?: { q: string; nonce: 
   }
 
   return (
-    <>
-      <div className="qa-body gd">
+    <div className="qa gd" role="group" aria-label="Sample guideline chatbot">
+      <div className="qa-top">
+        <span className="qa-dots" aria-hidden="true"><i /><i /><i /></span>
+        <span className="qa-title">Guideline chatbot</span>
+        <span className="qa-sample">guide {GUIDE_VERSION} · sample data</span>
+      </div>
+      <div className="qa-body">
         <ol className="qa-queue gd-clauses" aria-label="Guide clauses">
           {CLAUSES.map((c) => {
             const h = scores.get(c.id);
@@ -117,6 +116,6 @@ export default function GuidePanel({ pending }: { pending?: { q: string; nonce: 
         </span>
         <button type="button" className="gd-maptoggle" aria-pressed={showMap} onClick={() => setShowMap((v) => !v)}>{showMap ? 'Hide' : 'Show'} vector map</button>
       </div>
-    </>
+    </div>
   );
 }
