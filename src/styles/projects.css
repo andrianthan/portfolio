@@ -70,3 +70,37 @@ html:has(.toc) { scroll-behavior: auto; }
   }
   .project { scroll-margin-top: var(--toc-sticky-offset); }
 }
+
+/* Wide screens: the contents list leaves the content column and becomes a rail
+   in the page's left gutter, so the write-ups start right under the page
+   header instead of ~220px lower. The rail has no background of its own —
+   nothing scrolls behind it, so the page's glow and dot grid show through the
+   gutter. The project headings need only a small scroll margin again, because
+   the rail sits beside the content, not above it. */
+@media (min-width: 1200px) {
+  :root {
+    /* The width the rail occupies in the gutter. */
+    --toc-rail-width: 200px;
+    /* The clearance between the rail's right edge and the column's left edge. */
+    --toc-rail-gap: 32px;
+    /* The top of the rail: the top bar's measured height (73px: 20px of
+       padding above and below its 33px of content) plus 17px, so the rail
+       starts below the bar and never covers its back link. */
+    --toc-rail-top: 90px;
+  }
+  .toc {
+    position: fixed;
+    top: var(--toc-rail-top);
+    /* The column's left edge is 50% - 368px (half of the 46rem column). The
+       max(16px, ...) keeps the rail on screen when the gutter is narrower than
+       the rail. */
+    left: max(16px, calc(50% - 368px - var(--toc-rail-gap) - var(--toc-rail-width)));
+    width: var(--toc-rail-width);
+    z-index: 5;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+  .toc .go { display: none; }
+  .project { scroll-margin-top: 24px; }
+}
