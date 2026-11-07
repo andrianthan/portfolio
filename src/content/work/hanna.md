@@ -98,3 +98,66 @@ Finding grants meant searching many funder websites by hand, and the paid platfo
 ### About the demo
 
 The window above is a stand-in that runs in your browser: twelve made-up grants and funders, seven stand-in flags modeled on the shape of the real framework, and a deterministic scorer. The threshold, the digest and the tracker are live, and the Edit criteria tab runs a real preview, apply and undo with an expiring one-time token. Nothing here is real grant data.
+
+## IR Updater Bot
+
+A Microsoft Teams bot that lets residential-program staff file an incident report without leaving chat. Staff type a short command, fill a guided five-step form, and the bot creates the record in Salesforce for a supervisor to review. It replaced a paid add-on.
+
+### Problem
+
+To file an incident report, staff had to log into Salesforce directly, which meant training, access and finding their way around a complex layout. Frontline staff needed a way to report from the tool they already had open.
+
+### What it does
+
+- **Starts from a command** typed in Teams, then walks through five short steps.
+- **Fills in what it can**: staff, youth and enrollment details come from lookups, so staff don't retype them.
+- **Reviews before sending**, with an edit button on every step.
+- **Creates a Draft** incident plus one linked record for each youth involved. A supervisor reviews and approves it in Salesforce.
+
+### Architecture
+
+<figure class="arch">
+<svg viewBox="0 0 640 170" role="img" aria-label="Incident bot architecture. Staff type a command in a Teams chat and fill a guided form. A bot service routes the messages to one serverless function, which builds the incident record and writes it to Salesforce as a Draft. The function replies back through the bot service, and the form's state travels inside each card, so nothing is stored outside Salesforce.">
+<defs><marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="5" y="30" width="120" height="56" rx="10"/>
+<rect x="175" y="30" width="120" height="56" rx="10"/>
+<rect x="345" y="30" width="120" height="56" rx="10"/>
+<rect x="515" y="30" width="120" height="56" rx="10"/>
+<path d="M125 58H175" marker-end="url(#ah5)"/>
+<path d="M295 58H345" marker-end="url(#ah5)"/>
+<path d="M465 58H515" marker-end="url(#ah5)"/>
+<path d="M405 86V132H65V90" stroke-dasharray="5 4" marker-end="url(#ah5)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="65.0" y="56" font-weight="600">Teams chat</text><text x="65.0" y="72" font-size="11" style="fill:var(--color-muted)">/ir and a form</text>
+<text x="235.0" y="56" font-weight="600">Bot service</text><text x="235.0" y="72" font-size="11" style="fill:var(--color-muted)">routes messages</text>
+<text x="405.0" y="56" font-weight="600">One function</text><text x="405.0" y="72" font-size="11" style="fill:var(--color-muted)">builds the record</text>
+<text x="575.0" y="56" font-weight="600">Salesforce</text><text x="575.0" y="72" font-size="11" style="fill:var(--color-muted)">Draft incident</text>
+<text x="235" y="152" font-size="11" style="fill:var(--color-muted)">replies through the bot service, form state travels inside each card</text>
+</g>
+</svg>
+<figcaption>Incident bot architecture</figcaption>
+</figure>
+
+- Teams talks to a bot service, which calls one serverless function. The function validates the form, builds the incident and the linked youth records, and writes them to Salesforce.
+- Replies go back to Teams through the bot service. There is no database, queue or session store: the form's state travels inside each card, and nothing lives outside Salesforce.
+
+### Key decisions
+
+- **One function**, which keeps the infrastructure and the cost as small as possible.
+- **State in the card**, so the bot is stateless and a restart loses nothing.
+- **Draft only**: staff can create reports but not approve them, so a supervisor always reviews.
+- **Dependent picklists** with a rule that drops an invalid type and sub-type pair before anything is sent.
+- **Adding a form field is a one-file change**: the card input, the state key, the payload and the review card.
+
+### Impact
+
+- **Vendor cost avoided:** $30k+ across this tool and the grants agent above, which also replaced a paid add-on
+- **Form:** 5 steps, and a submit takes 1 to 3 seconds
+- **Running cost:** about $1 to $2 a month
+- **Verification:** a 54-check smoke test run after every deploy (53 passing, one transient), and 22 documented failure scenarios with fixes
+
+### About the demo
+
+The window above is a stand-in that runs in your browser: a Teams-style chat, made-up youth and staff, and the same five-step flow. The dependent picklists, the review screen, the Draft record and the supervisor approval run real logic. Nothing here is real incident data.

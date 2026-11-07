@@ -5,6 +5,7 @@ import { cleared, neighbors } from '../../lib/content';
 import QaDemo from '../../components/qa/QaDemo';
 import ImageSearchDemo from '../../components/imgsearch/ImageSearchDemo';
 import GrantsDemo from '../../components/hanna/grants/GrantsDemo';
+import IrDemo from '../../components/hanna/ir/IrDemo';
 import GuideDemo from '../../components/guide/GuideDemo';
 import '../../styles/projects.css';
 
@@ -72,16 +73,18 @@ if (multi) {
         const qa = p.id.startsWith('qa-analyst');
         const img = p.id.startsWith('image-search');
         const grants = p.id.startsWith('grants-agent');
+        const ir = p.id.startsWith('ir-updater');
         const guide = p.id.startsWith('guideline-chatbot');
         return (
           <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
             <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
             <Fragment set:html={p.intro} />
-            {(qa || guide || img || grants) && (
+            {(qa || guide || img || grants || ir) && (
               <div class="demo-slot">
                 {qa && <QaDemo client:visible />}
                 {img && <ImageSearchDemo client:visible />}
                 {grants && <GrantsDemo client:visible />}
+                {ir && <IrDemo client:visible />}
                 {guide && <GuideDemo client:visible />}
                 <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
               </div>
