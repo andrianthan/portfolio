@@ -11,7 +11,7 @@ logo: /logos/hanna.png
 logoFill: true
 current: false
 listed: true
-cleared: false
+cleared: true
 order: 2
 ---
 ## Grants Agent

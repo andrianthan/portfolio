@@ -158,11 +158,11 @@ export function search(index: Index, query: string, mode: Mode = 'hybrid', topK 
 
 export interface Answer { text: string; citations: string[]; refused: boolean; result: SearchResult }
 
-export function answer(index: Index, query: string, mode: Mode = 'hybrid'): Answer {
+export function answer(index: Index, query: string, mode: Mode = 'hybrid', corpus = `guide ${GUIDE_VERSION}`): Answer {
   const result = search(index, query, mode);
   if (result.refused) {
     return {
-      text: `No clause in guide ${GUIDE_VERSION} covers this. I won't guess. Flag it for a guideline update?`,
+      text: `No clause in ${corpus} covers this. I won't guess. Flag it for a guideline update?`,
       citations: [], refused: true, result,
     };
   }
