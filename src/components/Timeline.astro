@@ -5,7 +5,7 @@ import RoleEntry from './RoleEntry.astro';
 const roles = listed(await getCollection('work'));
 ---
 <section class="s" id="experience">
-  <h2>Experience</h2>
+  <header class="sh"><p class="eyebrow">Where I've worked</p><h2>Experience</h2></header>
   <div class="tl">
     {roles.map((role) => <RoleEntry role={role} hasPage={role.data.cleared} />)}
   </div>

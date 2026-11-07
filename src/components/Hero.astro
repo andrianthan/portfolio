@@ -1,37 +1,15 @@
 ---
 import IntroTerminal from './terminal/IntroTerminal.tsx';
-import HeroGraph from './HeroGraph.astro';
-import { profile } from '../data/profile';
-
-// Real links first: they work without JavaScript, and the prompt above them routes to the same places.
-const routes = [
-  { label: '/about', href: '#about' },
-  { label: '/experience', href: '#experience' },
-  { label: '/projects', href: '#projects' },
-  { label: '/contact', href: '#contact' },
-  { label: '/resume', href: profile.contact.resume },
-  { label: '/terminal', href: '/terminal' },
-];
 ---
-<header class="hero">
-  <div class="hero-copy">
-    <h1><span class="w">Andrian</span> <span class="w">Than<span class="dot">.</span></span></h1>
-    <p class="hello">hey there! i'm andrian. i build AI agents people can trust.</p>
-    <div class="intro-live"><IntroTerminal client:idle /></div>
-    <nav class="routes" aria-label="Routes">
-      {routes.map((route) => <a href={route.href}>{route.label}</a>)}
-    </nav>
+<header class="hero" id="top">
+  <div class="hero-in">
+    <img class="avatar" src="/headshot.jpg" alt="Andrian Than" width="96" height="96" fetchpriority="high" />
+    <h1><span class="w">Hi, I'm</span> <span class="w grad">Andrian<span class="dot">.</span></span></h1>
+    <p class="status">Graduating Spring 2027 · San Jose, CA</p>
+    <div class="chat">
+      <p class="chat-hello">hey there! i build AI agents people can trust. Ask me anything about my work.</p>
+      <IntroTerminal client:idle />
+    </div>
+    <a class="full" href="/terminal">Open the full terminal →</a>
   </div>
 </header>
-<div class="more">
-  <div class="pill"><i></i>Graduating Spring 2027 · San Jose, CA</div>
-  <div class="contact">
-    <a class="p" href={profile.contact.resume}>Resume (PDF)</a>
-    <a href={`mailto:${profile.contact.email}`}>Email</a>
-    <a href={profile.contact.linkedin} rel="noopener">LinkedIn</a>
-    <a href={profile.contact.github} rel="noopener">GitHub</a>
-  </div>
-  <div class="hero-side">
-    <HeroGraph />
-  </div>
-</div>

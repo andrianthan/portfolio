@@ -4,15 +4,16 @@ import { listed } from '../lib/content';
 const projects = listed(await getCollection('projects'));
 ---
 <section class="s" id="projects">
-  <h2>Projects</h2>
-  <div class="cards reveal">
+  <header class="sh"><p class="eyebrow">Things I've built</p><h2>Projects</h2></header>
+  <div class="plist reveal">
     {projects.map((p) => {
       const Tag = p.data.cleared ? 'a' : 'div';
       const href = p.data.cleared ? `/projects/${p.id}` : undefined;
       return (
-        <Tag class="card" href={href}>
-          <div class="shot">screenshot</div>
-          <div class="t"><b>{p.data.name}</b><span class="m">{p.data.tag}</span><p>{p.data.summary}</p></div>
+        <Tag class="prow" href={href}>
+          <div class="prow-head"><b>{p.data.name}</b><span class="m">{p.data.tag}</span></div>
+          <p>{p.data.summary}</p>
+          {p.data.cleared && <span class="arrow" aria-hidden="true">→</span>}
         </Tag>
       );
     })}

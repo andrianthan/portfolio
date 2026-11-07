@@ -1,21 +1,24 @@
 :root {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --color-bg: #f6f7f8; --color-fg: #1e232a; --color-muted: #5b6573; --color-rule: #d8dce2;
-  --color-accent: #3d5f9e; --color-num: #7a3fe0; --color-chip: #e7e9ee; --color-card: #ffffff;
-  --color-dot: #c9ced6; --color-glow: rgba(122, 63, 224, .14); --color-logo-bg: #ffffff;
-  --space-sm: 8px; --space-md: 16px; --space-lg: 32px; --space-xl: 80px;
+  --color-bg: #f7f6fb; --color-fg: #1a1a24; --color-muted: #5c5c70; --color-rule: #dcdbe6;
+  --color-accent: #5b3fd1; --color-num: #6d3df0; --color-chip: #ecebf4; --color-card: #ffffff;
+  --color-dot: #d4d3e0; --color-glow: rgba(109, 61, 240, .12); --color-logo-bg: #ffffff;
+  --color-glass: rgba(255, 255, 255, .7); --grad-a: #6d3df0; --grad-b: #c026d3;
+  --space-sm: 8px; --space-md: 16px; --space-lg: 32px; --space-xl: 96px;
   --measure: 56rem;
 }
 :root[data-theme="dark"] {
-  --color-bg: #1d2128; --color-fg: #dce2ea; --color-muted: #99a3b1; --color-rule: #3a404a;
-  --color-accent: #8fb0e0; --color-num: #b794ff; --color-chip: #2f353e; --color-card: #262b33;
-  --color-dot: #343b46; --color-glow: rgba(183, 148, 255, .16); --color-logo-bg: #ffffff;
+  --color-bg: #0a0a0f; --color-fg: #ececf3; --color-muted: #9a9aae; --color-rule: #26262f;
+  --color-accent: #a78bfa; --color-num: #b794ff; --color-chip: #17171f; --color-card: #101018;
+  --color-dot: #1d1d28; --color-glow: rgba(139, 92, 246, .2); --color-logo-bg: #ffffff;
+  --color-glass: rgba(255, 255, 255, .04); --grad-a: #a78bfa; --grad-b: #f472b6;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-bg: #1d2128; --color-fg: #dce2ea; --color-muted: #99a3b1; --color-rule: #3a404a;
-    --color-accent: #8fb0e0; --color-num: #b794ff; --color-chip: #2f353e; --color-card: #262b33;
-    --color-dot: #343b46; --color-glow: rgba(183, 148, 255, .16); --color-logo-bg: #ffffff;
+    --color-bg: #0a0a0f; --color-fg: #ececf3; --color-muted: #9a9aae; --color-rule: #26262f;
+    --color-accent: #a78bfa; --color-num: #b794ff; --color-chip: #17171f; --color-card: #101018;
+    --color-dot: #1d1d28; --color-glow: rgba(139, 92, 246, .2); --color-logo-bg: #ffffff;
+    --color-glass: rgba(255, 255, 255, .04); --grad-a: #a78bfa; --grad-b: #f472b6;
   }
 }

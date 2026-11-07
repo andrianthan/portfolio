@@ -1,10 +1,16 @@
 ---
 import ThemeToggle from './ThemeToggle.tsx';
+import { profile } from '../data/profile';
 ---
 <div class="bar">
-  <span>andrian than</span>
+  <a class="brand" href="#top">andrian than</a>
+  <nav class="bar-nav" aria-label="Sections">
+    <a href="#experience">Experience</a>
+    <a href="#projects">Projects</a>
+    <a href="#about">About</a>
+  </nav>
   <span class="bar-right">
-    <a href="/terminal">terminal</a>
+    <a class="btn" href={profile.contact.resume}>Resume</a>
     <ThemeToggle client:load />
   </span>
 </div>
