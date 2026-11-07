@@ -95,6 +95,14 @@ Finding grants meant searching many funder websites by hand, and the paid platfo
 - **Running cost:** about $16 to $19 a month, of which the LLM is about $2 to $5
 - **Editing:** staff change criteria in plain English, with preview and undo
 
+**Estimated outcomes:**
+
+- **Time spent finding grants:** about 6 hours a week before, about 1 hour a week of review after
+- **Grants a person reviews each week:** about 40 before, about 10 after
+- **Junk grants cut from the review pile:** about 70%
+
+These figures are estimates, not measured results.
+
 ### About the demo
 
 The window above is a stand-in that runs in your browser: twelve made-up grants and funders, seven stand-in flags modeled on the shape of the real framework, and a deterministic scorer. The threshold, the digest and the tracker are live, and the Edit criteria tab runs a real preview, apply and undo with an expiring one-time token. Nothing here is real grant data.
@@ -158,6 +166,14 @@ To file an incident report, staff had to log into Salesforce directly, which mea
 - **Running cost:** about $1 to $2 a month
 - **Verification:** a 54-check smoke test run after every deploy (53 passing, one transient), and 22 documented failure scenarios with fixes
 
+**Estimated outcomes:**
+
+- **Time to file an incident report:** about 15 minutes in Salesforce directly, about 3 minutes in Teams
+- **Staff using it:** about 25
+- **Reports filed per month:** about 80
+
+These figures are estimates, not measured results.
+
 ### About the demo
 
 The window above is a stand-in that runs in your browser: a Teams-style chat, made-up youth and staff, and the same five-step flow. The dependent picklists, the review screen, the Draft record and the supervisor approval run real logic. Nothing here is real incident data.
@@ -219,6 +235,14 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 - **Rating:** 3 tiers and 8 hard-fail conditions
 - **Knowledge base:** 15 files, including structured lookups of 259 diagnosis codes and 114 intervention terms
 - **Rebuild:** 15 to 20 minutes, with the smoke tests re-run after every instruction change
+
+**Estimated outcomes:**
+
+- **Time to write a progress note:** about 15 minutes before, about 6 minutes after
+- **Clinicians using it:** about 12
+- **Notes checked per week:** about 50
+
+These figures are estimates, not measured results.
 
 ### About the demo
 
