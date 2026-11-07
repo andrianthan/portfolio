@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Detail from '../../layouts/Detail.astro';
 import { cleared, neighbors } from '../../lib/content';
+import QaDemo from '../../components/qa/QaDemo';
 
 export async function getStaticPaths() {
   const all = cleared(await getCollection('work'));
@@ -27,4 +28,12 @@ const d = entry.data;
   backLabel="experience"
 >
   <Content />
+  {entry.id === 'bluedome' && (
+    <section class="demo" aria-labelledby="demo-h">
+      <h2 id="demo-h">Try it</h2>
+      <p>A small sample of the review loop, with made-up scenes. Click, or use the keys.</p>
+      <QaDemo client:visible />
+      <noscript><p>The demo needs JavaScript. It lets you accept, reject or fix an AI label on a sample road scene, with keys A, R, F and U.</p></noscript>
+    </section>
+  )}
 </Detail>

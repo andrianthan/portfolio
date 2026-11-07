@@ -15,15 +15,20 @@ order: 3
 ---
 ## Problem
 
-[to confirm]
+The QA analysts who checked AI-labeled roadway images were already using an early prototype of the tool. They found it slow and hard to use. [to confirm] (assumed: too many clicks per image, no keyboard shortcuts, no clear progress or undo.)
+
+## Design spec
+
+I wrote the design spec for the production version, then built it. [to confirm]
 
 ## Architecture
 
-[to confirm]
+A Python Flask backend, a JavaScript frontend and a SQLite database. Analysts review each AI-labeled image and validate it. [to confirm]
 
 ## Key decisions
 
-[to confirm]
+- Device trust: authentication is backed by TPM 2.0, so a login is tied to a trusted device. [to confirm]
+- Built across a 3-sprint roadmap with a product manager and a UI/UX designer, tracked in Trello, with updates to the founders.
 
 ## Backend and data
 
@@ -31,4 +36,4 @@ order: 3
 
 ## Results and lessons
 
-[to confirm]
+Shipped as a production-ready tool. [to confirm]
