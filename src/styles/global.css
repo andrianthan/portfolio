@@ -22,8 +22,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); 
 .bar a:hover { color: var(--color-fg); text-decoration: none; }
 .bar .brand { color: var(--color-fg); font-weight: 600; letter-spacing: -0.01em; }
 .bar-nav { display: flex; gap: 28px; }
-.bar-nav a { padding: 4px 0; border-bottom: 1px solid transparent; transition: color .15s, border-color .15s; }
-.bar-nav a:hover { border-color: var(--color-num); }
+.bar-nav a { padding: 4px 0; transition: color .15s; }
+.bar-nav a:hover { color: var(--color-fg); text-decoration: underline; text-underline-offset: 4px; }
 .bar-right { display: flex; align-items: center; gap: 12px; }
 .bar .btn { color: var(--color-fg); border: 1px solid var(--color-rule); border-radius: 8px; padding: 7px 14px; transition: border-color .15s, background .15s; }
 .bar .btn:hover { border-color: var(--color-muted); background: var(--color-chip); }

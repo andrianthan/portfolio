@@ -122,7 +122,7 @@ export default function HeroGraph({ nodes, edges }: { nodes: GraphNode[]; edges:
       ref={svgRef}
       className="hg-svg"
       viewBox={GRAPH_VIEWBOX}
-      role="img"
+      role="group"
       aria-labelledby="hg-title hg-desc"
       preserveAspectRatio="xMidYMid meet"
     >
