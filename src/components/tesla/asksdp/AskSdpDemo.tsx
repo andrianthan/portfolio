@@ -1,6 +1,6 @@
 import '../../qa/qa.css';
 import './asksdp.css';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { PRESETS, ask, type Answer, type Verdict } from './asksdp';
 
 const VERDICT_LABEL: Record<Verdict, string> = { firm: 'Firm', hold: 'Hold', 'no-action': 'No action' };
@@ -10,14 +10,21 @@ export default function AskSdpDemo() {
   const [draft, setDraft] = useState('');
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const logRef = useRef<HTMLDivElement>(null);
+  const hintId = useId();
   const empty = draft.trim() === '';
 
-  const send = (q: string) => {
+  const send = (q: string, clear: boolean) => {
     const text = q.trim();
     if (!text) return;
     setLog((l) => [...l, ask(text)]);
-    setDraft('');
+    if (clear) setDraft('');
   };
+
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [log.length]);
 
   return (
     <div className="qa ask" role="group" aria-label="Sample Ask SDP chat">
@@ -27,7 +34,7 @@ export default function AskSdpDemo() {
         <span className="qa-sample">sample data</span>
       </div>
       <div
-        className="ask-log" role="log" aria-live="polite" aria-label="Conversation" tabIndex={0}
+        ref={logRef} className="ask-log" role="log" aria-live="polite" aria-label="Conversation" tabIndex={0}
       >
         {log.length === 0 && <p className="ask-empty">No questions yet. Pick a sample question or type your own.</p>}
         {log.map((a, i) => (
@@ -44,7 +51,7 @@ export default function AskSdpDemo() {
               )}
               <p className="ask-text">{a.text}</p>
               <span className={`ask-badge ${a.refused ? 'refused' : a.verdict}`}>
-                Verdict: {a.refused || !a.verdict ? "Can't answer from sources" : VERDICT_LABEL[a.verdict]}
+                {a.refused || !a.verdict ? "Can't answer from sources" : `Verdict: ${VERDICT_LABEL[a.verdict]}`}
               </span>
             </div>
           </div>
@@ -52,23 +59,23 @@ export default function AskSdpDemo() {
       </div>
       <div className="ask-presets" role="group" aria-label="Sample questions">
         {PRESETS.map((p) => (
-          <button key={p} type="button" className="ask-chip" onClick={() => send(p)}>{p}</button>
+          <button key={p} type="button" className="ask-chip" onClick={() => send(p, false)}>{p}</button>
         ))}
       </div>
       <form
         className="ask-form"
-        onSubmit={(e) => { e.preventDefault(); send(draft); inputRef.current?.focus(); }}
+        onSubmit={(e) => { e.preventDefault(); send(draft, true); inputRef.current?.focus(); }}
       >
         <label htmlFor={inputId} className="ask-label">Your question</label>
         <div className="ask-row">
           <input
-            id={inputId} ref={inputRef} type="text" value={draft} autoComplete="off"
+            id={inputId} ref={inputRef} type="text" value={draft} autoComplete="off" aria-describedby={hintId}
             placeholder="Ask about a part"
             onChange={(e) => setDraft(e.target.value)}
           />
           <button type="submit" className="ask-send" disabled={empty}>Send</button>
         </div>
-        <p className="ask-hint">{empty ? 'Type a question to enable Send.' : 'Press Enter or Send.'}</p>
+        <p id={hintId} className="ask-hint">{empty ? 'Type a question to enable Send.' : 'Press Enter or Send.'}</p>
       </form>
       <p className="ask-cap">Every number in an answer must come from a tool result.</p>
     </div>

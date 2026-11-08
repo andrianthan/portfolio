@@ -11,11 +11,18 @@ export const PRESETS: readonly string[] = [
 ];
 
 export const REFUSAL = "I can't answer that from the data I can reach.";
-const NUMBER = /\d[\d,]*(?:\.\d+)?%?/g;
+const NUMBER = /\d+(?:,\d{3})*(?:\.\d+)?%?/g;
 
 const nums = (s: string): string[] => s.match(NUMBER) ?? [];
 const fmt = (n: number): string => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const partName = (id: string): string => MOCK_PARTS.find((p) => p.id === id)?.name ?? id;
+const idNum = (id: string): number => parseInt(id.replace(/\D/g, ''), 10) || 0;
+
+/** Part named in the question by name or id (case-insensitive), else the default. */
+function resolvePart(q: string, fallback: string): string {
+  const hit = MOCK_PARTS.find((p) => q.includes(p.name.toLowerCase()) || q.includes(p.id.toLowerCase()));
+  return hit ? hit.id : fallback;
+}
 
 /** Number tokens in `text` that appear in none of the tool results. */
 export function ungrounded(text: string, toolResults: readonly string[]): string[] {
@@ -25,9 +32,9 @@ export function ungrounded(text: string, toolResults: readonly string[]): string
 
 type Draft = Omit<Answer, 'question' | 'refused'>;
 
-function consumption(): Draft {
-  const id = 'P-1001';
-  const weeks = series(3, 6, 1400, 120);
+function consumption(id: string): Draft {
+  const n = idNum(id);
+  const weeks = series(n, 6, 1000 + (n % 10) * 100, 120);
   const first = weeks[0];
   const last = weeks[weeks.length - 1];
   const pct = Math.round(((last - first) / first) * 100);
@@ -42,9 +49,9 @@ function consumption(): Draft {
   return { text, verdict, tools };
 }
 
-function failureRate(): Draft {
-  const id = 'P-1005';
-  const failures = 18, installed = 12000, limit = 0.5;
+function failureRate(id: string): Draft {
+  const n = idNum(id);
+  const failures = 10 + ((n * 7) % 40), installed = 6000 + (n % 9) * 1500, limit = 0.5;
   const rate = (failures / installed) * 100;
   const rateStr = `${rate.toFixed(2)}%`;
   const over = rate > limit;
@@ -57,9 +64,9 @@ function failureRate(): Draft {
   return { text, verdict: over ? 'hold' : 'no-action', tools };
 }
 
-function firmOrHold(): Draft {
-  const id = 'P-1004';
-  const onHand = 2400, inbound = 1200, demand = 310, lead = 6;
+function firmOrHold(id: string): Draft {
+  const n = idNum(id);
+  const onHand = 1500 + (n % 8) * 300, inbound = 600 + (n % 5) * 200, demand = 250 + (n % 6) * 30, lead = 6;
   const cover = Math.floor((onHand + inbound) / demand);
   const firm = cover < lead + 2;
   const tools = [
@@ -75,9 +82,9 @@ function firmOrHold(): Draft {
 export function ask(question: string): Answer {
   const q = question.toLowerCase();
   let draft: Draft | null = null;
-  if (/\b(firm|hold|order)\b/.test(q)) draft = firmOrHold();
-  else if (/fail|defect|return/.test(q)) draft = failureRate();
-  else if (/consum|trend|demand|usage/.test(q)) draft = consumption();
+  if (/\b(firm|hold)\b/.test(q)) draft = firmOrHold(resolvePart(q, 'P-1004'));
+  else if (/fail|defect/.test(q)) draft = failureRate(resolvePart(q, 'P-1005'));
+  else if (/consum|trend|demand|usage/.test(q)) draft = consumption(resolvePart(q, 'P-1001'));
   if (draft && ungrounded(draft.text, draft.tools.map((t) => t.result)).length === 0) {
     return { question, ...draft, refused: false };
   }
