@@ -168,6 +168,15 @@ describe('mobile nav layout', () => {
   });
 });
 
+describe('personal automation cards', () => {
+  it('is two columns on wide screens and one column below 640px', () => {
+    expect(vapor).toMatch(/\.auto-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    // `vapor` is comment-stripped, so the block marker is gone; scope to the
+    // whole stylesheet instead of a comment-delimited slice.
+    expect(vapor).toMatch(/@media \(max-width: 639px\)\s*\{[^}]*\.auto-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  });
+});
+
 describe('simpler chat box', () => {
   it('collapses the empty log instead of reserving space for it', () => {
     expect(vapor).toMatch(/\.intro-out:empty\s*\{[^}]*(display:\s*none|max-height:\s*0|height:\s*0)/);

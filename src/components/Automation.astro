@@ -1,0 +1,14 @@
+---
+import { automation } from '../data/automation';
+---
+<section class="s" id="automation">
+  <header class="sh"><p class="eyebrow">{automation.eyebrow}</p><h2>{automation.heading}</h2></header>
+  <div class="auto-grid reveal">
+    {automation.cards.map((c) => (
+      <article class="auto-card">
+        <div class="auto-head"><b>{c.name}</b><span class="m">{c.tag}</span></div>
+        <p>{c.text}</p>
+      </article>
+    ))}
+  </div>
+</section>
