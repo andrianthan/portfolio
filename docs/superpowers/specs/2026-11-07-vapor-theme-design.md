@@ -103,6 +103,18 @@ self-hosted, subset to the glyphs used, `font-display: swap`, with metric
 fallbacks to avoid layout shift. The final picks are recorded in the plan once
 tested.
 
+**Picked (Task 9, 2026-11-08): Orbitron Variable for the title, Silkscreen for
+the pixel face.** Both are self-hosted through fontsource and preloaded, so the
+first paint already uses them and the swap causes no layout shift. The picks
+match the reference as this document describes it — a wide techno title with
+lavender-white fill, soft violet glow, offset deep-indigo shadow and
+horizontal scanline cut-outs, and a light-violet pixel tagline. The original
+reference screenshot was not available in the Task 9 session, so the comparison
+was made against the description above rather than against the image; the
+alternates named in the plan (`@fontsource/audiowide` or `@fontsource/michroma`
+for the title, `@fontsource/vt323` for the pixel face) remain a one-import,
+one-token swap if the screenshot shows a different read.
+
 ## Constraints kept
 
 - Lighthouse 95 or higher on mobile (home and `/work/tesla`).
@@ -141,4 +153,6 @@ rewriting demo islands, content changes, merging or pushing to main.
 ## Open items
 
 - Vapor as default-with-light-alternate versus a third theme option.
-- Exact font picks, after comparison against the screenshot.
+- Exact font picks, after comparison against the screenshot. Orbitron + Silkscreen
+  are in place (see Fonts); the comparison against the original image is still
+  open, since that screenshot was not available when Task 9 ran.
