@@ -120,8 +120,8 @@ describe('runAgent', () => {
     const result = run('tell me about tesla');
     expect(result.steps).toEqual([
       { actor: 'orchestrator', text: 'routed to experience (matched "Tesla")', status: 'ok' },
-      { actor: 'experience', text: '7 chunks (role:tesla, role:tesla#ask-sdp, role:tesla#data-pipelines, role:tesla#evals-and-ci, role:tesla#forecast-lab, role:tesla#planning-app, role:tesla#work-log)', status: 'ok' },
-      { actor: 'verifier', text: '60 numbers checked against sources ✓', status: 'ok' },
+      { actor: 'experience', text: '9 chunks (role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#modular-architecture, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
+      { actor: 'verifier', text: '203 numbers checked against sources ✓', status: 'ok' },
     ]);
   });
 
@@ -165,7 +165,7 @@ describe('the refusal path', () => {
     const result = run('/experience');
     expect(result.steps).toEqual([
       { actor: 'orchestrator', text: 'routed to experience (/experience)', status: 'ok' },
-      { actor: 'experience', text: '16 chunks (role:bluedome, role:bluedome#guideline-chatbot, role:bluedome#image-search, role:bluedome#qa-analyst-web-app, role:hanna, role:hanna#case-note-coach, role:hanna#grants-agent, role:hanna#ir-updater-bot, role:micron, role:tesla, role:tesla#ask-sdp, role:tesla#data-pipelines, role:tesla#evals-and-ci, role:tesla#forecast-lab, role:tesla#planning-app, role:tesla#work-log)', status: 'ok' },
+      { actor: 'experience', text: '18 chunks (role:bluedome, role:bluedome#guideline-chatbot, role:bluedome#image-search, role:bluedome#qa-analyst-web-app, role:hanna, role:hanna#case-note-coach, role:hanna#grants-agent, role:hanna#ir-updater-bot, role:micron, role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#modular-architecture, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
       { actor: 'verifier', text: 'ungrounded 99% ✗', status: 'fail' },
     ]);
   });
