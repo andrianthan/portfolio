@@ -1,7 +1,10 @@
 import '../../qa/qa.css';
 import './slides.css';
 import { useEffect, useState } from 'react';
-import { STEPS, TEMPLATES, downloadName, initialState, selectTemplate, start, tick, type SlideState } from './slides';
+import {
+  GENERATING_NOTE, STEPS, TEMPLATES, autoAdvance, downloadName, initialState, reducedMotion,
+  selectTemplate, start, statusText, tick, type SlideState,
+} from './slides';
 
 const STEP_MS = 700;
 
@@ -14,21 +17,16 @@ export default function SlidesDemo() {
   const name = downloadName(state);
 
   useEffect(() => {
-    setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  }, []);
-
-  useEffect(() => {
-    if (!generating || reduced) return;
+    // The preference is read here rather than cached at mount, so a change to
+    // it at runtime takes effect straight away.
+    const reducedNow = reducedMotion();
+    setReduced(reducedNow);
+    if (!autoAdvance(state.phase, reducedNow)) return;
     const id = window.setTimeout(() => setState((s) => tick(s)), STEP_MS);
     return () => window.clearTimeout(id);
-  }, [generating, reduced, state.step]);
-
-  const status =
-    state.phase === 'idle'
-      ? 'Pick a template, then generate the deck.'
-      : generating
-        ? `Step ${state.step + 1} of ${STEPS.length}: ${STEPS[state.step]}`
-        : `Deck ready: ${STEPS.length} of ${STEPS.length} steps done.`;
+    // state.step is load-bearing: it re-arms the timer once per step, so a
+    // "tidy the deps" pass that dropped it would silently break auto-advance.
+  }, [state.phase, state.step]);
 
   return (
     <div className="qa sl" role="group" aria-label="Sample slideshow generation">
@@ -61,10 +59,10 @@ export default function SlidesDemo() {
             <button type="button" onClick={() => setState((s) => tick(s))}>Next step</button>
           )}
         </div>
-        {generating && <p className="sl-note">Template and Regenerate are disabled while the deck is generating.</p>}
+        {generating && <p className="sl-note">{GENERATING_NOTE}</p>}
         <ol className="sl-steps" aria-label="Generation steps">
           {STEPS.map((label, i) => {
-            const done = i < state.step || ready;
+            const done = i < state.step;
             const current = generating && i === state.step;
             return (
               <li key={label} className={done ? 'done' : current ? 'cur' : ''}>
@@ -75,7 +73,7 @@ export default function SlidesDemo() {
             );
           })}
         </ol>
-        <p className="sl-status" role="status" aria-live="polite">{status}</p>
+        <p className="sl-status" role="status" aria-live="polite">{statusText(state)}</p>
         <svg className="sl-strip" viewBox="0 0 240 40" aria-hidden="true" focusable="false">
           {[0, 1, 2, 3].map((i) => (
             <g key={i} opacity={ready || (generating && i < state.step) ? 1 : 0.35}>
