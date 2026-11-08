@@ -42,7 +42,7 @@ The rule behind the design is that the request path only reads, and all building
 
 ### Key decisions
 
-- **Warm instead of building per request.** Startup warming turns minutes of waiting into milliseconds. The cost is memory: the warm copies have to live somewhere.
+- **Warm instead of building per request.** Startup warming turns minutes of blocking into seconds, and an instant "warming up" reply. The cost is memory: the warm copies have to live somewhere.
 - **A ceiling that caps pre-warming.** The memory ceiling stops hot-part warming before the process outgrows its box; hot-part warming stopped at 15 of 25 parts. The cost is that the parts it skips open cold the first time.
 - **SELECT-only dashboard reads.** The dashboard reads and never writes, so a bad query can be slow but cannot damage data. The cost is that writes need their own guarded paths.
 - **Fail loud.** A run that writes nothing is now a failed run, not a green one, and a loader never deletes the live database before its replacement is verified. The cost is more red builds that someone has to look at.
@@ -50,7 +50,7 @@ The rule behind the design is that the request path only reads, and all building
 ### Impact
 
 - **First cold load:** 71 to 100 s before, 6 s after, measured (local).
-- **Six people opening it cold at once:** 112 s before, 4.4 s after, measured (local).
+- **Six simultaneous cold loads:** 112 s before, 4.4 s after, measured (local).
 - **First request after a restart:** blocked for 110 to 189 s before; now a "warming up" response in under 250 ms, measured (local).
 - **Back from Part Summary:** 12 requests, 6.9 MB and 2.4 s before; no network requests and 0.05 s after, measured (local).
 - **Campaigns load:** 22 requests and 8.5 MB before, 9 requests and 0.2 MB after, measured (local).
@@ -197,7 +197,7 @@ Generating a forecast and writing one are separate paths, because a forecast is 
 - **6 parts:** over 300 s (a timeout) before, 6.8 s after, measured (stage).
 - **20 parts:** a timeout before, 24.9 s after, with identical forecast output, measured (stage).
 - **Warm runner:** first call from 9.7 s to 1.1 s, measured (stage).
-- **Time saved:** 20 firms a week × 15 minutes × 16 weeks is about 80 hours, an estimate at a placeholder rate.
+- **Time saved:** 20 firms a week × 15 minutes × 16 weeks is about 80 hours, an estimate.
 
 ### About the demo
 
@@ -221,9 +221,9 @@ Campaign demand inflates a part's history, and when a campaign winds down the fo
 
 ### Architecture
 
-The gate, the views and the notices all read one weekly snapshot of campaign-linked parts, so every planner sees the same numbers.
+The gate, the views and the notices read the same snapshot of campaign-linked parts, so every planner sees the same numbers.
 
-- **One snapshot.** Campaign-linked parts and their demand are snapshotted once a week.
+- **One snapshot.** The gate, the views and the notices read the same snapshot of campaign-linked parts.
 - **The wind-down gate.** Pace share over 8, 13 and 26 weeks, best of the three, against the 10% threshold.
 - **Held for verification.** Parts with unexplained bulletin demand or low-confidence complaint demand are held out of the actionable list.
 - **The simulator.** P10/P50/P90 completion, checked against 94 past campaigns.
@@ -233,7 +233,7 @@ The gate, the views and the notices all read one weekly snapshot of campaign-lin
 
 - **Hold uncertain parts instead of cutting them.** 10 parts, about $8.4M, are held for verification and not counted. The cost is a smaller headline number.
 - **Best of three windows.** Taking the best of 8, 13 and 26 weeks keeps a short dip from triggering an alert. The cost is slower alerts on a sharp drop.
-- **Dollars are exposure, not cash.** Every dollar figure is forecast exposure removed, never savings. The cost is less impressive wording, which is the point.
+- **Dollars are exposure, not cash.** Forecast dollar figures are exposure, not cash; time-saved dollars use a placeholder rate. The cost is less impressive wording, which is the point.
 - **One email per planner.** Planners see only their own parts, so the notice is short enough to read. The cost is maintaining the part-to-planner mapping.
 
 ### Impact
@@ -257,7 +257,7 @@ The window above runs in your browser on mock data: the four views over stand-in
 
 ## Slideshow generation
 
-Slideshow generation rebuilds the weekly executive deck inside the app, and the weekly ETL behind it publishes the data the deck and the KPI tabs read.
+Slideshow generation rebuilds the weekly executive deck inside the app, on top of the weekly ETL that built the data the deck and the KPI files read.
 
 ### Problem
 
@@ -267,16 +267,16 @@ The executive deck was assembled by hand from queries that drifted between runs,
 
 - **Regenerates the deck.** A Regenerate button rebuilds the 77-slide executive deck from the current data, with a PPTX download.
 - **Keeps the composer out of the way.** Composer controls are hidden while they are a work in progress.
-- **Runs the weekly ETL.** A weekly GitHub Actions run builds the data behind the deck.
-- **Automates the accessories KPIs.** The accessories KPI numbers are built by the same run.
-- **Publishes a weekly CSV.** A Part Miss by Lag CSV is published every KPI Monday.
+- **The weekly ETL.** A weekly GitHub Actions run built the data behind the deck, and the accessories KPI numbers were built by the same run.
+- **A weekly CSV.** A Part Miss by Lag CSV was published every KPI Monday until the scheduled run was stopped.
+- **The schedule was later stopped.** The scheduled Monday run was later stopped; the in-app regenerate still works on demand.
 
 ### Architecture
 
-The deck and the KPI files come from one weekly run, so the number in the deck matches the number in the app.
+The deck and the KPI files came from one weekly run, so the number in the deck matched the number in the app.
 
-- **A weekly GitHub Actions run.** It pulls the week's demand data and builds the tables.
-- **Verified before use.** The build is checked before anything reads it.
+- **A weekly GitHub Actions run.** It pulled the week's demand data and built the tables.
+- **Verified before use.** The build was checked before anything read it.
 - **One source, several outputs.** The deck, the accessories KPIs and the Part Miss by Lag CSV all read the same verified tables.
 - **Regenerate in the app.** The app rebuilds the deck on request and hands back a PPTX.
 
@@ -284,11 +284,11 @@ The deck and the KPI files come from one weekly run, so the number in the deck m
 
 - **Generate the deck instead of assembling it.** A generated deck is the same every time for the same data. The cost is that the deck's format constrains the table shape.
 - **Hide unfinished controls.** The composer is hidden rather than shipped half-working. The cost is less flexibility for now.
-- **A scheduled run.** The weekly schedule makes the CSV appear without anyone asking. The cost is a job that runs whether or not anyone needs it; the scheduled Monday run was later stopped.
+- **A scheduled run.** The weekly schedule made the CSV appear without anyone asking. The cost was a job that ran whether or not anyone needed it.
 
 ### Impact
 
-- **Deck:** weekly demand data reaches the 77-slide executive deck without a hand-assembled run. Hours saved per cycle were not timed, so this is not measured.
+- **Deck:** weekly demand data reached the 77-slide executive deck without a hand-assembled run. Hours saved per cycle were not timed, so this is not measured.
 - **Weekly CSV:** 45 minutes × 8 Mondays is about 6 hours, an estimate.
 
 ### About the demo
@@ -376,7 +376,7 @@ Access rules and usage both sit in the backend, and the Admin views read them.
 
 - **Usage from the request log, not sign-ins.** Sign-ins showed one user; the request log shows what people actually did. The cost is defining a visit, which here is requests with gaps under 30 minutes.
 - **Admins separate from full access.** Managing access and seeing everything are different powers. The cost is one more role to explain.
-- **Build the gate before enforcing it.** The default-deny gate is built but off until a server flag is set, so turning it on is a decision, not a deploy. The cost is that until then, access is still open by default.
+- **Build the gate before enforcing it.** The default-deny gate is built but off until a server flag is set, so turning it on is a decision, not a deploy. The cost is a gate that does nothing until someone switches it on.
 
 ### Impact
 
