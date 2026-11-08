@@ -1,0 +1,14 @@
+---
+import GymCalendar from './gym/GymCalendar.tsx';
+import { lifts, liftTotal, percentileLine, hoursLabel } from '../data/lifting';
+---
+<div class="lifting reveal">
+  <header class="lifting-head"><p class="eyebrow">Outside of work</p><h3>Lifting</h3></header>
+  <ul class="lifting-stats">
+    {lifts.map((l) => <li><b>{l.pounds}</b><span>{l.name}</span></li>)}
+    <li><b>{liftTotal}</b><span>Total</span></li>
+  </ul>
+  <p class="lifting-pct">{percentileLine}</p>
+  <p class="lifting-hours"><b>{hoursLabel}</b> in the gym</p>
+  <GymCalendar client:visible />
+</div>

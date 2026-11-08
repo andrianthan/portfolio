@@ -1,0 +1,39 @@
+.lifting { max-width: 46rem; margin: var(--space-xl) auto 0; }
+.lifting-head { text-align: center; margin: 0 0 var(--space-lg); }
+.lifting-head .eyebrow { margin: 0 0 8px; }
+.lifting-head h3 { margin: 0; font: 400 clamp(18px, 3vw, 26px)/1.2 var(--font-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--color-fg); text-shadow: 0 0 18px var(--title-glow); }
+.lifting-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); margin: 0 0 var(--space-md); padding: 0; list-style: none; text-align: center; }
+.lifting-stats li { padding: 14px 8px; border: 1px solid var(--color-rule); border-radius: 12px; background: var(--color-card); }
+.lifting-stats b { display: block; font: 800 clamp(20px, 3.4vw, 28px)/1.1 var(--font-title); color: var(--color-fg); }
+.lifting-stats span { display: block; margin-top: 6px; font: 400 11px/1.3 var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); }
+.lifting-pct { margin: 0 0 var(--space-lg); text-align: center; font: 400 14px/1.5 var(--font-mono); color: var(--color-accent); }
+.lifting-hours { margin: 0 0 var(--space-lg); text-align: center; font: 400 14px/1.5 var(--font-mono); color: var(--color-muted); }
+.lifting-hours b { color: var(--color-fg); font-weight: 500; }
+
+.gym { --gym-go: #5ee38a; --gym-go-ink: #08210f; }
+.gym-caption { margin: 0 0 8px; text-align: center; font: 400 11px var(--font-pixel); letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); }
+.gym-bar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.gym-title { margin: 0; min-width: 11ch; text-align: center; font: 500 16px/1.2 var(--font-mono); color: var(--color-fg); }
+.gym-nav, .gym-year { font: 500 14px var(--font-mono); color: var(--color-fg); background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.gym-nav[aria-disabled="true"] { opacity: .4; cursor: default; }
+.gym-nav:hover:not([aria-disabled="true"]), .gym-year:hover { border-color: var(--color-num); }
+.gym-summary { margin: 10px 0 12px; text-align: center; font: 400 13px var(--font-mono); color: var(--color-muted); }
+.gym-grid { max-width: 28rem; margin: 0 auto; }
+.gym-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 4px; }
+.gym-dow { text-align: center; font: 400 11px var(--font-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.gym-cell { aspect-ratio: 1; display: grid; place-items: center; padding: 0; font: 400 12px var(--font-mono); color: var(--color-muted); background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 6px; cursor: default; }
+.gym-blank { aspect-ratio: 1; }
+.gym-went { background: var(--gym-go); border-color: var(--gym-go); color: var(--gym-go-ink); font-weight: 500; }
+.gym-future { opacity: .35; }
+.gym-cell:hover, .gym-cell:focus-visible { border-color: var(--color-num); }
+/* the fill: without JS the days stay green; with JS they start empty and fill in order when the grid scrolls into view */
+.js .gym-grid:not(.gym-on) .gym-went { background: var(--color-chip); border-color: var(--color-rule); color: var(--color-muted); }
+.gym-went { transition: background-color .35s ease var(--d, 0ms), border-color .35s ease var(--d, 0ms), color .35s ease var(--d, 0ms); }
+.gym-status { min-height: 1.4em; margin: 10px 0 var(--space-md); text-align: center; font: 400 13px var(--font-mono); color: var(--color-fg); }
+.gym-wall-note { margin: var(--space-md) 0 8px; text-align: center; font: 400 13px var(--font-mono); color: var(--color-muted); }
+.gym-wall { display: block; width: 100%; }
+.gym-phases { list-style: none; margin: var(--space-md) 0 0; padding: 0; display: grid; gap: 6px; }
+.gym-phases li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 400 12px/1.4 var(--font-mono); color: var(--color-muted); border-top: 1px solid var(--color-rule); padding-top: 6px; }
+.gym-phase-name { color: var(--color-fg); }
+@media (max-width: 639px) { .lifting-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .gym-went { transition: none; } .js .gym-grid:not(.gym-on) .gym-went { background: var(--gym-go); border-color: var(--gym-go); color: var(--gym-go-ink); } }
