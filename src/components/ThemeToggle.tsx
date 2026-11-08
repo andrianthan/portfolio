@@ -1,18 +1,17 @@
 import { useCallback } from 'react';
+import { nextTheme } from '../lib/theme';
 
 export default function ThemeToggle() {
   const toggle = useCallback(() => {
     const root = document.documentElement;
-    const explicit = root.getAttribute('data-theme');
-    const dark = explicit === 'dark' || (!explicit && matchMedia('(prefers-color-scheme: dark)').matches);
-    const next = dark ? 'light' : 'dark';
+    const next = nextTheme(root.getAttribute('data-theme'), matchMedia('(prefers-color-scheme: light)').matches);
     root.setAttribute('data-theme', next);
     try { localStorage.setItem('theme', next); } catch {}
   }, []);
 
   return (
-    <button id="theme-toggle" type="button" aria-label="light / dark theme" onClick={toggle}>
-      light / dark
+    <button id="theme-toggle" type="button" aria-label="vapor / light theme" onClick={toggle}>
+      vapor / light
     </button>
   );
 }

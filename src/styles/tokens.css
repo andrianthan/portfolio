@@ -1,24 +1,38 @@
+/* Vapor is the default theme. Light is the alternate: chosen with the toggle, or
+   used when the OS prefers light and nothing is saved. */
 :root {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-title: "Orbitron Variable", Orbitron, var(--font-sans);
+  --font-pixel: Silkscreen, var(--font-mono);
+  --space-sm: 8px; --space-md: 16px; --space-lg: 32px; --space-xl: 96px;
+  --measure: 56rem;
+
+  --color-bg: #0b0a1a; --color-fg: #ece9ff; --color-muted: #a39fc4; --color-rule: #2a2552;
+  --color-accent: #b9a4ff; --color-num: #a78bfa; --color-chip: #15122e; --color-card: #100e26;
+  --color-dot: #231f48; --color-glow: rgba(139, 92, 246, .28); --color-logo-bg: #ffffff;
+  --color-glass: rgba(24, 20, 56, .55); --color-mask: #000; --grad-a: #8b5cf6; --grad-b: #d8b4fe;
+  --color-star: rgba(226, 220, 255, .9); --color-neb-a: rgba(109, 61, 240, .30);
+  --color-neb-b: rgba(56, 40, 150, .28); --color-scan: rgba(0, 0, 0, .18); --color-vig: rgba(3, 2, 12, .55);
+  --title-fill: #f3efff; --title-glow: rgba(167, 139, 250, .65); --title-shadow: #4a2fb5;
+}
+:root[data-theme="light"] {
   --color-bg: #f7f6fb; --color-fg: #1a1a24; --color-muted: #5c5c70; --color-rule: #dcdbe6;
   --color-accent: #5b3fd1; --color-num: #6d3df0; --color-chip: #ecebf4; --color-card: #ffffff;
   --color-dot: #d4d3e0; --color-glow: rgba(109, 61, 240, .12); --color-logo-bg: #ffffff;
   --color-glass: rgba(255, 255, 255, .4); --color-mask: #000; --grad-a: #6d3df0; --grad-b: #b724c9;
-  --space-sm: 8px; --space-md: 16px; --space-lg: 32px; --space-xl: 96px;
-  --measure: 56rem;
+  --color-star: rgba(91, 63, 209, .35); --color-neb-a: rgba(109, 61, 240, .10);
+  --color-neb-b: rgba(183, 36, 201, .06); --color-scan: rgba(0, 0, 0, 0); --color-vig: rgba(255, 255, 255, 0);
+  --title-fill: #2a1a7a; --title-glow: rgba(109, 61, 240, .25); --title-shadow: #b9a8f5;
 }
-:root[data-theme="dark"] {
-  --color-bg: #0a0a0f; --color-fg: #ececf3; --color-muted: #9a9aae; --color-rule: #26262f;
-  --color-accent: #a78bfa; --color-num: #b794ff; --color-chip: #17171f; --color-card: #101018;
-  --color-dot: #1d1d28; --color-glow: rgba(139, 92, 246, .2); --color-logo-bg: #ffffff;
-  --color-glass: rgba(255, 255, 255, .04); --color-mask: #000; --grad-a: #a78bfa; --grad-b: #f472b6;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg: #0a0a0f; --color-fg: #ececf3; --color-muted: #9a9aae; --color-rule: #26262f;
-    --color-accent: #a78bfa; --color-num: #b794ff; --color-chip: #17171f; --color-card: #101018;
-    --color-dot: #1d1d28; --color-glow: rgba(139, 92, 246, .2); --color-logo-bg: #ffffff;
-    --color-glass: rgba(255, 255, 255, .04); --color-mask: #000; --grad-a: #a78bfa; --grad-b: #f472b6;
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --color-bg: #f7f6fb; --color-fg: #1a1a24; --color-muted: #5c5c70; --color-rule: #dcdbe6;
+    --color-accent: #5b3fd1; --color-num: #6d3df0; --color-chip: #ecebf4; --color-card: #ffffff;
+    --color-dot: #d4d3e0; --color-glow: rgba(109, 61, 240, .12); --color-logo-bg: #ffffff;
+    --color-glass: rgba(255, 255, 255, .4); --color-mask: #000; --grad-a: #6d3df0; --grad-b: #b724c9;
+    --color-star: rgba(91, 63, 209, .35); --color-neb-a: rgba(109, 61, 240, .10);
+    --color-neb-b: rgba(183, 36, 201, .06); --color-scan: rgba(0, 0, 0, 0); --color-vig: rgba(255, 255, 255, 0);
+    --title-fill: #2a1a7a; --title-glow: rgba(109, 61, 240, .25); --title-shadow: #b9a8f5;
   }
 }
