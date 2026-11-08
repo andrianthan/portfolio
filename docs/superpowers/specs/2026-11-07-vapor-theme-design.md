@@ -101,15 +101,17 @@ title: Orbitron or Audiowide; pixel nav, tagline and headings: Silkscreen,
 VT323 or Pixelify Sans; mono labels: JetBrains Mono (already used). Fonts are
 self-hosted, subset to the glyphs used, `font-display: swap`, preloaded so
 the first paint uses them, and the mobile nav is a fixed three-column grid so a
-late font swap cannot reflow the bar. The final picks are recorded in the plan once
-tested.
+late font swap cannot change the nav's row count. The final picks are recorded
+in the plan once tested.
 
 **Picked (Task 9, 2026-11-08): Orbitron Variable for the title, Silkscreen for
 the pixel face.** Both are self-hosted through fontsource and preloaded, so the
-first paint already uses them, and the nav layout does not depend on which font
-is showing (the mobile nav is a fixed three-column grid). The swap itself can
-still cause small shifts elsewhere. The picks
-match the reference as this document describes it — a wide techno title with
+first paint already uses them, and the mobile nav's row count does not depend
+on which font is showing (it is a fixed three-column grid). The swap itself can
+still cause small shifts elsewhere: with the fonts delayed 2.5 s, layout shift
+is about 0.045 at 320 px and 0.073 at 375 px, caused by the Orbitron title
+wrapping to two lines when it loads; with no delay it is 0. The picks match
+the reference as this document describes it — a wide techno title with
 lavender-white fill, soft violet glow, offset deep-indigo shadow and
 horizontal scanline cut-outs, and a light-violet pixel tagline. The original
 reference screenshot was not available in the Task 9 session, so the comparison
