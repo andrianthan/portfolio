@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { buildGraph, renderFrame, toText } from './graph';
+import { useEffect, useRef, useState } from 'react';
+import { buildGraph, pointerFocus, renderFrame, toText } from './graph';
 
 const COLS = 72;
 const ROWS = 30;
@@ -9,6 +9,7 @@ const staticText = toText(renderFrame(graph, { t: 0, yaw: 0.5, pitch: 0.2, cols:
 /** The agent network, drawn in characters. Decorative: the text is for no-JS and screen-off cases. */
 export default function AsciiGraph() {
   const ref = useRef<HTMLCanvasElement | null>(null);
+  const [drawn, setDrawn] = useState(false);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -67,8 +68,10 @@ export default function AsciiGraph() {
 
     const onMove = (e: PointerEvent) => {
       if (e.pointerType === 'touch') return;
+      // an off-screen graph is not drawn, so it does no layout work per mouse move
+      if (!visible) return;
       const r = canvas.getBoundingClientRect();
-      focus = { col: ((e.clientX - r.left) / r.width) * COLS, row: ((e.clientY - r.top) / r.height) * ROWS };
+      focus = pointerFocus(visible, { x: e.clientX, y: e.clientY }, r, COLS, ROWS);
     };
     const onLeave = () => { focus = null; };
     const onVisibility = () => { setPaused(); if (document.hidden) stop(); else start(); };
@@ -87,6 +90,8 @@ export default function AsciiGraph() {
 
     resize();
     draw(performance.now());
+    // the first frame is on the canvas: now the text fallback can step aside
+    setDrawn(true);
     io.observe(canvas);
     ro.observe(canvas);
     themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
@@ -109,7 +114,7 @@ export default function AsciiGraph() {
   }, []);
 
   return (
-    <div className="ascii" aria-hidden="true">
+    <div className={`ascii${drawn ? ' is-drawn' : ''}`} aria-hidden="true">
       <pre className="ascii-fallback">{staticText}</pre>
       <canvas ref={ref} className="ascii-canvas" />
     </div>

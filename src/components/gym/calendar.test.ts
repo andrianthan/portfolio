@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import data from '../../data/gym-checkins.json';
 import {
-  MONTH_NAMES, toSet, daysInMonth, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel, weekGrid, formatHours, nextFocusDay,
+  MONTH_NAMES, toSet, daysInMonth, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel, weekGrid, formatHours, nextFocusDay, asOfLabel,
 } from './calendar';
 
 const set = toSet(data.dates);
@@ -42,8 +42,24 @@ describe('summaryText', () => {
   it('reads "N of D days" for a finished month', () => {
     expect(summaryText(monthView(2025, 7, set, asOf), asOf)).toBe('20 of 31 days');
   });
-  it('reads "N of D days so far" for the current month', () => {
-    expect(summaryText(monthView(2026, 10, set, asOf), asOf)).toBe('5 of 8 days so far');
+  it('states the cutoff for the as-of month, so the sentence stays true as time passes', () => {
+    expect(summaryText(monthView(2026, 10, set, asOf), asOf)).toBe('5 of 8 days, as of Nov 8');
+  });
+  it('never says "so far", which would claim the month is still running', () => {
+    for (const m of [[2025, 7], [2026, 10]] as const) {
+      expect(summaryText(monthView(m[0], m[1], set, asOf), asOf).toLowerCase()).not.toContain('so far');
+    }
+  });
+});
+
+describe('asOfLabel', () => {
+  it('reads the cutoff as a short date, with no year to disagree with', () => {
+    expect(asOfLabel('2026-11-08')).toBe('Nov 8');
+    expect(asOfLabel('2026-01-01')).toBe('Jan 1');
+    expect(asOfLabel('2026-12-31')).toBe('Dec 31');
+  });
+  it('uses the same short month names the calendar shows', () => {
+    expect(asOfLabel('2026-09-30').slice(0, 3)).toBe(MONTH_NAMES[8].slice(0, 3));
   });
 });
 
@@ -80,8 +96,15 @@ describe('dayLabel', () => {
     expect(dayLabel('2025-08-01', true)).toBe('Fri, Aug 1, 2025: went to the gym');
     expect(dayLabel('2025-08-06', false)).toBe('Wed, Aug 6, 2025: rest day');
   });
-  it('calls days that have not happened yet upcoming, not rest days', () => {
-    expect(dayLabel('2026-11-10', false, true)).toBe('Tue, Nov 10, 2026: upcoming');
+  it('calls days past the cutoff "not yet recorded", never upcoming and never a rest day', () => {
+    expect(dayLabel('2026-11-10', false, true)).toBe('Tue, Nov 10, 2026: not yet recorded');
+    expect(dayLabel('2026-11-10', false, true)).not.toMatch(/upcoming/i);
+    expect(dayLabel('2026-11-10', false, true)).not.toMatch(/rest day/i);
+    expect(dayLabel('2026-11-10', false, true)).not.toMatch(/went to the gym/i);
+  });
+  it('never calls a day "upcoming", which would go stale the day after the export', () => {
+    expect(dayLabel('2026-11-10', false, true).toLowerCase()).not.toContain('upcoming');
+    expect(dayLabel('2025-08-01', true).toLowerCase()).not.toContain('upcoming');
   });
 });
 

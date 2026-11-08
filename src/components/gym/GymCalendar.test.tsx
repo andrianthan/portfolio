@@ -8,7 +8,10 @@ describe('GymCalendar', () => {
   it('opens on the latest month with the plain caption and its summary', () => {
     expect(html).toContain('Gym check-ins');
     expect(html).toContain('November 2026');
-    expect(html).toContain('5 of 8 days so far');
+    expect(html).toContain('5 of 8 days, as of Nov 8');
+  });
+  it('states the cutoff instead of "so far", which would claim the month is still running', () => {
+    expect(html).not.toContain('so far');
   });
   it('renders an accessible grid with weekday headers and labelled days', () => {
     expect(html).toContain('role="grid"');
@@ -30,8 +33,10 @@ describe('GymCalendar', () => {
     expect(html).toContain('Summer 2022: slower start');
     expect(html).toContain('861 check-ins since June 2022');
   });
-  it('calls future days upcoming, never rest days', () => {
-    expect(html).toContain('Tue, Nov 10, 2026: upcoming');
+  it('calls days past the cutoff "not yet recorded", never upcoming and never rest days', () => {
+    expect(html).toContain('Tue, Nov 10, 2026: not yet recorded');
+    expect(html).not.toContain('upcoming');
     expect(html).not.toContain('Nov 10, 2026: rest day');
+    expect(html).not.toContain('Nov 10, 2026: went to the gym');
   });
 });

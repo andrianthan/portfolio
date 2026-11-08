@@ -5,7 +5,11 @@ export const MONTH_NAMES = [
 const MONTH_SHORT = MONTH_NAMES.map((m) => m.slice(0, 3));
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export interface Cell { day: number; iso: string; went: boolean; future: boolean }
+export interface Cell {
+  day: number; iso: string; went: boolean;
+  /** after the as-of cutoff: the day has no check-in recorded, and the export never grows */
+  future: boolean;
+}
 export interface MonthView { year: number; month: number; lead: number; cells: Cell[]; count: number; elapsed: number; days: number }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -34,9 +38,18 @@ export function monthView(year: number, month: number, set: Set<string>, asOf: s
   return { year, month, lead, cells, count, elapsed, days };
 }
 
+/** The cutoff date, as it reads on the page: "Nov 8". The year is left out on purpose —
+ *  the month heading above already carries it, and a year here could disagree with it. */
+export function asOfLabel(asOf: string): string {
+  const [, m, d] = asOf.split('-').map(Number);
+  return `${MONTH_SHORT[m - 1]} ${d}`;
+}
+
 export function summaryText(v: MonthView, asOf: string): string {
   const current = asOf.startsWith(monthKey(v.year, v.month));
-  return current && v.elapsed < v.days ? `${v.count} of ${v.elapsed} days so far` : `${v.count} of ${v.days} days`;
+  // the as-of month states its cutoff, so the sentence stays true however long the
+  // export stays up: the days are counted as of that date, not as of "now"
+  return current && v.elapsed < v.days ? `${v.count} of ${v.elapsed} days, as of ${asOfLabel(asOf)}` : `${v.count} of ${v.days} days`;
 }
 
 export function shiftMonth(m: { year: number; month: number }, delta: number): { year: number; month: number } {
@@ -70,7 +83,9 @@ export function phaseSpans(
 export function dayLabel(isoDate: string, went: boolean, future = false): string {
   const [y, m, d] = isoDate.split('-').map(Number);
   const dow = DAY_SHORT[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-  return `${dow}, ${MONTH_SHORT[m - 1]} ${d}, ${y}: ${future ? 'upcoming' : went ? 'went to the gym' : 'rest day'}`;
+  // a day past the cutoff has no record either way: it is not a rest day, and it is not
+  // "upcoming" either, because the export does not move and the label would go stale
+  return `${dow}, ${MONTH_SHORT[m - 1]} ${d}, ${y}: ${future ? 'not yet recorded' : went ? 'went to the gym' : 'rest day'}`;
 }
 
 /** A year as weeks (columns) by weekdays (rows), Sunday first, for the overview wall. */

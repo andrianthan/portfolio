@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildGraph, rotate, project, renderFrame, toText, RAMP } from './graph';
+import { buildGraph, rotate, project, renderFrame, toText, pointerFocus, RAMP } from './graph';
 
 const COLS = 72, ROWS = 30;
 const base = { t: 0, yaw: 0.4, pitch: 0.2, cols: COLS, rows: ROWS };
@@ -89,5 +89,21 @@ describe('toText', () => {
     expect(lines.length).toBe(ROWS);
     for (const l of lines) expect(l.length).toBe(COLS);
     expect(text).toContain('@'); // the hub
+  });
+});
+
+describe('pointerFocus', () => {
+  const rect = { left: 100, top: 50, width: 400, height: 300 };
+  it('maps the pointer onto the character grid', () => {
+    const c = pointerFocus(true, { x: 300, y: 200 }, rect, COLS, ROWS)!;
+    expect(c.col).toBeCloseTo(COLS / 2, 5);
+    expect(c.row).toBeCloseTo(ROWS / 2, 5);
+  });
+  it('does nothing while the graph is off-screen', () => {
+    expect(pointerFocus(false, { x: 300, y: 200 }, rect, COLS, ROWS)).toBeNull();
+  });
+  it('does nothing when the graph has no size', () => {
+    expect(pointerFocus(true, { x: 300, y: 200 }, { ...rect, width: 0 }, COLS, ROWS)).toBeNull();
+    expect(pointerFocus(true, { x: 300, y: 200 }, { ...rect, height: 0 }, COLS, ROWS)).toBeNull();
   });
 });

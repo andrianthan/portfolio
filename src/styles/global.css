@@ -6,7 +6,7 @@ html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--color-bg); color: var(--color-fg); font: 400 17px/1.65 var(--font-sans); -webkit-font-smoothing: antialiased; position: relative; }
 a { color: var(--color-accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
-a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
+a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
 .inner { max-width: var(--measure); margin: 0 auto; padding: 0 var(--space-md); }
 .wide { max-width: 56rem; margin: 0 auto; padding: 0 var(--space-md); }
 

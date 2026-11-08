@@ -43,8 +43,12 @@ describe('vapor scene', () => {
   it('pauses the orbit rings while the hero is off-screen or hidden', () => {
     expect(vapor).toMatch(/\.hero-scene\.is-paused \.ring\s*\{[^}]*animation-play-state:\s*paused/);
   });
-  it('shows the text fallback only without JavaScript', () => {
-    expect(vapor).toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
+  it('keeps the text fallback until the graph has drawn its first frame', () => {
+    // the .js class is set in <head>, before the island hydrates, so it cannot be the
+    // switch: the fallback holds the centre until the canvas has a frame on it
+    expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-fallback\s*\{\s*display:\s*none/);
+    expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-canvas\s*\{\s*display:\s*block/);
+    expect(vapor).not.toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
   });
   it('no longer carries the old hero rules', () => {
     expect(global).not.toContain('.avatar');

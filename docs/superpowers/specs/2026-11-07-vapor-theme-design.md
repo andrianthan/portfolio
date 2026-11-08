@@ -54,8 +54,9 @@ by anchor links, not by switching views.
   reference's voice feature, which this site does not have.
 - **Answers** render in a panel over the backdrop: the question in the mono
   face, each answer line in the readable body face behind a violet arrow
-  marker (the pattern in the reference's answer view), growing the panel
-  downward as the conversation continues.
+  marker (the pattern in the reference's answer view), clipped to a
+  `min(40svh, 320px)` window with a "Show more" / "Show less" toggle, so
+  the box stays a box however long the answer is.
 - The "Open the full terminal" link and the stat strip stay.
 
 ## ASCII agent graph
@@ -99,10 +100,11 @@ vapor as a third option; decide at review.
 Candidates, compared against the reference screenshot before committing:
 title: Orbitron or Audiowide; pixel nav, tagline and headings: Silkscreen,
 VT323 or Pixelify Sans; mono labels: JetBrains Mono (already used). Fonts are
-self-hosted, subset to the glyphs used, `font-display: swap`, preloaded so
-the first paint uses them, and the mobile nav is a fixed three-column grid so a
-late font swap cannot change the nav's row count. The final picks are recorded
-in the plan once tested.
+self-hosted through fontsource (the latin subset that ships with each
+package), `font-display: swap`, preloaded so the first paint uses them, and
+the mobile nav is a fixed three-column grid so a late font swap cannot
+change the nav's row count. The final picks are recorded in the plan once
+tested.
 
 **Picked (Task 9, 2026-11-08): Orbitron Variable for the title, Silkscreen for
 the pixel face.** Both are self-hosted through fontsource and preloaded, so the
@@ -119,6 +121,40 @@ was made against the description above rather than against the image; the
 alternates named in the plan (`@fontsource/audiowide` or `@fontsource/michroma`
 for the title, `@fontsource/vt323` for the pixel face) remain a one-import,
 one-token swap if the screenshot shows a different read.
+
+## Post-spec additions
+
+This section records what the branch added after this document was written. The
+six items below are Tasks 10 to 15 of the plan, added after Andrian reviewed the
+running branch and asked for them. Each carries the ruling that shaped it.
+
+- **The stats strip (Task 10).** Andrian replaced the four home-page stats with
+  his own: tokens used, prompt cache hit rate, hours saved and people reached.
+  All four are his estimates, so one quiet line under the strip says so — "Figures
+  are my estimates." — rather than a caption on every tile. The figures he
+  removed stay on the work pages and in the chat agent.
+- **The moving backdrop (Task 11).** The three star layers drift continuously at
+  different speeds and a shooting star crosses the sky now and then, so the
+  background reads as streaming rather than static. Everything moves with
+  `transform` and `opacity` only, and everything stills under
+  `prefers-reduced-motion`.
+- **The Lifting block (Task 12).** The About section gained a "Lifting" block: a
+  month calendar that fills green day by day, a year-by-year overview wall, the
+  three lifts, a percentile line and an hours figure. The calendar is a static
+  export of Andrian's own check-ins with no live feed and no regeneration job,
+  so the page states its cutoff rather than claiming to be current, and it never
+  claims to be synced, connected, estimated or reconstructed.
+- **The mobile nav grid (Task 13).** The mobile nav is a fixed three-column
+  grid, so the bar's row count cannot change when the pixel face swaps in late.
+- **The simpler chat box (Task 14).** The Ask bar is three question chips with
+  a refresh button on one row and one input under them. No greeting line, no
+  agent trace lines on the home page, no route row when JavaScript is on, and
+  answers clipped to a `min(40svh, 320px)` window with a "Show more" / "Show
+  less" toggle.
+- **The Personal automation section (Task 15).** A section between Projects and
+  Skills with two cards about Andrian's Grok-powered bots: a budgeting bot and
+  a daily AI digest. Only what he confirmed is claimed — no numbers, schedules
+  beyond "daily", accounts or institutions.
 
 ## Constraints kept
 

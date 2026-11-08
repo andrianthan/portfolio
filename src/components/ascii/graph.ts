@@ -123,3 +123,22 @@ export function toText(cells: Cell[], cols: number, rows: number): string {
   for (const c of cells) grid[c.row][c.col] = c.ch;
   return grid.map((r) => r.join('')).join('\n');
 }
+
+/**
+ * The character cell under the pointer, or null when there is nothing to brighten.
+ * A graph that is off-screen is not drawn, so it does no layout work per mouse move.
+ */
+export function pointerFocus(
+  visible: boolean,
+  pointer: { x: number; y: number },
+  rect: { left: number; top: number; width: number; height: number },
+  cols: number,
+  rows: number,
+): { col: number; row: number } | null {
+  if (!visible) return null;
+  if (rect.width <= 0 || rect.height <= 0) return null;
+  return {
+    col: ((pointer.x - rect.left) / rect.width) * cols,
+    row: ((pointer.y - rect.top) / rect.height) * rows,
+  };
+}

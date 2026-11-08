@@ -80,10 +80,14 @@
   mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 55%, transparent 100%);
 }
 .ascii { position: absolute; left: 50%; top: 50%; width: min(620px, 86%); aspect-ratio: 576 / 420; transform: translate(-50%, -50%); }
+/* the text fallback holds the centre until the graph has drawn a frame: the canvas is
+   painted only after the island hydrates, and on a slow first load that is seconds after
+   the first paint. the .ascii box has a fixed aspect ratio, so swapping one child for the
+   other moves nothing. without JavaScript the fallback simply stays. */
 .ascii-canvas { display: none; width: 100%; height: 100%; }
-.js .ascii-canvas { display: block; }
 .ascii-fallback { display: block; margin: 0; font: 400 clamp(5px, 1.2vw, 9px)/1 var(--font-mono); color: var(--color-num); text-align: center; overflow: hidden; white-space: pre; }
-.js .ascii-fallback { display: none; }
+.ascii.is-drawn .ascii-canvas { display: block; }
+.ascii.is-drawn .ascii-fallback { display: none; }
 
 .orbits { position: absolute; inset: 0; perspective: 900px; perspective-origin: 50% 40%; pointer-events: none; }
 .orbit-plane {
