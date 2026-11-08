@@ -191,6 +191,32 @@ describe('about:outside chunk', () => {
     expect(chunk.text).toContain('~1,105 lb');
     expect(chunk.text).toContain('50 Free');
   });
+  it('shows no year for any of the ten protected places', () => {
+    // These ten never carry a year: Indonesia, Florida, Washington and Oregon
+    // among the countries and states, and the six trails that have no year of
+    // their own. A name carries a year when one appears inside its own
+    // parenthetical -- "Yosemite (California, 2019)" -- or straight after it
+    // -- "Yosemite 2019 (California)". The scan stops at the end of the name's
+    // own clause, so a year on one place never flags its neighbour.
+    const protectedNames = [
+      'Indonesia',
+      'Florida',
+      'Washington',
+      'Oregon',
+      'Point Reyes',
+      'Mission Peak',
+      'Castle Rock State Park',
+      'Pinnacles National Park',
+      'Yosemite',
+      'Mount Tamalpais',
+    ];
+    for (const name of protectedNames) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const withYear = new RegExp(`${escaped}\\s*(?:\\([^)]*\\d{4}[^)]*\\)|[^,.\\n]*\\d{4})`);
+      expect(chunk.text, name).toContain(name);
+      expect(chunk.text, name).not.toMatch(withYear);
+    }
+  });
   it('states the lifting and swimming facts in one sentence each', () => {
     const lines = chunk.text.split('\n');
     expect(lines).toHaveLength(4);

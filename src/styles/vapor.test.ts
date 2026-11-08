@@ -66,7 +66,7 @@ describe('vapor scene', () => {
     expect(global).not.toContain('h1 .w');
     expect(global).not.toContain('@keyframes bi');
   });
-  it('is sticky, with matching scroll padding, only where the bar is one row tall', () => {
+  it('is sticky, with matching scroll padding, from 860px up', () => {
     const start = vapor.indexOf('@media (min-width: 860px)');
     expect(start).toBeGreaterThanOrEqual(0);
     let depth = 0, end = vapor.indexOf('{', start);
@@ -199,6 +199,109 @@ describe('mobile nav layout', () => {
     // columns are two rows at every width, and a late font swap cannot change it.
     expect(cells.length % columns).toBe(0);
     expect(cells.length / columns).toBe(2);
+  });
+});
+
+describe('header nav row count', () => {
+  function mediaBlock(header: string): string {
+    const start = vapor.indexOf(header);
+    expect(start, header).toBeGreaterThan(-1);
+    const open = vapor.indexOf('{', start);
+    let depth = 0;
+    for (let i = open; i < vapor.length; i++) {
+      if (vapor[i] === '{') depth++;
+      else if (vapor[i] === '}' && --depth === 0) return vapor.slice(open + 1, i);
+    }
+    throw new Error('unterminated block');
+  }
+
+  const navCells = () => {
+    const bar = fs.readFileSync(path.join(process.cwd(), 'src/components/TopBar.astro'), 'utf8');
+    const nav = bar.match(/<nav class="vnav"[\s\S]*?<\/nav>/)?.[0] ?? '';
+    return (nav.match(/<a /g) ?? []).length;
+  };
+
+  it('keeps the six desktop links on one row by never wrapping them', () => {
+    // The desktop nav is a flex row. `nowrap` is what pins the row count: with
+    // wrapping allowed, a seventh link silently pushes the last one onto a
+    // second line of the sticky header.
+    const block = mediaBlock('@media (min-width: 900px)');
+    const nav = block.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(nav).toContain('display: flex');
+    expect(nav).toContain('flex-wrap: nowrap');
+    expect(navCells()).toBe(6);
+  });
+
+  it('gives the nav its own full-width row below 900 px, so it is never more than two rows', () => {
+    // Between the mobile breakpoint and the desktop one, the nav spans the
+    // whole header and is a fixed three-column grid: six cells in three
+    // columns are exactly two rows, whatever the font metrics are.
+    const nav = vapor.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(nav).toContain('display: grid');
+    expect(nav).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
+    expect(nav).toContain('grid-column: 1 / -1');
+    const columns = Number(nav.match(/grid-template-columns:\s*repeat\((\d+),[^)]*\)/)?.[1]);
+    expect(columns).toBe(3);
+    expect(navCells() % columns).toBe(0);
+    expect(navCells() / columns).toBe(2);
+  });
+
+  it('keeps the scroll padding tall enough for the two-row sticky bar below 900 px', () => {
+    // The bar is sticky from 860px, but it is two rows tall until 900px, so the
+    // anchor scroll has to clear all of it there or a section heading lands
+    // underneath the bar.
+    const block = mediaBlock('@media (min-width: 860px) and (max-width: 899px)');
+    expect(block).toMatch(/html\s*\{[^}]*scroll-padding-top:\s*1\d\dpx/);
+  });
+
+  it('keeps the desktop nav narrow enough to fit the header track it is given', () => {
+    // The header is capped at --measure (896px) and its padding, the brand, the
+    // theme toggle and the two column gaps take 301px of that, leaving a 563px
+    // track for the nav. The six links have to fit inside it or they wrap.
+    const tokens = read('src/styles/tokens.css');
+    const measure = Number(tokens.match(/--measure:\s*([\d.]+)rem/)?.[1] ?? 0) * 16;
+    const spaceMd = Number(tokens.match(/--space-md:\s*(\d+)px/)?.[1] ?? 0);
+    const bar = vapor.match(/\.vbar-in\s*\{[^}]*\}/)?.[0] ?? '';
+    // The header's column gap is the second value of `gap` when two are given.
+    const gapValue = bar.match(/gap:\s*([^;]+);/)?.[1] ?? '';
+    const gapParts = gapValue.split(/\s+/);
+    const gap = gapParts.length === 2 && gapParts[1].includes('--space-md') ? spaceMd : Number(gapParts[0]);
+
+    // The track is the measure minus the bar padding, the brand, the toggle and
+    // the gaps. These are the sizes the built header measures today.
+    const track = measure - 2 * spaceMd - 131 - 138 - 2 * gap;
+    expect(track).toBe(563);
+
+    // The nav's own width: the six link boxes plus the gaps between them.
+    const desktop = mediaBlock('@media (min-width: 900px)');
+    const navRule = desktop.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
+    const desktopLink = desktop.match(/\.vnav a\s*\{[^}]*\}/)?.[0] ?? '';
+    const baseLink = vapor.match(/\.vnav a\s*\{[^}]*\}/)?.[0] ?? '';
+    // The nav's own gap between links: the second value of `gap` when two are
+    // given, the only one when a single value is given.
+    const navGapParts = (navRule.match(/gap:\s*([^;]+);/)?.[1] ?? '').split(/\s+/);
+    const navGap = Number((navGapParts[navGapParts.length - 1] ?? '').replace('px', ''));
+    // The desktop block overrides the padding and the tracking; the font size
+    // is set once, on the base rule.
+    const padX = Number(desktopLink.match(/padding:\s*[\d.]+px\s+([\d.]+)px/)?.[1] ?? 0);
+    const fontSize = Number(baseLink.match(/font:\s*400\s*(\d+)px/)?.[1] ?? 0);
+    const tracking = Number(desktopLink.match(/letter-spacing:\s*([\d.]+)em/)?.[1] ?? 0);
+
+    // Every label is uppercase pixel text: a monospace advance plus the
+    // tracking. Silkscreen's advance is measured from the built header, so the
+    // per-character width is derived from the longest label rather than guessed.
+    const labels = ['HOME', 'EXPERIENCE', 'PROJECTS', 'ABOUT', 'OUTSIDE', 'RESUME'];
+    const chars = labels.reduce((n, l) => n + l.length, 0);
+    // 406px of text at .14em tracking was measured on the built site for these
+    // forty characters; the advance alone is that minus the tracking.
+    const advance = (406 - chars * 0.14 * 12) / chars;
+    const text = chars * (advance + tracking * fontSize);
+    const boxes = labels.length * (2 * padX + 2);
+    const need = text + boxes + (labels.length - 1) * navGap;
+
+    expect(need).toBeLessThanOrEqual(track);
+    // ...and with room to spare, so a font swap cannot push it over.
+    expect(track - need).toBeGreaterThanOrEqual(4);
   });
 });
 

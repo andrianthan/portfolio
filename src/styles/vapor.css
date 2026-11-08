@@ -117,25 +117,46 @@
   .orbit-plane { transition: none; transform: rotateX(66deg); }
 }
 
-/* ---- nav ---- */
+/* ---- nav ----
+   The header is capped at --measure (896px). Its padding, the brand, the theme
+   toggle and the two column gaps take 301px of that, so the nav's track is
+   563px. Six links fit that only when they are tight (see the 900px block),
+   so below 900px the nav gets the full width of the header on its own row and
+   is a fixed three-column grid: six cells in three columns are exactly two
+   rows at every width, whatever the font metrics are. */
 .vbar { position: static; background: color-mix(in srgb, var(--color-bg) 62%, transparent); backdrop-filter: blur(10px); }
 @media (min-width: 860px) {
   .vbar { position: sticky; top: 0; z-index: 20; }
   html { scroll-padding-top: 72px; }
 }
-.vbar-in { max-width: var(--measure); margin: 0 auto; padding: 14px var(--space-md); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--space-md); }
-.vbrand { font: 400 13px var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-fg); white-space: nowrap; }
+.vbar-in { max-width: var(--measure); margin: 0 auto; padding: 14px var(--space-md); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px var(--space-md); }
+.vbrand { grid-column: 1; grid-row: 1; font: 400 13px var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-fg); white-space: nowrap; }
 .vbrand:hover { text-decoration: none; color: var(--color-accent); }
-.vnav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; }
+.vnav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; justify-content: center; grid-column: 1 / -1; grid-row: 2; max-width: 22rem; width: 100%; margin: 0 auto; gap: 4px 2px; }
 .vnav a { font: 400 12px var(--font-pixel); letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; transition: color .15s, border-color .15s, box-shadow .15s; }
 .vnav a:hover { color: var(--color-fg); text-decoration: none; }
 .vnav a[aria-current="true"] { color: var(--color-fg); border-color: var(--color-num); box-shadow: 0 0 14px -4px var(--color-glow); }
-.vbar-right { justify-self: end; }
+.vbar-right { grid-column: 2; grid-row: 1; justify-self: end; }
 #theme-toggle { font-family: var(--font-pixel); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 @media (max-width: 639px) {
   .vbar-in { grid-template-columns: 1fr auto; padding: 10px var(--space-md); row-gap: 6px; }
   .vnav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; grid-column: 1 / -1; grid-row: 2; gap: 4px 2px; }
   .vnav a { padding: 6px 8px; letter-spacing: .08em; font-size: 11px; white-space: nowrap; }
+}
+@media (min-width: 900px) {
+  /* From 900px the six links fit on one line beside the brand and the toggle,
+     so the header is a single row again. `nowrap` pins that: if a seventh link
+     ever arrives, the row count cannot change behind the reviewer's back. */
+  .vbar-in { grid-template-columns: 1fr auto 1fr; row-gap: 0; }
+  .vbrand { grid-column: 1; grid-row: 1; }
+  .vbar-right { grid-column: 3; grid-row: 1; }
+  .vnav { display: flex; flex-wrap: nowrap; justify-content: center; grid-column: 2; grid-row: 1; max-width: none; width: auto; margin: 0; gap: 6px; }
+  .vnav a { padding: 8px 10px; letter-spacing: .12em; }
+}
+@media (min-width: 860px) and (max-width: 899px) {
+  /* The bar is two rows tall here -- the nav is on its own row until 900px --
+     so the anchor scroll needs to clear all of it, not just the first row. */
+  html { scroll-padding-top: 144px; }
 }
 
 /* ---- hero ---- */
