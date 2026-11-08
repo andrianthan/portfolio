@@ -138,7 +138,7 @@ describe('verify', () => {
       '93', '94',
     ]);
     expect(result.ok).toBe(true);
-    expect(result.checked).toBe(203);
+    expect(result.checked).toBe(204);
     expect(result.offending).toEqual([]);
   });
 
