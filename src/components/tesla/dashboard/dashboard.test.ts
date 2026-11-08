@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NAV, initialWarm, restart, warmStep, request, stepDelayMs } from './dashboard';
+import { NAV, initialWarm, replyLine, restart, warmStep, request, stepDelayMs } from './dashboard';
 
 describe('dashboard frame logic', () => {
   it('lists every project once, in page order, plus overview and work log', () => {
@@ -36,5 +36,19 @@ describe('dashboard frame logic', () => {
   });
   it('uses the short delay for later steps', () => {
     expect(stepDelayMs('warming')).toBe(600);
+  });
+  it('announces a repeated request, so the live region is not silent', () => {
+    const first = replyLine(request(initialWarm()), 1);
+    const second = replyLine(request(initialWarm()), 2);
+    // The visible line is the same both times...
+    expect(first.visible).toBe(second.visible);
+    // ...so the announcement has to carry what changed.
+    expect(first.announced).not.toBe(second.announced);
+    expect(second.announced).toContain('2');
+  });
+  it('says no request has been sent yet, and announces nothing', () => {
+    const none = replyLine(null, 0);
+    expect(none.visible).toBe('No request sent yet.');
+    expect(none.announced).toBe('');
   });
 });

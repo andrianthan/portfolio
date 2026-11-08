@@ -2,8 +2,9 @@ import '../../qa/qa.css';
 import './dashboard.css';
 import { useEffect, useState } from 'react';
 import WorklogDemo from '../worklog/WorklogDemo';
+import { WORKLOG } from '../worklog/content';
 import { series } from '../fixtures';
-import { NAV, initialWarm, request, restart, stepDelayMs, warmStep, type WarmState } from './dashboard';
+import { NAV, initialWarm, replyLine, request, restart, stepDelayMs, warmStep, type WarmState } from './dashboard';
 
 type View = 'overview' | 'worklog';
 
@@ -14,14 +15,20 @@ const KPIS = [
   { label: 'Open campaigns', value: '6' },
 ];
 
-export default function DashboardDemo() {
-  const [view, setView] = useState<View>('overview');
+/**
+ * The dashboard demo. `initialView` sets the pane shown first; it exists so
+ * the render test can check the work log pane, and defaults to the overview.
+ */
+export default function DashboardDemo({ initialView = 'overview' }: { initialView?: View } = {}) {
+  const [view, setView] = useState<View>(initialView);
   const [warm, setWarm] = useState<WarmState>(initialWarm);
   const [restarts, setRestarts] = useState(0);
   const [reply, setReply] = useState<{ status: number; body: string } | null>(null);
+  const [requests, setRequests] = useState(0);
   const bars = series(7, 12, 60, 30);
   const max = Math.max(...bars);
   const warming = warm.status !== 'warm';
+  const line = replyLine(reply, requests);
 
   useEffect(() => {
     if (!warming) return;
@@ -42,24 +49,36 @@ export default function DashboardDemo() {
       </div>
       <div className="dash-grid">
         <nav className="dash-rail" aria-label="Dashboard sections">
-          {NAV.map((n) =>
-            n.target ? (
-              <a key={n.id} href={`#${n.target}`}>{n.label}</a>
-            ) : (
-              <button
-                key={n.id} type="button"
-                aria-pressed={view === n.id}
-                className={view === n.id ? 'on' : ''}
-                onClick={() => setView(n.id as View)}
-              >
-                {n.label}
-              </button>
-            ),
-          )}
+          {/* The rail scrolls sideways on a narrow screen, so it is a focusable
+              region in its own right rather than only a set of links. */}
+          <div
+            className="dash-rail-scroll" tabIndex={0} role="region"
+            aria-label="Dashboard sections, scrolls horizontally"
+          >
+            {NAV.map((n) =>
+              n.target ? (
+                <a key={n.id} href={`#${n.target}`}>{n.label}</a>
+              ) : (
+                <button
+                  key={n.id} type="button"
+                  aria-pressed={view === n.id}
+                  className={view === n.id ? 'on' : ''}
+                  onClick={() => setView(n.id as View)}
+                >
+                  {n.label}
+                </button>
+              ),
+            )}
+          </div>
         </nav>
         <div className="dash-main">
           {view === 'worklog' ? (
-            <WorklogDemo />
+            // The work log is a pane of this dashboard, not a window of its
+            // own, so it renders without the second set of chrome.
+            <section className="dash-wl" aria-label="Work log">
+              <p className="dash-wl-h">{WORKLOG.title} · {WORKLOG.subtitle}</p>
+              <WorklogDemo />
+            </section>
           ) : (
             <>
               <div className="dash-kpis">
@@ -93,11 +112,14 @@ export default function DashboardDemo() {
                 <div className="dash-actions">
                   <button type="button" onClick={() => { setWarm((s) => restart(s)); setRestarts((n) => n + 1); setReply(null); }}>Restart server</button>
                   <button type="button" disabled={warm.status === 'warm'} onClick={() => setWarm((s) => warmStep(s))}>Warm step</button>
-                  <button type="button" onClick={() => setReply(request(warm))}>Request</button>
+                  <button type="button" onClick={() => { setRequests((n) => n + 1); setReply(request(warm)); }}>Request</button>
                 </div>
                 <p className="dash-meta">Restart, then Request. Warm step is available while the server is warming.</p>
                 <p className="dash-reply" role="status" aria-live="polite">
-                  {reply ? `${reply.status} ${reply.body}` : 'No request sent yet.'}
+                  {/* The visible line repeats for an identical request, so the
+                      count is what the live region announces on the repeat. */}
+                  {line.announced && <span className="dash-sr">{line.announced}</span>}
+                  {line.visible}
                 </p>
               </section>
             </>

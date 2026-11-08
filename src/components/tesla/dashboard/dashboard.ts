@@ -24,4 +24,21 @@ export function warmStep(s: WarmState): WarmState {
 export function request(s: WarmState): { status: 200 | 503; body: string } {
   return s.status === 'cold' ? { status: 503, body: 'warming up' } : { status: 200, body: 'last good payload' };
 }
+
+/**
+ * The reply line's two halves: what the reader sees, and what the live
+ * region announces.
+ *
+ * The visible text is the same for two identical requests, so the announced
+ * text carries the request count: that is the part that changes, and it is
+ * what makes the live region speak again on a repeat.
+ */
+export function replyLine(
+  reply: { status: number; body: string } | null,
+  count: number,
+): { visible: string; announced: string } {
+  if (!reply) return { visible: 'No request sent yet.', announced: '' };
+  return { visible: `${reply.status} ${reply.body}`, announced: `Request ${count}.` };
+}
+
 export const stepDelayMs = (status: WarmStatus): number => (status === 'cold' ? 2500 : 600);
