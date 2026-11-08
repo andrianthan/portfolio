@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import data from './gym-checkins.json';
 
 describe('gym check-in data', () => {
-  it('has 861 unique, sorted ISO dates from 2022-06-01 to 2026-11-08', () => {
-    expect(data.dates.length).toBe(861);
-    expect(new Set(data.dates).size).toBe(861);
+  it('has 879 unique, sorted ISO dates from 2022-06-01 to 2026-11-08', () => {
+    expect(data.dates.length).toBe(879);
+    expect(new Set(data.dates).size).toBe(879);
     expect([...data.dates].sort()).toEqual(data.dates);
     for (const d of data.dates) expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(data.dates[0]).toBe('2022-06-01');

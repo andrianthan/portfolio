@@ -69,7 +69,7 @@ describe('yearStats', () => {
   });
   it('per-year counts add up to the total on the real data', () => {
     const total = yearsOf(data.dates).reduce((n, y) => n + yearStats(y, data.dates, asOf).checkIns, 0);
-    expect(total).toBe(861);
+    expect(total).toBe(879);
   });
   it('never uses the old phase wording', () => {
     expect(JSON.stringify(yearStats(2022, data.dates, asOf)).toLowerCase()).not.toMatch(/slower|estimated|reconstructed/);
@@ -77,12 +77,12 @@ describe('yearStats', () => {
 });
 
 describe('overallStats', () => {
-  it('reads the real history: 861 check-ins since June 2022', () => {
+  it('reads the real history: 879 check-ins since June 2022', () => {
     const s = overallStats(data.dates, asOf);
-    expect(s.checkIns).toBe(861);
+    expect(s.checkIns).toBe(879);
     expect(s.since).toBe('June 2022');
     const weeks = (Date.UTC(2026, 10, 8) - Date.UTC(2022, 5, 1)) / 86_400_000 / 7 + 1 / 7;
-    expect(s.perWeek).toBe((861 / weeks).toFixed(1));
+    expect(s.perWeek).toBe((879 / weeks).toFixed(1));
     expect(s.longestStreak).toBeGreaterThanOrEqual(yearStats(2026, data.dates, asOf).longestStreak);
   });
   it('counts a streak across a year boundary and a leap day', () => {

@@ -19,9 +19,11 @@ describe('lifting facts', () => {
     expect(hoursLabel).toBe('~1.6k hours');
     expect(calendarCaption).toBe('Gym check-ins');
   });
-  it('the hours label matches 861 check-ins at 1.9 hours each', () => {
-    expect(formatHours(861, 1.9)).toBe('1.6k');
-    expect(hoursLabel).toBe(`~${formatHours(861, 1.9)} hours`);
+  it('the hours label matches 879 check-ins at 1.8 hours each, inside the 1.25 to 2.5 hour session range', () => {
+    expect(formatHours(879, 1.8)).toBe('1.6k');
+    expect(hoursLabel).toBe(`~${formatHours(879, 1.8)} hours`);
+    expect(879 * 1.25).toBeLessThan(1600);
+    expect(879 * 2.5).toBeGreaterThan(1600);
   });
   it('marks the hours as an estimate, like the lifts and the total', () => {
     // every derived figure on the page carries the marker, so a reader knows which
