@@ -1,0 +1,1508 @@
+# Vapor Theme Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Restyle the whole portfolio as a purple "vapor" theme: glowing hero title, a space-system backdrop (orbit rings, parallax stars, nebula, scanlines), an ASCII agent-network graph, and a chip-plus-input Ask bar, with the page still one scroll.
+
+**Architecture:** Tokens first (`tokens.css` gets a vapor palette as the default and keeps the light palette as the alternate). A fixed `.vb` backdrop layer in `Base.astro` carries stars, nebula, vignette and scanlines, shifted by two unitless pointer variables (`--nx`, `--ny`) that `cursor-field.ts` publishes. A new `vapor.css` holds the hero, nav, chat panel, heading and card treatment. The ASCII graph is a pure module (`graph.ts`, unit-tested) drawn by a small React canvas island. No three.js.
+
+**Tech Stack:** Astro 7, React 19 islands, Vitest 4, TypeScript, plain CSS, `@fontsource-variable/orbitron` and `@fontsource/silkscreen` (self-hosted).
+
+**Spec:** `docs/superpowers/specs/2026-11-07-vapor-theme-design.md` (branch `feat/vapor-theme`, worktree `/Users/andrianthan/Desktop/projects/portfolio-worktrees/vapor-theme`).
+
+## Global Constraints
+
+- Work only on branch `feat/vapor-theme`. Never push or merge to `main`; Andrian has not decided whether to adopt the theme.
+- Lighthouse 95 or higher on mobile for `/` and `/work/tesla`. Two font files at most (Orbitron variable latin, Silkscreen 400). No new JS library.
+- No horizontal scroll from 320 px up, in the page and in the demo windows.
+- AA contrast (4.5:1) for body text, muted text and links against `--color-bg` and `--color-card` in both themes. The test in Task 1 enforces it.
+- All motion respects `prefers-reduced-motion`; nothing animates while off-screen or while the tab is hidden. Backdrop and orbit motion uses `transform` and `opacity` only.
+- Palette is purple: violet, lavender, indigo-black. No pink.
+- Decorative layers (`.vb`, orbits, ASCII graph) are `aria-hidden` and not focusable.
+- Section headings and labels use the pixel face; paragraphs keep the readable sans (Inter). Pixel face never below 11 px.
+- No face or portrait on the hero. No mic, no "Conversation mode".
+- Content, the cleared/listed gate and the agent's answers are unchanged. Existing tests are updated, never deleted, when a change invalidates them.
+- Do not change `src/styles/terminal.css` or the `/terminal` page (own scoped palette; out of scope).
+- Commit message trailer on every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+
+## Rulings made while planning
+
+- Nav order follows the page's scroll order: HOME, EXPERIENCE, PROJECTS, ABOUT, RESUME (the spec listed Projects first; the page has Experience first).
+- The existing four route links under the chat (Experience, Projects, About, Contact) stay as the no-JS navigation path and keep their test; they are restyled as a quiet "jump to" row. The new suggestion chips are separate, JS-only question buttons.
+- Fonts: Orbitron (title) and Silkscreen (pixel) are provisional until compared against the reference screenshot in Task 9. Alternates if wrong: `@fontsource/audiowide`, `@fontsource/michroma` for the title; `@fontsource/vt323` for the pixel face.
+- `/terminal` keeps its warm palette (spec is silent; changing it would churn `terminal.test.ts`). Flag to Andrian in the handoff.
+- The legacy stored theme value `dark` maps to `vapor`.
+
+## File structure
+
+| File | Responsibility |
+|---|---|
+| `src/lib/theme.ts` (+test) | Pure theme resolution: stored value, OS preference, next theme |
+| `src/lib/pointer.ts` (+test) | Pure pointer normalization to -1..1 |
+| `src/lib/scrollspy.ts` (+test) | Pure active-section choice |
+| `src/styles/tokens.css` (+`tokens.test.ts`) | Vapor palette (default) and light palette; AA contrast test |
+| `src/styles/vapor.css` (+`vapor.test.ts`) | Backdrop, hero, nav, chat panel, headings, cards; constraint tests |
+| `src/components/ascii/graph.ts` (+test) | Graph build, 3D rotate/project, frame render to cells, text export |
+| `src/components/ascii/AsciiGraph.tsx` (+test) | Canvas island: draw loop, pause rules, reduced motion, `<pre>` fallback |
+| `src/components/Orbits.astro` | Decorative orbit rings (CSS 3D) |
+| `src/components/Hero.astro` | Title, tagline, scene (orbits + graph), chat, terminal link |
+| `src/components/TopBar.astro` | Vapor nav with scroll-spy hooks and theme control |
+| `src/scripts/nav-spy.ts` | Sets `aria-current` on the active nav link |
+| `src/scripts/cursor-field.ts` | Also publishes `--nx` / `--ny` |
+| `src/components/terminal/suggestions.ts` (+test) | Question pool, rotation, every question answerable |
+| `src/components/terminal/IntroTerminal.tsx` (+test) | Suggestion chips, refresh, arrow markers on answers |
+| `src/components/ThemeToggle.tsx` (+test) | "vapor / light" control |
+| `src/layouts/Base.astro` | Fonts, theme script, `.vb` backdrop markup |
+| `src/styles/global.css` | Remove the old cursor field and hero rules; import `vapor.css` |
+
+---
+
+### Task 0: Baseline
+
+**Files:** none changed.
+
+- [ ] **Step 1: Install and record the baseline**
+
+Run (from the worktree root):
+
+```bash
+npm ci
+npm test 2>&1 | tail -6
+npm run build 2>&1 | tail -3
+npm run typecheck 2>&1 | tail -4
+```
+
+Expected: tests pass (54 files / 580 tests at plan time), build ends `check-build: ok`, typecheck shows 7 errors (3 in `src/components/tesla/admin/admin.test.ts`, 4 in `src/agent/guide/retrieve.ts` and `src/components/terminal/useTerminal.ts`; all pre-existing). Write the three numbers into the ledger as the baseline. Later tasks must not raise the typecheck count.
+
+- [ ] **Step 2: Confirm the branch**
+
+Run: `git branch --show-current` → `feat/vapor-theme`.
+
+---
+
+### Task 1: Theme resolution, tokens, toggle
+
+**Files:**
+- Create: `src/lib/theme.ts`, `src/lib/theme.test.ts`, `src/styles/tokens.test.ts`, `src/components/ThemeToggle.test.tsx`
+- Modify: `src/styles/tokens.css` (full rewrite), `src/components/ThemeToggle.tsx`, `src/layouts/Base.astro` (inline theme script only)
+
+**Interfaces:**
+- Produces: `type Theme = 'vapor' | 'light'`; `parseStored(value: string | null): Theme | null`; `currentTheme(stored: string | null, prefersLight: boolean): Theme`; `nextTheme(stored: string | null, prefersLight: boolean): Theme`.
+- Produces CSS tokens (both themes): every token the site already uses, plus `--color-star`, `--color-neb-a`, `--color-neb-b`, `--color-scan`, `--color-vig`, `--title-fill`, `--title-glow`, `--title-shadow`; theme-independent `--font-title`, `--font-pixel`.
+
+- [ ] **Step 1: Write the failing tests**
+
+`src/lib/theme.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { parseStored, currentTheme, nextTheme } from './theme';
+
+describe('theme resolution', () => {
+  it('parses stored values and maps the legacy dark value to vapor', () => {
+    expect(parseStored('light')).toBe('light');
+    expect(parseStored('vapor')).toBe('vapor');
+    expect(parseStored('dark')).toBe('vapor');
+    expect(parseStored('banana')).toBeNull();
+    expect(parseStored(null)).toBeNull();
+  });
+  it('uses the stored choice over the OS preference', () => {
+    expect(currentTheme('vapor', true)).toBe('vapor');
+    expect(currentTheme('light', false)).toBe('light');
+  });
+  it('defaults to vapor, and to light only for a light OS with no saved choice', () => {
+    expect(currentTheme(null, false)).toBe('vapor');
+    expect(currentTheme(null, true)).toBe('light');
+  });
+  it('flips to the other theme', () => {
+    expect(nextTheme('vapor', false)).toBe('light');
+    expect(nextTheme('light', false)).toBe('vapor');
+    expect(nextTheme(null, true)).toBe('vapor');
+    expect(nextTheme(null, false)).toBe('light');
+  });
+});
+```
+
+`src/styles/tokens.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const css = fs.readFileSync(path.resolve(process.cwd(), 'src/styles/tokens.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+
+function block(header: string): string {
+  const start = css.indexOf(header);
+  if (start === -1) throw new Error(`missing ${header}`);
+  const open = css.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < css.length; i++) {
+    if (css[i] === '{') depth++;
+    else if (css[i] === '}' && --depth === 0) return css.slice(open + 1, i);
+  }
+  throw new Error('unterminated');
+}
+function token(body: string, name: string): string {
+  const m = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(body);
+  if (!m) throw new Error(`missing --${name}`);
+  return m[1].toLowerCase();
+}
+function lum(hex: string): number {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+function ratio(a: string, b: string): number {
+  const [x, y] = [lum(a), lum(b)];
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+
+const themes: [string, string][] = [
+  ['vapor', ':root {'],
+  ['light', ':root[data-theme="light"]'],
+];
+
+describe.each(themes)('%s palette', (_name, header) => {
+  const body = block(header);
+  it.each([['fg', 'bg'], ['muted', 'bg'], ['accent', 'bg'], ['num', 'bg'], ['fg', 'card'], ['muted', 'card']])(
+    '%s on %s is AA',
+    (fg, bg) => {
+      expect(ratio(token(body, `color-${fg}`), token(body, `color-${bg}`))).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+});
+
+describe('palette hue', () => {
+  it('has no pink: the vapor accent and gradient stops are violet or lavender', () => {
+    const body = block(':root {');
+    for (const name of ['color-accent', 'color-num', 'grad-a', 'grad-b']) {
+      const hex = token(body, name);
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      expect(b).toBeGreaterThan(r); // blue leads red: purple side of magenta
+      expect(b).toBeGreaterThan(g);
+    }
+  });
+});
+```
+
+`src/components/ThemeToggle.test.tsx`:
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
+import ThemeToggle from './ThemeToggle';
+
+describe('ThemeToggle', () => {
+  it('is labelled vapor / light', () => {
+    const html = renderToStaticMarkup(<ThemeToggle />);
+    expect(html).toContain('id="theme-toggle"');
+    expect(html).toContain('vapor / light');
+    expect(html).toContain('aria-label="vapor / light theme"');
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify they fail**
+
+Run: `npx vitest run src/lib/theme.test.ts src/styles/tokens.test.ts src/components/ThemeToggle.test.tsx`
+Expected: FAIL (module missing, tokens missing, label wrong).
+
+- [ ] **Step 3: Implement `src/lib/theme.ts`**
+
+```ts
+export type Theme = 'vapor' | 'light';
+
+/** A stored theme value, or null when it is missing or unknown. The old `dark` value means vapor. */
+export function parseStored(value: string | null): Theme | null {
+  if (value === 'light') return 'light';
+  if (value === 'vapor' || value === 'dark') return 'vapor';
+  return null;
+}
+
+/** The theme in effect: the saved choice, else the OS preference, else vapor. */
+export function currentTheme(stored: string | null, prefersLight: boolean): Theme {
+  return parseStored(stored) ?? (prefersLight ? 'light' : 'vapor');
+}
+
+export function nextTheme(stored: string | null, prefersLight: boolean): Theme {
+  return currentTheme(stored, prefersLight) === 'light' ? 'vapor' : 'light';
+}
+```
+
+- [ ] **Step 4: Rewrite `src/styles/tokens.css`**
+
+```css
+/* Vapor is the default theme. Light is the alternate: chosen with the toggle, or
+   used when the OS prefers light and nothing is saved. */
+:root {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-title: "Orbitron Variable", Orbitron, var(--font-sans);
+  --font-pixel: Silkscreen, var(--font-mono);
+  --space-sm: 8px; --space-md: 16px; --space-lg: 32px; --space-xl: 96px;
+  --measure: 56rem;
+
+  --color-bg: #0b0a1a; --color-fg: #ece9ff; --color-muted: #a39fc4; --color-rule: #2a2552;
+  --color-accent: #b9a4ff; --color-num: #a78bfa; --color-chip: #15122e; --color-card: #100e26;
+  --color-dot: #231f48; --color-glow: rgba(139, 92, 246, .28); --color-logo-bg: #ffffff;
+  --color-glass: rgba(24, 20, 56, .55); --color-mask: #000; --grad-a: #8b5cf6; --grad-b: #d8b4fe;
+  --color-star: rgba(226, 220, 255, .9); --color-neb-a: rgba(109, 61, 240, .30);
+  --color-neb-b: rgba(56, 40, 150, .28); --color-scan: rgba(0, 0, 0, .18); --color-vig: rgba(3, 2, 12, .55);
+  --title-fill: #f3efff; --title-glow: rgba(167, 139, 250, .65); --title-shadow: #4a2fb5;
+}
+:root[data-theme="light"] {
+  --color-bg: #f7f6fb; --color-fg: #1a1a24; --color-muted: #5c5c70; --color-rule: #dcdbe6;
+  --color-accent: #5b3fd1; --color-num: #6d3df0; --color-chip: #ecebf4; --color-card: #ffffff;
+  --color-dot: #d4d3e0; --color-glow: rgba(109, 61, 240, .12); --color-logo-bg: #ffffff;
+  --color-glass: rgba(255, 255, 255, .4); --color-mask: #000; --grad-a: #6d3df0; --grad-b: #b724c9;
+  --color-star: rgba(91, 63, 209, .35); --color-neb-a: rgba(109, 61, 240, .10);
+  --color-neb-b: rgba(183, 36, 201, .06); --color-scan: rgba(0, 0, 0, 0); --color-vig: rgba(255, 255, 255, 0);
+  --title-fill: #2a1a7a; --title-glow: rgba(109, 61, 240, .25); --title-shadow: #b9a8f5;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --color-bg: #f7f6fb; --color-fg: #1a1a24; --color-muted: #5c5c70; --color-rule: #dcdbe6;
+    --color-accent: #5b3fd1; --color-num: #6d3df0; --color-chip: #ecebf4; --color-card: #ffffff;
+    --color-dot: #d4d3e0; --color-glow: rgba(109, 61, 240, .12); --color-logo-bg: #ffffff;
+    --color-glass: rgba(255, 255, 255, .4); --color-mask: #000; --grad-a: #6d3df0; --grad-b: #b724c9;
+    --color-star: rgba(91, 63, 209, .35); --color-neb-a: rgba(109, 61, 240, .10);
+    --color-neb-b: rgba(183, 36, 201, .06); --color-scan: rgba(0, 0, 0, 0); --color-vig: rgba(255, 255, 255, 0);
+    --title-fill: #2a1a7a; --title-glow: rgba(109, 61, 240, .25); --title-shadow: #b9a8f5;
+  }
+}
+```
+
+- [ ] **Step 5: Update `ThemeToggle.tsx`**
+
+```tsx
+import { useCallback } from 'react';
+import { nextTheme } from '../lib/theme';
+
+export default function ThemeToggle() {
+  const toggle = useCallback(() => {
+    const root = document.documentElement;
+    const next = nextTheme(root.getAttribute('data-theme'), matchMedia('(prefers-color-scheme: light)').matches);
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch {}
+  }, []);
+
+  return (
+    <button id="theme-toggle" type="button" aria-label="vapor / light theme" onClick={toggle}>
+      vapor / light
+    </button>
+  );
+}
+```
+
+- [ ] **Step 6: Update the inline script in `Base.astro`** (replace the `try { ... } catch` line; keep the `classList.add('js')` line):
+
+```js
+try { var t = localStorage.getItem('theme'); if (t === 'dark') t = 'vapor'; if (t === 'light' || t === 'vapor') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+```
+
+- [ ] **Step 7: Run tests, then the full suite**
+
+Run: `npx vitest run src/lib/theme.test.ts src/styles/tokens.test.ts src/components/ThemeToggle.test.tsx` → PASS. Then `npm test` → all green. If a contrast assertion fails, adjust that one token (not the threshold) and re-run.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/lib/theme.ts src/lib/theme.test.ts src/styles/tokens.css src/styles/tokens.test.ts src/components/ThemeToggle.tsx src/components/ThemeToggle.test.tsx src/layouts/Base.astro
+git commit -m "feat: vapor palette as the default theme, light as the alternate
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 2: Fonts
+
+**Files:**
+- Modify: `package.json`, `package-lock.json`, `src/layouts/Base.astro`
+- Create: `src/styles/fonts.test.ts`
+
+**Interfaces:** Consumes `--font-title`, `--font-pixel` from Task 1. Produces the two loaded families "Orbitron Variable" and "Silkscreen".
+
+- [ ] **Step 1: Failing test** `src/styles/fonts.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const root = process.cwd();
+const base = fs.readFileSync(path.join(root, 'src/layouts/Base.astro'), 'utf8');
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+
+describe('vapor fonts', () => {
+  it('self-hosts exactly the title and pixel faces through fontsource', () => {
+    expect(pkg.dependencies['@fontsource-variable/orbitron']).toBeTruthy();
+    expect(pkg.dependencies['@fontsource/silkscreen']).toBeTruthy();
+    expect(base).toContain("import '@fontsource-variable/orbitron/index.css'");
+    expect(base).toContain("import '@fontsource/silkscreen/400.css'");
+  });
+  it('does not pull the vapor faces from a third-party host', () => {
+    expect(base).not.toMatch(/fonts\.googleapis\.com[^"]*(Orbitron|Silkscreen)/);
+  });
+});
+```
+
+- [ ] **Step 2: Run to confirm it fails.** `npx vitest run src/styles/fonts.test.ts` → FAIL.
+
+- [ ] **Step 3: Install**
+
+```bash
+npm install @fontsource-variable/orbitron @fontsource/silkscreen
+```
+
+If either package name does not resolve, run `npm view <name> version` for the alternates listed in the plan's rulings, choose one, and record the choice in the ledger.
+
+- [ ] **Step 4: Import in `Base.astro` frontmatter** (after the existing imports):
+
+```astro
+import '@fontsource-variable/orbitron/index.css';
+import '@fontsource/silkscreen/400.css';
+```
+
+Leave the Inter and JetBrains Mono Google link as is.
+
+- [ ] **Step 5: Verify.** `npx vitest run src/styles/fonts.test.ts` → PASS. `npm run build 2>&1 | tail -3` → `check-build: ok`. Then `ls dist/_astro | grep -i -E "orbitron|silkscreen"` shows woff2 files (note the sizes in the ledger).
+
+- [ ] **Step 6: Commit** `feat: self-host the vapor title and pixel fonts`.
+
+---
+
+### Task 3: Pointer variables
+
+**Files:**
+- Create: `src/lib/pointer.ts`, `src/lib/pointer.test.ts`
+- Modify: `src/scripts/cursor-field.ts`
+
+**Interfaces:** Produces `normalize(x, y, w, h): { nx: number; ny: number }` (each clamped to -1..1; zero size returns 0,0). Produces root CSS variables `--nx`, `--ny` (unitless, 3 decimals), set per animation frame and removed on `clear()`.
+
+- [ ] **Step 1: Failing test** `src/lib/pointer.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { normalize } from './pointer';
+
+describe('normalize', () => {
+  it('maps the viewport centre to 0,0 and the corners to -1 and 1', () => {
+    expect(normalize(500, 400, 1000, 800)).toEqual({ nx: 0, ny: 0 });
+    expect(normalize(0, 0, 1000, 800)).toEqual({ nx: -1, ny: -1 });
+    expect(normalize(1000, 800, 1000, 800)).toEqual({ nx: 1, ny: 1 });
+  });
+  it('clamps positions outside the viewport', () => {
+    expect(normalize(-50, 9999, 1000, 800)).toEqual({ nx: -1, ny: 1 });
+  });
+  it('returns 0,0 for a zero-size viewport', () => {
+    expect(normalize(10, 10, 0, 0)).toEqual({ nx: 0, ny: 0 });
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL.**
+
+- [ ] **Step 3: `src/lib/pointer.ts`**
+
+```ts
+const clamp = (v: number): number => Math.max(-1, Math.min(1, v));
+
+/** The pointer as -1..1 from the viewport centre. The backdrop multiplies this by a per-layer distance. */
+export function normalize(x: number, y: number, w: number, h: number): { nx: number; ny: number } {
+  if (w <= 0 || h <= 0) return { nx: 0, ny: 0 };
+  return { nx: clamp((x / w) * 2 - 1), ny: clamp((y / h) * 2 - 1) };
+}
+```
+
+- [ ] **Step 4: Edit `cursor-field.ts`.** Add `import { normalize } from '../lib/pointer';` at the top. In `paint()` after the two existing `setProperty` calls add:
+
+```ts
+  const n = normalize(x, y, window.innerWidth, window.innerHeight);
+  root.style.setProperty('--nx', n.nx.toFixed(3));
+  root.style.setProperty('--ny', n.ny.toFixed(3));
+```
+
+In `clear()` after the two existing `removeProperty` calls add `root.style.removeProperty('--nx'); root.style.removeProperty('--ny');`. Update the file's header comment to say it also publishes the unitless pair read by the backdrop.
+
+- [ ] **Step 5: Run `npm test` → green. Commit** `feat: publish unitless pointer variables for the backdrop`.
+
+---
+
+### Task 4: Backdrop layer and the old field removed
+
+**Files:**
+- Create: `src/styles/vapor.css` (backdrop section only in this task), `src/styles/vapor.test.ts`
+- Modify: `src/layouts/Base.astro` (markup), `src/styles/global.css`
+
+**Interfaces:** Consumes tokens `--color-star`, `--color-neb-a/b`, `--color-scan`, `--color-vig`, and `--nx`/`--ny`. Produces `.vb` and its four children (`.vb-neb`, `.vb-far`, `.vb-mid`, `.vb-near`).
+
+- [ ] **Step 1: Failing test** `src/styles/vapor.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const vapor = read('src/styles/vapor.css');
+const global = read('src/styles/global.css');
+
+describe('vapor backdrop', () => {
+  it('moves layers with transform only', () => {
+    const layers = vapor.match(/\.vb-(neb|far|mid|near)\s*\{[^}]*\}/g) ?? [];
+    expect(layers.length).toBe(4);
+    for (const rule of layers) {
+      expect(rule).toContain('transform:');
+      expect(rule).not.toMatch(/\b(top|left|margin)\s*:/);
+    }
+  });
+  it('keeps the backdrop behind content and out of the pointer path', () => {
+    expect(vapor).toMatch(/\.vb\s*\{[^}]*position:\s*fixed[^}]*z-index:\s*-1[^}]*pointer-events:\s*none/);
+  });
+  it('has a reduced-motion block that stills the layers', () => {
+    expect(vapor).toContain('@media (prefers-reduced-motion: reduce)');
+  });
+  it('is imported by global.css and the old cursor field is gone', () => {
+    expect(global).toContain("@import './vapor.css'");
+    expect(global).not.toContain('body::before');
+    expect(global).not.toContain('html:hover body::after');
+    expect(global).not.toContain('(hover: none)');
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL.**
+
+- [ ] **Step 3: Create `src/styles/vapor.css`** with the backdrop:
+
+```css
+/* ---- backdrop: a space system behind everything ---- */
+.vb { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.vb i { position: absolute; inset: -4%; display: block; will-change: transform; }
+.vb-neb {
+  background:
+    radial-gradient(ellipse 60% 50% at 18% 12%, var(--color-neb-a), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 85% 70%, var(--color-neb-b), transparent 72%);
+  transform: translate3d(calc(var(--nx, 0) * -4px), calc(var(--ny, 0) * -3px), 0);
+}
+.vb-far {
+  background-image:
+    radial-gradient(1px 1px at 14px 22px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 96px 71px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 151px 133px, var(--color-star), transparent);
+  background-size: 173px 157px; opacity: .55;
+  transform: translate3d(calc(var(--nx, 0) * -8px), calc(var(--ny, 0) * -6px), 0);
+}
+.vb-mid {
+  background-image:
+    radial-gradient(1px 1px at 40px 60px, var(--color-star), transparent),
+    radial-gradient(1.2px 1.2px at 180px 150px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 120px 20px, var(--color-star), transparent);
+  background-size: 241px 223px; opacity: .8;
+  transform: translate3d(calc(var(--nx, 0) * -16px), calc(var(--ny, 0) * -12px), 0);
+}
+.vb-near {
+  background-image:
+    radial-gradient(1.6px 1.6px at 70px 90px, var(--color-star), transparent),
+    radial-gradient(1.4px 1.4px at 260px 200px, var(--color-star), transparent);
+  background-size: 331px 307px;
+  transform: translate3d(calc(var(--nx, 0) * -30px), calc(var(--ny, 0) * -22px), 0);
+}
+/* the vignette and the scanlines sit over the stars and under the content */
+.vb::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 65% at 50% 38%, transparent 55%, var(--color-vig)); }
+.vb::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--color-scan) 2px 3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vb i { will-change: auto; transform: none; }
+}
+```
+
+- [ ] **Step 4: Markup in `Base.astro`:** immediately after `<body>` add
+
+```astro
+<div class="vb" aria-hidden="true"><i class="vb-neb"></i><i class="vb-far"></i><i class="vb-mid"></i><i class="vb-near"></i></div>
+```
+
+- [ ] **Step 5: Edit `global.css` with a one-shot script** (run, then `git diff --stat src/styles/global.css` to eyeball it):
+
+```bash
+python3 -I - <<'EOF'
+p = 'src/styles/global.css'
+s = open(p).read()
+
+def cut(s, start, end, keep_end=True):
+    a = s.index(start)
+    b = s.index(end, a)
+    b = b + (len(end) if keep_end else 0)
+    return s[:a] + s[b:]
+
+# 1. the old cursor field: from its comment to the no-JS line
+s = cut(s, '/* the cursor field:', 'html:not(.js) body::after { opacity: 1; transition: none; }\n')
+# 2. the reduced-motion freeze of that field
+s = cut(s, '  /* the field is frozen:', "mask-image: none; }\n")
+# 3. the touch-screen fallback at the end of the file
+a = s.index('/* a touch screen has no cursor to follow:')
+s = s[:a].rstrip() + '\n'
+# 4. pull in the vapor layer right after the tokens
+s = s.replace("@import './tokens.css';", "@import './tokens.css';\n@import './vapor.css';", 1)
+open(p, 'w').write(s)
+EOF
+grep -n "body::before\|body::after\|hover: none" src/styles/global.css || echo clean
+```
+
+Expected: `clean`. Keep `html { scroll-behavior: smooth; }` and the body rule; add `scroll-padding-top: 72px;` to the `html` rule (the sticky nav in Task 7 needs it).
+
+- [ ] **Step 6: Run `npx vitest run src/styles` then `npm test` → green; `npm run build` → `check-build: ok`.**
+
+- [ ] **Step 7: Commit** `feat: space-system backdrop layer replaces the dot field`.
+
+---
+
+### Task 5: ASCII graph logic
+
+**Files:**
+- Create: `src/components/ascii/graph.ts`, `src/components/ascii/graph.test.ts`
+
+**Interfaces — Produces:**
+`interface Vec3 { x: number; y: number; z: number }`
+`interface Graph { nodes: Vec3[]; edges: [number, number][]; hub: number }`
+`interface Cell { col: number; row: number; ch: string; level: number }` (level 0..1)
+`const RAMP = ' .:-=+*#%@'`
+`mulberry32(seed: number): () => number`
+`buildGraph(seed?: number): Graph`
+`rotate(v: Vec3, yaw: number, pitch: number): Vec3`
+`project(v: Vec3, cols: number, rows: number): { col: number; row: number; depth: number }`
+`interface FrameOptions { t: number; yaw: number; pitch: number; cols: number; rows: number; focus?: { col: number; row: number } | null }`
+`renderFrame(graph: Graph, o: FrameOptions): Cell[]`
+`toText(cells: Cell[], cols: number, rows: number): string`
+
+- [ ] **Step 1: Failing tests** `graph.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { buildGraph, rotate, project, renderFrame, toText, RAMP } from './graph';
+
+const COLS = 72, ROWS = 30;
+const base = { t: 0, yaw: 0.4, pitch: 0.2, cols: COLS, rows: ROWS };
+
+describe('buildGraph', () => {
+  it('is deterministic for a seed and differs across seeds', () => {
+    expect(buildGraph(7)).toEqual(buildGraph(7));
+    expect(buildGraph(7).nodes).not.toEqual(buildGraph(8).nodes);
+  });
+  it('has a hub at the origin and valid, unique edges', () => {
+    const g = buildGraph();
+    expect(g.nodes[g.hub]).toEqual({ x: 0, y: 0, z: 0 });
+    expect(g.nodes.length).toBeGreaterThanOrEqual(15);
+    const seen = new Set<string>();
+    for (const [a, b] of g.edges) {
+      expect(a).not.toBe(b);
+      expect(a).toBeGreaterThanOrEqual(0); expect(b).toBeLessThan(g.nodes.length);
+      const key = a < b ? `${a}-${b}` : `${b}-${a}`;
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+  });
+  it('connects every node to the hub through some path', () => {
+    const g = buildGraph();
+    const reach = new Set([g.hub]);
+    for (let i = 0; i < g.nodes.length; i++)
+      for (const [a, b] of g.edges) { if (reach.has(a)) reach.add(b); if (reach.has(b)) reach.add(a); }
+    expect(reach.size).toBe(g.nodes.length);
+  });
+});
+
+describe('rotate and project', () => {
+  it('leaves the origin at the centre of the grid', () => {
+    const p = project(rotate({ x: 0, y: 0, z: 0 }, 1.1, 0.6), COLS, ROWS);
+    expect(p.col).toBeCloseTo(COLS / 2, 5);
+    expect(p.row).toBeCloseTo(ROWS / 2, 5);
+  });
+  it('makes nearer points larger: the same x lands farther from centre when z is bigger', () => {
+    const far = project({ x: 0.5, y: 0, z: -0.8 }, COLS, ROWS);
+    const near = project({ x: 0.5, y: 0, z: 0.8 }, COLS, ROWS);
+    expect(near.col - COLS / 2).toBeGreaterThan(far.col - COLS / 2);
+    expect(near.depth).toBeGreaterThan(far.depth);
+  });
+});
+
+describe('renderFrame', () => {
+  const g = buildGraph();
+  it('returns only in-bounds cells with ramp characters and levels in 0..1', () => {
+    const cells = renderFrame(g, base);
+    expect(cells.length).toBeGreaterThan(40);
+    for (const c of cells) {
+      expect(c.col).toBeGreaterThanOrEqual(0); expect(c.col).toBeLessThan(COLS);
+      expect(c.row).toBeGreaterThanOrEqual(0); expect(c.row).toBeLessThan(ROWS);
+      expect(RAMP.includes(c.ch)).toBe(true);
+      expect(c.level).toBeGreaterThanOrEqual(0); expect(c.level).toBeLessThanOrEqual(1);
+    }
+  });
+  it('has one cell per grid position', () => {
+    const cells = renderFrame(g, base);
+    const keys = new Set(cells.map((c) => `${c.col},${c.row}`));
+    expect(keys.size).toBe(cells.length);
+  });
+  it('is stable for identical input (the reduced-motion frame)', () => {
+    expect(renderFrame(g, base)).toEqual(renderFrame(g, base));
+  });
+  it('changes when the graph is turned', () => {
+    expect(renderFrame(g, { ...base, yaw: 1.4 })).not.toEqual(renderFrame(g, base));
+  });
+  it('moves the pulses with time', () => {
+    const stars = (t: number) => renderFrame(g, { ...base, t }).filter((c) => c.ch === '*').map((c) => `${c.col},${c.row}`).join('|');
+    expect(stars(0).length).toBeGreaterThan(0);
+    expect(stars(0.4)).not.toBe(stars(0));
+  });
+  it('brightens cells near the focus point', () => {
+    const plain = renderFrame(g, base);
+    const hot = plain.find((c) => c.level < 0.7)!;
+    const focused = renderFrame(g, { ...base, focus: { col: hot.col, row: hot.row } });
+    const same = focused.find((c) => c.col === hot.col && c.row === hot.row)!;
+    expect(same.level).toBeGreaterThan(hot.level);
+  });
+});
+
+describe('toText', () => {
+  it('produces rows lines of cols characters', () => {
+    const text = toText(renderFrame(buildGraph(), base), COLS, ROWS);
+    const lines = text.split('\n');
+    expect(lines.length).toBe(ROWS);
+    for (const l of lines) expect(l.length).toBe(COLS);
+    expect(text).toContain('@'); // the hub
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL.**
+
+- [ ] **Step 3: Implement `graph.ts`**
+
+```ts
+export interface Vec3 { x: number; y: number; z: number }
+export interface Graph { nodes: Vec3[]; edges: [number, number][]; hub: number }
+export interface Cell { col: number; row: number; ch: string; level: number }
+export interface FrameOptions { t: number; yaw: number; pitch: number; cols: number; rows: number; focus?: { col: number; row: number } | null }
+
+export const RAMP = ' .:-=+*#%@';
+
+export function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const dist = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+
+/** A hub with three rings of nodes (5, 8, 6), wired outward. Same seed, same graph. */
+export function buildGraph(seed = 7): Graph {
+  const rand = mulberry32(seed);
+  const nodes: Vec3[] = [{ x: 0, y: 0, z: 0 }];
+  const ring = (count: number, radius: number, spread: number): number[] => {
+    const ids: number[] = [];
+    const phase = rand() * Math.PI * 2;
+    for (let i = 0; i < count; i++) {
+      const a = phase + (i / count) * Math.PI * 2 + (rand() - 0.5) * 0.35;
+      nodes.push({ x: Math.cos(a) * radius, y: Math.sin(a) * radius * 0.8, z: (rand() - 0.5) * spread });
+      ids.push(nodes.length - 1);
+    }
+    return ids;
+  };
+  const A = ring(5, 0.45, 0.4);
+  const B = ring(8, 0.8, 0.8);
+  const C = ring(6, 1.0, 1.2);
+
+  const seen = new Set<string>();
+  const edges: [number, number][] = [];
+  const link = (a: number, b: number) => {
+    if (a === b) return;
+    const key = a < b ? `${a}-${b}` : `${b}-${a}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    edges.push([a, b]);
+  };
+  const nearest = (from: number, among: number[]) =>
+    among.reduce((best, id) => (dist(nodes[from], nodes[id]) < dist(nodes[from], nodes[best]) ? id : best), among[0]);
+
+  for (const a of A) link(0, a);
+  B.forEach((b, i) => { link(b, nearest(b, A)); link(b, B[(i + 1) % B.length]); });
+  for (const c of C) link(c, nearest(c, B));
+  return { nodes, edges, hub: 0 };
+}
+
+export function rotate(v: Vec3, yaw: number, pitch: number): Vec3 {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const x1 = v.x * cy + v.z * sy;
+  const z1 = -v.x * sy + v.z * cy;
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  return { x: x1, y: v.y * cp - z1 * sp, z: v.y * sp + z1 * cp };
+}
+
+/** Perspective onto a character grid. Cells are taller than wide, so rows scale by a different factor. */
+export function project(v: Vec3, cols: number, rows: number): { col: number; row: number; depth: number } {
+  const d = 3.2;
+  const s = d / (d - v.z);
+  return {
+    col: cols / 2 + v.x * s * cols * 0.3,
+    row: rows / 2 + v.y * s * rows * 0.4,
+    depth: Math.max(0, Math.min(1, (v.z + 1.2) / 2.4)),
+  };
+}
+
+const charFor = (level: number) => RAMP[Math.min(RAMP.length - 1, Math.max(1, Math.floor(level * RAMP.length)))];
+
+interface Slot { level: number; ch?: string }
+
+export function renderFrame(graph: Graph, o: FrameOptions): Cell[] {
+  const { cols, rows } = o;
+  const pts = graph.nodes.map((n) => project(rotate(n, o.yaw, o.pitch), cols, rows));
+  const slots = new Map<string, Slot & { col: number; row: number }>();
+  const put = (colF: number, rowF: number, level: number, ch?: string) => {
+    const col = Math.round(colF), row = Math.round(rowF);
+    if (col < 0 || col >= cols || row < 0 || row >= rows) return;
+    const key = `${col},${row}`;
+    const prev = slots.get(key);
+    if (prev && prev.level >= level) return;
+    slots.set(key, { col, row, level, ch });
+  };
+
+  graph.edges.forEach(([a, b], e) => {
+    const p = pts[a], q = pts[b];
+    const steps = Math.max(Math.abs(q.col - p.col), Math.abs(q.row - p.row));
+    for (let i = 1; i < steps; i++) {
+      const f = i / steps;
+      put(p.col + (q.col - p.col) * f, p.row + (q.row - p.row) * f, 0.2 + 0.3 * (p.depth + (q.depth - p.depth) * f));
+    }
+    const phase = (o.t * 0.35 + e * 0.137) % 1;
+    put(p.col + (q.col - p.col) * phase, p.row + (q.row - p.row) * phase, 0.95, '*');
+  });
+  graph.nodes.forEach((_, i) => {
+    const p = pts[i];
+    if (i === graph.hub) put(p.col, p.row, 1, '@');
+    else put(p.col, p.row, 0.6 + 0.4 * p.depth, '#');
+  });
+
+  const cells: Cell[] = [];
+  for (const s of slots.values()) {
+    let level = s.level;
+    if (o.focus) {
+      const d = Math.hypot(s.col - o.focus.col, (s.row - o.focus.row) * 1.8);
+      if (d < 7) level = Math.min(1, level + 0.3 * (1 - d / 7));
+    }
+    cells.push({ col: s.col, row: s.row, ch: s.ch ?? charFor(level), level });
+  }
+  return cells;
+}
+
+export function toText(cells: Cell[], cols: number, rows: number): string {
+  const grid = Array.from({ length: rows }, () => Array<string>(cols).fill(' '));
+  for (const c of cells) grid[c.row][c.col] = c.ch;
+  return grid.map((r) => r.join('')).join('\n');
+}
+```
+
+Note: the `'*'` pulse and node glyphs are in `RAMP`; `charFor` never returns a space.
+
+- [ ] **Step 4: Run `npx vitest run src/components/ascii/graph.test.ts` → PASS.** If the focus test fails because the first dim cell is a fixed glyph (`ch` set), that is fine: only `level` is asserted. If the "pulses move" test fails because a pulse landed on a node at both times, change the second `t` in the test to `0.55`; do not weaken the assertion.
+
+- [ ] **Step 5: Commit** `feat: ASCII agent-graph logic`.
+
+---
+
+### Task 6: AsciiGraph island and the orbits
+
+**Files:**
+- Create: `src/components/ascii/AsciiGraph.tsx`, `src/components/ascii/AsciiGraph.test.tsx`, `src/components/Orbits.astro`
+- Modify: `src/styles/vapor.css` (append scene, ascii, orbit sections), `src/styles/vapor.test.ts` (append orbit assertions)
+
+**Interfaces:** Consumes `buildGraph`, `renderFrame`, `toText` (Task 5) and `--nx`/`--ny` (Task 3). Produces `<AsciiGraph />` (default export) and `<Orbits />`; CSS classes `.hero-scene`, `.ascii`, `.ascii-canvas`, `.ascii-fallback`, `.orbits`, `.orbit-plane`, `.ring`, `.planet`.
+
+- [ ] **Step 1: Failing tests.** `AsciiGraph.test.tsx`:
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
+import AsciiGraph from './AsciiGraph';
+
+const html = renderToStaticMarkup(<AsciiGraph />);
+
+describe('AsciiGraph', () => {
+  it('is decorative: aria-hidden wrapper, a canvas, and a static text fallback', () => {
+    expect(html).toContain('class="ascii" aria-hidden="true"');
+    expect(html).toContain('<canvas');
+    expect(html).toContain('class="ascii-fallback"');
+  });
+  it('the fallback carries the drawn graph, hub included', () => {
+    const pre = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/)?.[1] ?? '';
+    expect(pre).toContain('@');
+    expect(pre.split('\n').length).toBe(30);
+  });
+});
+```
+
+Append to `vapor.test.ts`:
+
+```ts
+describe('vapor scene', () => {
+  it('moves the orbit rings with transform only and stills them under reduced motion', () => {
+    expect(vapor).toMatch(/@keyframes orbit\s*\{\s*to\s*\{\s*transform:/);
+    const rm = vapor.slice(vapor.lastIndexOf('@media (prefers-reduced-motion: reduce)'));
+    expect(rm).toMatch(/\.ring\s*\{[^}]*animation:\s*none/);
+  });
+  it('shows the text fallback only without JavaScript', () => {
+    expect(vapor).toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL.**
+
+- [ ] **Step 3: `AsciiGraph.tsx`**
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { buildGraph, renderFrame, toText } from './graph';
+
+const COLS = 72;
+const ROWS = 30;
+const graph = buildGraph();
+const staticText = toText(renderFrame(graph, { t: 0, yaw: 0.5, pitch: 0.2, cols: COLS, rows: ROWS }), COLS, ROWS);
+
+/** The agent network, drawn in characters. Decorative: the text is for no-JS and screen-off cases. */
+export default function AsciiGraph() {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    const root = document.documentElement;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let color = getComputedStyle(root).getPropertyValue('--color-num').trim() || '#a78bfa';
+    let cellW = 8, cellH = 14;
+    let focus: { col: number; row: number } | null = null;
+    let visible = true;
+    let raf = 0;
+    let last = 0;
+    const t0 = performance.now();
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cellW = rect.width / COLS;
+      cellH = rect.height / ROWS;
+      ctx.font = `${Math.max(8, cellH * 0.9)}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+    };
+
+    const draw = (now: number) => {
+      const t = reduce.matches ? 0 : (now - t0) / 1000;
+      const nx = parseFloat(root.style.getPropertyValue('--nx')) || 0;
+      const ny = parseFloat(root.style.getPropertyValue('--ny')) || 0;
+      const yaw = reduce.matches ? 0.5 : 0.5 + t * 0.12 + nx * 0.5;
+      const pitch = reduce.matches ? 0.2 : 0.2 - ny * 0.25;
+      const cells = renderFrame(graph, { t, yaw, pitch, cols: COLS, rows: ROWS, focus: reduce.matches ? null : focus });
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = color;
+      for (const c of cells) {
+        ctx.globalAlpha = 0.15 + 0.85 * c.level;
+        ctx.fillText(c.ch, c.col * cellW + cellW / 2, c.row * cellH + cellH / 2);
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const loop = (now: number) => {
+      raf = 0;
+      if (!visible || document.hidden || reduce.matches) return;
+      if (now - last >= 33) { last = now; draw(now); }
+      raf = requestAnimationFrame(loop);
+    };
+    const start = () => { if (!raf && visible && !document.hidden && !reduce.matches) raf = requestAnimationFrame(loop); };
+    const stop = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
+      const r = canvas.getBoundingClientRect();
+      focus = { col: ((e.clientX - r.left) / r.width) * COLS, row: ((e.clientY - r.top) / r.height) * ROWS };
+    };
+    const onLeave = () => { focus = null; };
+    const onVisibility = () => (document.hidden ? stop() : start());
+    const onMotion = () => { if (reduce.matches) { stop(); draw(performance.now()); } else start(); };
+
+    const io = new IntersectionObserver((entries) => {
+      visible = entries.some((e) => e.isIntersecting);
+      if (visible) start(); else stop();
+    });
+    const themeWatch = new MutationObserver(() => {
+      color = getComputedStyle(root).getPropertyValue('--color-num').trim() || color;
+      if (reduce.matches) draw(performance.now());
+    });
+    const ro = new ResizeObserver(() => { resize(); draw(performance.now()); });
+
+    resize();
+    draw(performance.now());
+    io.observe(canvas);
+    ro.observe(canvas);
+    themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    window.addEventListener('pointermove', onMove, { passive: true });
+    document.addEventListener('pointerleave', onLeave);
+    document.addEventListener('visibilitychange', onVisibility);
+    reduce.addEventListener('change', onMotion);
+    start();
+
+    return () => {
+      stop();
+      io.disconnect(); ro.disconnect(); themeWatch.disconnect();
+      window.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerleave', onLeave);
+      document.removeEventListener('visibilitychange', onVisibility);
+      reduce.removeEventListener('change', onMotion);
+    };
+  }, []);
+
+  return (
+    <div className="ascii" aria-hidden="true">
+      <pre className="ascii-fallback">{staticText}</pre>
+      <canvas ref={ref} className="ascii-canvas" />
+    </div>
+  );
+}
+```
+
+- [ ] **Step 4: `src/components/Orbits.astro`**
+
+```astro
+---
+const rings = [1, 2, 3, 4];
+---
+<div class="orbits" aria-hidden="true">
+  <div class="orbit-plane">
+    {rings.map((n) => <span class={`ring r${n}`}><i class="planet"></i></span>)}
+  </div>
+</div>
+```
+
+- [ ] **Step 5: Append to `vapor.css`**
+
+```css
+/* ---- hero scene: orbits and the ASCII graph ---- */
+.hero-scene {
+  position: relative; width: 100%; height: clamp(300px, 52vw, 520px); overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 55%, transparent 100%);
+}
+.ascii { position: absolute; left: 50%; top: 50%; width: min(620px, 86%); aspect-ratio: 576 / 420; transform: translate(-50%, -50%); }
+.ascii-canvas { display: none; width: 100%; height: 100%; }
+.js .ascii-canvas { display: block; }
+.ascii-fallback { display: block; margin: 0; font: 400 clamp(5px, 1.2vw, 9px)/1 var(--font-mono); color: var(--color-num); text-align: center; overflow: hidden; white-space: pre; }
+.js .ascii-fallback { display: none; }
+
+.orbits { position: absolute; inset: 0; perspective: 900px; perspective-origin: 50% 40%; pointer-events: none; }
+.orbit-plane {
+  position: absolute; inset: 0; transform-style: preserve-3d;
+  transform: rotateX(calc(66deg + var(--ny, 0) * 4deg)) rotateZ(calc(var(--nx, 0) * 6deg));
+  transition: transform .25s ease-out;
+}
+.ring {
+  position: absolute; left: 50%; top: 50%; aspect-ratio: 1; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-num) 38%, transparent);
+  transform: translate(-50%, -50%); animation: orbit var(--dur) linear infinite; will-change: transform;
+}
+.r1 { width: 40%; --dur: 46s; } .r2 { width: 62%; --dur: 78s; } .r3 { width: 84%; --dur: 112s; } .r4 { width: 108%; --dur: 150s; }
+.planet { position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 10px 2px var(--color-glow); }
+.r2 .planet { width: 6px; height: 6px; top: -3px; margin-left: -3px; }
+.r4 .planet { width: 10px; height: 10px; top: -5px; margin-left: -5px; }
+@keyframes orbit { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ring { animation: none; will-change: auto; }
+  .orbit-plane { transition: none; transform: rotateX(66deg); }
+}
+```
+
+If the file already ends with a reduced-motion block from Task 4, keep both blocks (CSS allows several); the test reads the last one.
+
+- [ ] **Step 6: Run `npx vitest run src/components/ascii src/styles` → PASS; `npm test` → green. Commit** `feat: ASCII agent graph island and orbit rings`.
+
+---
+
+### Task 7: Hero, nav with scroll-spy, suggestion chips
+
+**Files:**
+- Create: `src/lib/scrollspy.ts`, `src/lib/scrollspy.test.ts`, `src/scripts/nav-spy.ts`, `src/components/terminal/suggestions.ts`, `src/components/terminal/suggestions.test.ts`
+- Modify: `src/components/Hero.astro`, `src/components/TopBar.astro`, `src/pages/index.astro`, `src/components/terminal/IntroTerminal.tsx`, `src/components/terminal/IntroTerminal.test.tsx`, `src/styles/vapor.css` (append nav, hero, chat sections), `src/styles/global.css` (remove the old hero rules)
+
+**Interfaces:**
+- Produces `activeSection(tops: { id: string; top: number }[], offset: number): string` (tops in document order; the last section whose top is at or above `offset`; the first id when none).
+- Produces `SUGGESTIONS: string[]` (6 questions), `pickSuggestions(page: number, size?: number): string[]` (a rotating window, wraps, default 3).
+- Consumes `useTerminal().submit(raw?)`, `AsciiGraph` (Task 6), `Orbits` (Task 6).
+
+- [ ] **Step 1: Failing tests.** `scrollspy.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { activeSection } from './scrollspy';
+
+const tops = (...t: number[]) => ['top', 'experience', 'projects', 'about'].map((id, i) => ({ id, top: t[i] }));
+
+describe('activeSection', () => {
+  it('is the first section at the very top of the page', () => {
+    expect(activeSection(tops(0, 700, 1500, 2300), 120)).toBe('top');
+  });
+  it('switches when a section crosses the offset', () => {
+    expect(activeSection(tops(-600, 100, 900, 1700), 120)).toBe('experience');
+    expect(activeSection(tops(-1400, -700, 100, 900), 120)).toBe('projects');
+  });
+  it('stays on the last section past the end', () => {
+    expect(activeSection(tops(-3000, -2300, -1500, -200), 120)).toBe('about');
+  });
+  it('falls back to the first id when nothing has crossed yet', () => {
+    expect(activeSection(tops(300, 900, 1700, 2500), 120)).toBe('top');
+  });
+});
+```
+
+`suggestions.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import fixture from '../../agent/fixtures/snapshot.json';
+import { runAgent } from '../../agent/run';
+import type { Snapshot } from '../../agent/types';
+import { SUGGESTIONS, pickSuggestions } from './suggestions';
+
+const snapshot = fixture as unknown as Snapshot;
+
+describe('suggestions', () => {
+  it('has six unique questions', () => {
+    expect(SUGGESTIONS.length).toBe(6);
+    expect(new Set(SUGGESTIONS).size).toBe(6);
+  });
+  it('every question gets a grounded answer, never a refusal', () => {
+    for (const q of SUGGESTIONS) {
+      const result = runAgent(snapshot, q);
+      expect(result.refused, q).toBe(false);
+      expect(result.answer, q).not.toBeNull();
+    }
+  });
+  it('rotates a window of three and wraps', () => {
+    expect(pickSuggestions(0)).toEqual(SUGGESTIONS.slice(0, 3));
+    expect(pickSuggestions(1)).toEqual(SUGGESTIONS.slice(3, 6));
+    expect(pickSuggestions(2)).toEqual(SUGGESTIONS.slice(0, 3));
+    expect(pickSuggestions(1, 4)).toEqual([SUGGESTIONS[4], SUGGESTIONS[5], SUGGESTIONS[0], SUGGESTIONS[1]]);
+  });
+});
+```
+
+Append to `IntroTerminal.test.tsx`:
+
+```tsx
+describe('IntroTerminal suggestions', () => {
+  it('renders three suggestion chips and a refresh button as buttons', () => {
+    const chips = [...html.matchAll(/<button[^>]*class="intro-chip"[^>]*>([^<]*(?:<!-- -->[^<]*)*)<\/button>/g)];
+    expect(chips.length).toBe(3);
+    expect(html).toContain('aria-label="Show other questions"');
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL.**
+
+- [ ] **Step 3: Implement the pure modules.**
+
+`src/lib/scrollspy.ts`:
+
+```ts
+/** The section the reader is in: the last one whose top has reached `offset`. `tops` is in document order. */
+export function activeSection(tops: { id: string; top: number }[], offset: number): string {
+  let active = tops[0]?.id ?? '';
+  for (const s of tops) if (s.top <= offset) active = s.id;
+  return active;
+}
+```
+
+`src/components/terminal/suggestions.ts`:
+
+```ts
+// Each of these must be answered from the page's own content: suggestions.test.ts runs them
+// through the agent against the fixture snapshot and fails on a refusal.
+export const SUGGESTIONS = [
+  'What did you do at Tesla?',
+  'What projects have you built?',
+  'What are your skills?',
+  'Where did you work?',
+  'Can I see your resume?',
+  'Tell me about Hanna Center',
+];
+
+export function pickSuggestions(page: number, size = 3): string[] {
+  const n = SUGGESTIONS.length;
+  const start = ((page * size) % n + n) % n;
+  return Array.from({ length: size }, (_, i) => SUGGESTIONS[(start + i) % n]);
+}
+```
+
+- [ ] **Step 4: Run the pure tests.** `npx vitest run src/lib/scrollspy.test.ts src/components/terminal/suggestions.test.ts`. If a question is refused by the agent, replace that one question with a phrasing from `src/agent/golden.json` that is answered (e.g. `what did you do at Tesla`), keep the list at six, and note it in the ledger. Do not loosen the test.
+
+- [ ] **Step 5: Replace `IntroTerminal.tsx`** (keeps the existing prompt, log and topics; adds chips and the arrow):
+
+```tsx
+import { useEffect, useRef, useState } from 'react';
+import { scrollToSection } from './scrollTo';
+import { useTerminal } from './useTerminal';
+import { pickSuggestions } from './suggestions';
+
+// Real links: they work without JavaScript, and the prompt routes to the same places.
+const TOPICS = [
+  { label: 'Experience', href: '#experience' },
+  { label: 'Projects', href: '#projects' },
+  { label: 'About', href: '#about' },
+  { label: 'Contact', href: '#contact' },
+];
+
+/** The chat panel on the home page's first screen: type a route or a question, or pick a suggestion. */
+export default function IntroTerminal() {
+  const term = useTerminal({
+    autoHelp: false,
+    onNavigate: (target) => scrollToSection(target.href),
+    thinkMs: 700,
+    quietRefusals: true,
+  });
+  const out = useRef<HTMLDivElement | null>(null);
+  const [page, setPage] = useState(0);
+  const chips = pickSuggestions(page);
+
+  useEffect(() => {
+    const element = out.current;
+    if (element) element.scrollTop = element.scrollHeight;
+  }, [term.lines]);
+
+  return (
+    <div className="intro-term">
+      <div className="intro-out" role="log" aria-live="polite" ref={out} onClick={term.flush}>
+        {term.lines.map((line) => (
+          <div
+            key={line.id}
+            className={`intro-line-out intro-${line.kind}${line.status ? ` intro-${line.status}` : ''}${line.refused ? ' intro-refused' : ''}`}
+          >
+            {line.kind === 'input' ? <span className="intro-mark">&gt;</span> : null}
+            {line.kind === 'answer' ? <span className="intro-arrow" aria-hidden="true">↳</span> : null}
+            <span className="intro-text">{line.text}</span>
+            {line.sources && line.sources.length > 0 ? (
+              <span className="intro-sources">
+                {line.sources.map((source) => (
+                  <a key={`${source.title}-${source.url}`} href={source.url}>
+                    {source.title}
+                  </a>
+                ))}
+              </span>
+            ) : null}
+          </div>
+        ))}
+        {term.busy ? <div className="intro-line-out intro-info intro-think">{term.spinner} thinking</div> : null}
+      </div>
+      <div className="intro-suggest" role="group" aria-label="Suggested questions">
+        <button type="button" className="intro-refresh" aria-label="Show other questions" onClick={() => setPage((p) => p + 1)}>
+          ↻
+        </button>
+        {chips.map((question) => (
+          <button key={question} type="button" className="intro-chip" disabled={term.busy} onClick={() => void term.submit(question)}>
+            <span aria-hidden="true">↳ </span>{question}
+          </button>
+        ))}
+      </div>
+      <form
+        className="intro-prompt"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void term.submit();
+        }}
+      >
+        <label className="intro-caret" htmlFor="intro-input" aria-hidden="true">
+          &gt;
+        </label>
+        <input
+          id="intro-input"
+          className="intro-input"
+          aria-label="Ask anything about Andrian — a question or a route"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          placeholder="Ask anything about Andrian…"
+          value={term.value}
+          onChange={(event) => term.change(event.target.value)}
+          onKeyDown={term.keyDown}
+        />
+      </form>
+      <nav className="topics" aria-label="Jump to">
+        {TOPICS.map((topic) => (
+          <a key={topic.href} href={topic.href}>
+            {topic.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+  );
+}
+```
+
+The existing test `renders the four topic links` reads anchors only, so the nav's new `aria-label` does not affect it; the existing label test reads the input and stays valid. Fix the new chip test's regex if React's static markup differs (inspect `html`); the assertion that matters is "three buttons with class `intro-chip`".
+
+- [ ] **Step 6: Replace `Hero.astro`**
+
+```astro
+---
+import IntroTerminal from './terminal/IntroTerminal.tsx';
+import AsciiGraph from './ascii/AsciiGraph.tsx';
+import Orbits from './Orbits.astro';
+---
+<header class="hero" id="top">
+  <h1 class="vtitle" data-text="Andrian Than">Andrian Than</h1>
+  <p class="vtag">AI engineer · building agents that ship</p>
+  <div class="hero-scene">
+    <Orbits />
+    <AsciiGraph client:visible />
+  </div>
+  <div class="chat">
+    <p class="chat-hello">hey there! i build AI agents people can trust. Ask me anything about my work.</p>
+    <IntroTerminal client:idle />
+  </div>
+  <a class="full" href="/terminal">Open the full terminal →</a>
+</header>
+```
+
+- [ ] **Step 7: Replace `TopBar.astro`**
+
+```astro
+---
+import ThemeToggle from './ThemeToggle.tsx';
+import { profile } from '../data/profile';
+---
+<header class="vbar">
+  <div class="vbar-in">
+    <a class="vbrand" href="#top">andrian than</a>
+    <nav class="vnav" aria-label="Sections">
+      <a href="#top" data-spy="top">Home</a>
+      <a href="#experience" data-spy="experience">Experience</a>
+      <a href="#projects" data-spy="projects">Projects</a>
+      <a href="#about" data-spy="about">About</a>
+      <a href={profile.contact.resume}>Resume</a>
+    </nav>
+    <span class="vbar-right"><ThemeToggle client:load /></span>
+  </div>
+</header>
+```
+
+- [ ] **Step 8: `src/scripts/nav-spy.ts`**
+
+```ts
+import { activeSection } from '../lib/scrollspy';
+
+const links = [...document.querySelectorAll<HTMLAnchorElement>('.vnav a[data-spy]')];
+const targets = links.map((a) => document.getElementById(a.dataset.spy ?? ''));
+
+if (links.length && targets.every((t): t is HTMLElement => t !== null)) {
+  let raf = 0;
+  const update = () => {
+    raf = 0;
+    const id = activeSection(targets.map((el) => ({ id: el.id, top: el.getBoundingClientRect().top })), 120);
+    for (const a of links) {
+      if (a.dataset.spy === id) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    }
+  };
+  const request = () => { if (!raf) raf = requestAnimationFrame(update); };
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request);
+  update();
+}
+```
+
+- [ ] **Step 9: `index.astro`:** move `<TopBar />` out of `.inner`, and load the script.
+
+```astro
+  <TopBar />
+  <div class="inner">
+    <main>
+    <Hero />
+    <StatStrip />
+    <Timeline />
+    <ProjectCards />
+    <Skills />
+    <About />
+    </main>
+    <Footer />
+  </div>
+  <script>import '../scripts/nav-spy.ts';</script>
+```
+
+- [ ] **Step 10: Append the nav, hero and chat CSS to `vapor.css`**
+
+```css
+/* ---- nav ---- */
+.vbar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--color-bg) 62%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.vbar-in { max-width: var(--measure); margin: 0 auto; padding: 14px var(--space-md); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--space-md); }
+.vbrand { font: 400 13px var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-fg); white-space: nowrap; }
+.vbrand:hover { text-decoration: none; color: var(--color-accent); }
+.vnav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; }
+.vnav a { font: 400 12px var(--font-pixel); letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; transition: color .15s, border-color .15s, box-shadow .15s; }
+.vnav a:hover { color: var(--color-fg); text-decoration: none; }
+.vnav a[aria-current="true"] { color: var(--color-fg); border-color: var(--color-num); box-shadow: 0 0 14px -4px var(--color-glow); }
+.vbar-right { justify-self: end; }
+#theme-toggle { font-family: var(--font-pixel); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+@media (max-width: 639px) {
+  .vbar-in { grid-template-columns: 1fr auto; padding: 10px var(--space-md); row-gap: 6px; }
+  .vnav { grid-column: 1 / -1; grid-row: 2; gap: 4px 2px; }
+  .vnav a { padding: 6px 8px; letter-spacing: .08em; font-size: 11px; }
+}
+
+/* ---- hero ---- */
+.hero { padding: clamp(20px, 5svh, 56px) 0 var(--space-xl); text-align: center; display: flex; flex-direction: column; align-items: center; }
+.vtitle { position: relative; margin: 0; font: 900 clamp(32px, 8.6vw, 84px)/1.02 var(--font-title); letter-spacing: .02em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; color: var(--title-fill); text-shadow: 3px 3px 0 var(--title-shadow), 0 0 28px var(--title-glow), 0 0 64px var(--color-glow); }
+.vtitle::after { content: attr(data-text); content: attr(data-text) / ""; position: absolute; inset: 0; color: transparent; text-shadow: none; background: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in srgb, var(--color-bg) 62%, transparent) 3px 4px); -webkit-background-clip: text; background-clip: text; }
+.vtag { margin: 14px 0 0; font: 400 clamp(11px, 2.4vw, 16px)/1.5 var(--font-pixel); letter-spacing: .14em; text-transform: lowercase; color: var(--color-accent); }
+
+/* ---- chat panel ---- */
+.chat { width: min(680px, 100%); margin-top: calc(var(--space-md) * -1); text-align: left; background: var(--color-glass); border: 1px solid var(--color-rule); border-radius: 14px; padding: 18px 18px 14px; box-shadow: 0 0 40px -18px var(--color-glow), 0 24px 60px -30px var(--color-glow); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); }
+.chat:focus-within { border-color: var(--color-num); box-shadow: 0 0 0 1px var(--color-num), 0 0 34px -8px var(--color-glow); }
+.intro-out { font: 400 14px/1.6 var(--font-mono); }
+.intro-input-line, .intro-line-out.intro-input { color: var(--color-fg); }
+.intro-line-out.intro-answer { font: 400 16px/1.6 var(--font-sans); padding-left: 1.6em; text-indent: -1.6em; }
+.intro-arrow { color: var(--color-num); margin-right: .6em; }
+.intro-suggest { display: none; flex-wrap: wrap; gap: 8px; margin: var(--space-md) 0 12px; align-items: stretch; }
+.js .intro-suggest { display: flex; }
+.intro-chip, .intro-refresh { font: 400 12px/1.4 var(--font-mono); color: var(--color-fg); background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+.intro-chip:hover:not(:disabled), .intro-refresh:hover { border-color: var(--color-num); }
+.intro-chip:disabled { opacity: .55; cursor: default; }
+.intro-refresh { color: var(--color-muted); padding: 8px 10px; }
+.topics { margin: 12px 0 0; gap: 6px 14px; }
+.topics a { font: 400 11px var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); border: 0; padding: 4px 0; background: none; }
+.topics a:hover { color: var(--color-fg); background: none; text-decoration: underline; text-underline-offset: 4px; }
+.intro-prompt { background: var(--color-bg); }
+.full { font: 400 11px var(--font-pixel); letter-spacing: .14em; text-transform: uppercase; }
+@media (max-width: 480px) {
+  .hero-scene { height: clamp(220px, 62vw, 300px); }
+  .intro-chip { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vnav a, .intro-chip, .intro-refresh { transition: none; }
+}
+```
+
+- [ ] **Step 11: Remove the old hero rules from `global.css`.** Run `grep -n "avatar\|h1 \.w\|h1 \.grad\|^\.status\|@keyframes bi\|\.topics\|\.chat-hello" src/styles/global.css`. Delete only: the `.avatar` rule; both `h1 .w` rules; the `h1 .grad` rule and the comment above it; `@keyframes bi`; `.status`; the `.avatar`, `h1`, `.status` lines inside the `@media (max-width: 480px)` block; and `h1 .w { animation: none; ... }` and `h1 .grad` from the reduced-motion block (keep `.stat b { animation: none; }`). Keep the base `h1` rule (the work pages' `.ph h1` builds on it), `@keyframes grad-drift` (used by `.stat b`), the `.topics`/`.chat`/`.intro-*` base rules (vapor.css overrides them), and `.bar` rules (the work pages' header). Then add one assertion to `vapor.test.ts`:
+
+```ts
+it('no longer carries the old hero rules', () => {
+  expect(global).not.toContain('.avatar');
+  expect(global).not.toContain('h1 .w');
+  expect(global).not.toContain('@keyframes bi');
+});
+```
+
+- [ ] **Step 12: Verify.** `npm test` → green (if a test pinned old hero markup, update that expectation, do not delete it). `npm run build` → `check-build: ok`. `npm run typecheck 2>&1 | tail -3` → not above the baseline.
+
+- [ ] **Step 13: Commit** `feat: vapor hero, scroll-spy nav and suggestion chips`.
+
+---
+
+### Task 8: Whole-page restyle
+
+**Files:**
+- Modify: `src/styles/vapor.css` (append), `src/styles/global.css` (heading and stat rules only), `src/styles/vapor.test.ts`
+- Audit: `src/styles/projects.css`, `src/components/**/*.css`
+
+**Interfaces:** Consumes the tokens and fonts. No markup changes.
+
+- [ ] **Step 1: Failing test** (append to `vapor.test.ts`):
+
+```ts
+describe('vapor typography', () => {
+  it('section headings use the pixel face and no gradient clip', () => {
+    const m = vapor.match(/\.sh h2\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(m).toContain('var(--font-pixel)');
+    expect(m).not.toContain('background-clip: text');
+  });
+  it('never sets the pixel face below 11px', () => {
+    for (const m of vapor.matchAll(/font:\s*\d+\s+(\d+)px[^;]*var\(--font-pixel\)/g)) expect(Number(m[1])).toBeGreaterThanOrEqual(11);
+  });
+  it('keeps paragraphs on the readable sans', () => {
+    expect(vapor).not.toMatch(/(^|\n)\s*(p|\.prose)\s*\{[^}]*var\(--font-pixel\)/);
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL** (no `.sh h2` rule yet).
+
+- [ ] **Step 3: Append to `vapor.css`**
+
+```css
+/* ---- headings, labels, stats ---- */
+.sh h2 { font: 400 clamp(20px, 3.4vw, 32px)/1.2 var(--font-pixel); letter-spacing: .08em; text-transform: uppercase; color: var(--color-fg); background: none; -webkit-background-clip: border-box; background-clip: border-box; text-shadow: 0 0 18px var(--title-glow); transition: none; }
+.sh h2:hover { background-position: 0 50%; }
+.eyebrow { font: 400 11px var(--font-pixel); letter-spacing: .2em; color: var(--color-accent); }
+h2 { font: 400 12px var(--font-pixel); letter-spacing: .14em; color: var(--color-accent); }
+.kicker { font: 400 11px var(--font-mono); letter-spacing: .14em; color: var(--color-accent); }
+.stat b { font-family: var(--font-title); font-weight: 800; letter-spacing: -0.01em; }
+.stat span { color: var(--color-muted); }
+
+/* ---- surfaces ---- */
+.chat, .dec, .node, .meta, .prose pre, .qa { box-shadow: 0 0 28px -16px var(--color-glow); }
+.dec, .node { background: var(--color-card); border-color: var(--color-rule); }
+.job.now::before { box-shadow: 0 0 0 5px var(--color-glow), 0 0 14px var(--color-glow); }
+.shot { background: var(--color-chip); }
+footer { border-top-color: var(--color-rule); }
+.job:hover h3, .prow:hover b { background: none; color: var(--color-accent); -webkit-background-clip: border-box; background-clip: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sh h2 { text-shadow: none; }
+}
+```
+
+- [ ] **Step 4: Audit hard-coded colors**
+
+```bash
+grep -rn -E "#[0-9a-fA-F]{3,8}\b|rgb\(|rgba\(" src/styles/projects.css src/components --include=*.css | grep -v -E "var\(--" | head -40
+```
+
+For each hit that paints a surface or text the vapor theme shows (not decorative art such as `--qa-sky`, and not semantic status colors like `#3fae6a` / `#e0605a`): swap to a token. Record every swap and every deliberate keep in the ledger. Check the `.qa` window chrome and the work-page rail in a browser in Task 9.
+
+- [ ] **Step 5: Run `npm test`, `npm run build` → green. Commit** `feat: carry the vapor treatment through headings, labels and surfaces`.
+
+---
+
+### Task 9: Verification pass (controller, in a browser)
+
+**Files:** none changed unless a defect is found; each fix gets its own commit.
+
+- [ ] **Step 1: Full suite and build**
+
+```bash
+npm test 2>&1 | tail -6
+npm run build 2>&1 | tail -3
+npm run typecheck 2>&1 | tail -4
+```
+
+Expected: tests green (baseline plus the new files), `check-build: ok`, typecheck no worse than 7.
+
+- [ ] **Step 2: Serve and look.** `npm run preview -- --port 4323` (the Tesla dev server owns 4322). Open `/` in a browser and take screenshots at 1440, 768, 390 and 320 px, in vapor and in light. Compare the hero against the reference screenshot Andrian supplied: title weight and glow, tagline, spacing, chat panel. If the title or pixel font is visibly off, swap to the alternates named in the plan's rulings (one install, one `Base.astro` import, one token), rebuild, and re-compare. Record the final font picks in the ledger and in the spec's open items.
+
+- [ ] **Step 3: Interaction checks.** Cursor moves → stars and rings shift, graph leans. Scroll → nav pill follows (Home, Experience, Projects, About). Click a chip → question is answered, answer shows the arrow. Refresh button rotates the chips. Typing a route (`/projects`) scrolls. Theme toggle flips vapor ↔ light and the graph recolors. Reload keeps the saved theme.
+
+- [ ] **Step 4: Reduced motion and no-JS.** Emulate `prefers-reduced-motion: reduce`: rings still, stars still, graph a single frame. Disable JavaScript: the `<pre>` graph shows, the route links work, no empty chip row.
+
+- [ ] **Step 5: Layout.** No horizontal scroll at 320, 375, 414, 768 on `/`, `/work/tesla`, `/work/hanna`, `/work/bluedome`. The Tesla demo windows and the rail read correctly on the vapor background and in light. Keyboard: tab order is nav, toggle, chips, input, topic links; focus rings visible on every control.
+
+- [ ] **Step 6: Lighthouse.** Run Lighthouse mobile on `/` and `/work/tesla` (Chrome DevTools, or `npx lighthouse http://localhost:4323/ --form-factor=mobile --only-categories=performance,accessibility`). Target 95 or higher. If performance is under, profile in this order: backdrop layer count, orbit rings (`will-change`), graph frame rate, font preload. Do not report a score that was not measured.
+
+- [ ] **Step 7: Report.** List what was checked and what was not. Do not merge or push. Leave the branch and worktree in place for Andrian's decision.
