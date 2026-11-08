@@ -43,8 +43,15 @@
 .adm .adm-grid th { font: 600 11px var(--font-mono); color: var(--color-muted); }
 .adm .adm-grid th.blank { min-width: 92px; }
 .adm .adm-grid td.cell { text-align: center; }
-.adm .adm-grid input[type='checkbox'] { width: 16px; height: 16px; margin: 0; accent-color: var(--color-accent); cursor: pointer; }
-.adm .adm-grid input[type='checkbox']:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+/* Each checkbox sits in a padded label so the touch target is 44px, not the
+   22px box of the input itself. The label is tied to the input by id. */
+.adm .adm-grant {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 44px; min-width: 44px; padding: 0 10px; box-sizing: border-box; cursor: pointer;
+}
+.adm .adm-grant input { width: 22px; height: 22px; flex: none; margin: 0; accent-color: var(--color-accent); cursor: pointer; }
+.adm .adm-grant input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+.adm .adm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* The canOpen check line. */
 .adm .adm-check {

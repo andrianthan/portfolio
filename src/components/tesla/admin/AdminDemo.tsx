@@ -3,8 +3,8 @@ import './admin.css';
 import { useState } from 'react';
 import { MOCK_USERS } from '../fixtures';
 import {
-  MOCK_NOW, canOpen, grant, mockRequests, revoke, usageFor,
-  type AuditEntry, type Grants,
+  MOCK_NOW, MOCK_TABS, USAGE_WINDOW_DAYS, VISIT_GAP_MIN, canOpen, grant, mockRequests,
+  revoke, usageFor, type AuditEntry, type Grants,
 } from './admin';
 
 // A mock of the admin surface: per-user usage read from the request log,
@@ -21,12 +21,10 @@ const VIEWS = [
 
 type View = (typeof VIEWS)[number]['id'];
 
-/** The tabs an admin can grant, matching the tabs the request log names. */
-const TABS = ['overview', 'part-summary', 'ask', 'forecast', 'campaigns', 'slides', 'admin'] as const;
-
-/** The user the check line asks about. */
+/** The tab the check line asks about, and the name it shows. */
 const CHECK_USER = 'u4';
 const CHECK_TAB = 'admin';
+const CHECK_TAB_LABEL = 'Admin';
 const CHECK_NAME = MOCK_USERS.find((u) => u.id === CHECK_USER)?.name ?? CHECK_USER;
 
 const REQUESTS = mockRequests();
@@ -106,8 +104,9 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
               </table>
             </div>
             <p className="adm-cap">
-              Active days and visits are counted over the last 30 days of the mock request log.
-              Visits break when a gap of 30 minutes or more separates two requests.
+              Active days and visits are counted over the last {USAGE_WINDOW_DAYS} days of the
+              mock request log. Visits break when a gap of {VISIT_GAP_MIN} minutes or more
+              separates two requests.
             </p>
           </section>
         )}
@@ -130,23 +129,27 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
                 <thead>
                   <tr>
                     <th className="blank">User</th>
-                    {TABS.map((t) => <th key={t}>{t}</th>)}
+                    {MOCK_TABS.map((t) => <th key={t}>{t}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {MOCK_USERS.map((u) => (
                     <tr key={u.id}>
                       <th scope="row">{u.name}</th>
-                      {TABS.map((t) => {
+                      {MOCK_TABS.map((t) => {
                         const on = isGranted(u.id, t);
+                        const id = `adm-grant-${u.id}-${t}`;
                         return (
                           <td key={t} className="cell">
-                            <input
-                              type="checkbox"
-                              checked={on}
-                              aria-label={`${u.name} ${t}`}
-                              onChange={() => toggleGrant(u.id, t, on)}
-                            />
+                            <label className="adm-grant" htmlFor={id}>
+                              <input
+                                id={id}
+                                type="checkbox"
+                                checked={on}
+                                onChange={() => toggleGrant(u.id, t, on)}
+                              />
+                              <span className="adm-sr">{u.name} {t}</span>
+                            </label>
                           </td>
                         );
                       })}
@@ -156,7 +159,7 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
               </table>
             </div>
             <p className="adm-check" role="status" aria-live="polite">
-              Can {CHECK_NAME} open {CHECK_TAB}?{' '}
+              Can {CHECK_NAME} open {CHECK_TAB_LABEL}?{' '}
               {check ? <span className="yes">Yes</span> : <span className="no">No</span>}
             </p>
             <p className="adm-cap">
@@ -173,8 +176,8 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
               <p className="adm-empty">No changes yet. Grant or revoke a tab in Access to record one.</p>
             ) : (
               <ul className="adm-log">
-                {log.map((e, i) => (
-                  <li key={`${e.action}-${e.target}-${i}`}>
+                {log.map((e) => (
+                  <li key={`${e.action}-${e.target}`}>
                     <span className="adm-who">{e.who}</span>
                     <span>{e.action}</span>
                     <span className="adm-target">{e.target}</span>

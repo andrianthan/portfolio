@@ -30,6 +30,12 @@ export const VISIT_GAP_MIN = 30;
 
 const MIN_PER_DAY = 1440;
 
+/** The window the usage figures cover: active days and 30-day visits. */
+export const USAGE_WINDOW_DAYS = 30;
+
+/** The shorter window the 7-day visits cover. */
+export const VISIT_WINDOW_DAYS = 7;
+
 /** The mock clock: a 40-day epoch, so "now" is the end of a 30-day mock span. */
 export const MOCK_NOW = 40 * MIN_PER_DAY;
 
@@ -45,7 +51,7 @@ export function usageFor(userId: string, reqs: readonly Req[], now: number): Usa
     .slice()
     .sort((a, b) => a.ts - b.ts);
 
-  const dayStart = now - 30 * MIN_PER_DAY;
+  const dayStart = now - USAGE_WINDOW_DAYS * MIN_PER_DAY;
   const days = new Set<number>();
   for (const r of mine) {
     if (r.ts > dayStart && r.ts <= now) days.add(Math.floor(r.ts / MIN_PER_DAY));
@@ -56,8 +62,8 @@ export function usageFor(userId: string, reqs: readonly Req[], now: number): Usa
   const visits = burstStarts(mine);
 
   const within = (days: number) => (ts: number) => ts > now - days * MIN_PER_DAY && ts <= now;
-  const in7 = within(7);
-  const in30 = within(30);
+  const in7 = within(VISIT_WINDOW_DAYS);
+  const in30 = within(USAGE_WINDOW_DAYS);
 
   const counts = new Map<string, number>();
   for (const r of mine) counts.set(r.tab, (counts.get(r.tab) ?? 0) + 1);
@@ -96,7 +102,8 @@ function burstStarts(reqs: readonly Req[]): number[] {
   return starts;
 }
 
-const MOCK_TABS: readonly string[] = ['overview', 'part-summary', 'ask', 'forecast', 'campaigns', 'slides', 'admin'];
+/** The tabs the request log names, and the tabs an admin can grant. */
+export const MOCK_TABS: readonly string[] = ['overview', 'part-summary', 'ask', 'forecast', 'campaigns', 'slides', 'admin'];
 
 /**
  * A deterministic mock request log: roughly 30 requests across the mock users
@@ -113,7 +120,7 @@ export function mockRequests(): Req[] {
   const out: Req[] = [];
   for (let i = 0; i < 30; i++) {
     const user = MOCK_USERS[i % MOCK_USERS.length];
-    const day = Math.abs(daysBack[i]) % 30;
+    const day = Math.abs(daysBack[i]) % USAGE_WINDOW_DAYS;
     const ts = MOCK_NOW - day * MIN_PER_DAY - (Math.abs(minutePick[i]) % 600);
     const tab = MOCK_TABS[Math.abs(tabPick[i]) % MOCK_TABS.length];
     const ask = tab === 'ask';

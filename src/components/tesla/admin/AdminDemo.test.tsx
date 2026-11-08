@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import AdminDemo from './AdminDemo';
+import { MOCK_TABS, USAGE_WINDOW_DAYS, VISIT_GAP_MIN } from './admin';
+import { MOCK_USERS } from '../fixtures';
 
 const usage = renderToStaticMarkup(<AdminDemo />);
 const access = renderToStaticMarkup(<AdminDemo view="access" />);
@@ -21,7 +23,7 @@ describe('AdminDemo', () => {
       expect(usage).toContain(`>${label}</button>`);
     }
     expect(count('aria-pressed="true"')).toBe(1);
-    expect(usage).toContain('aria-pressed="true" class="on">Usage</button>');
+    expect(usage).toMatch(/<button[^>]*aria-pressed="true"[^>]*>Usage<\/button>/);
   });
 
   it('shows a usage row per mock user', () => {
@@ -46,6 +48,11 @@ describe('AdminDemo', () => {
     expect(usage).toContain('role="region" aria-label="Per-user usage table, scrolls horizontally"');
     expect(usage).toContain('tabindex="0"');
   });
+
+  it('states the window and the visit gap from the same constants the table uses', () => {
+    expect(usage).toContain(`over the last ${USAGE_WINDOW_DAYS} days`);
+    expect(usage).toContain(`gap of ${VISIT_GAP_MIN} minutes or more`);
+  });
 });
 
 describe('AdminDemo access view', () => {
@@ -55,13 +62,13 @@ describe('AdminDemo access view', () => {
   });
 
   it('starts the gate off', () => {
-    expect(access).toContain('aria-pressed="false" class="">Default-deny gate</button>');
+    expect(access).toMatch(/<button[^>]*aria-pressed="false"[^>]*>Default-deny gate<\/button>/);
   });
 
   it('asks the check line and answers it', () => {
-    expect(access).toContain('Can User 4 open admin?');
+    expect(access).toContain('Can User 4 open Admin?');
     // The gate is off and User 4 has no entry, so the legacy rules allow it.
-    expect(access).toMatch(/Can User 4 open admin\?.*?class="yes">Yes</s);
+    expect(access).toMatch(/Can User 4 open Admin\?.*?class="yes">Yes</s);
   });
 
   it('offers a checkbox per user and tab', () => {
@@ -69,9 +76,22 @@ describe('AdminDemo access view', () => {
     expect(access).toContain('role="region" aria-label="User by tab access grid, scrolls horizontally"');
   });
 
-  it('labels every checkbox with its user and tab', () => {
-    expect(access).toContain('aria-label="User 4 admin"');
-    expect(access).toContain('aria-label="User 1 overview"');
+  it('builds the grid columns from the one tab list the request log uses', () => {
+    for (const tab of MOCK_TABS) {
+      expect(access).toContain(`<th>${tab}</th>`);
+      expect(access).toContain(`id="adm-grant-u1-${tab}"`);
+    }
+    // One column per tab, plus one row header per user.
+    expect(count('<th>', access)).toBe(MOCK_TABS.length);
+    expect(count('<th scope="row">', access)).toBe(MOCK_USERS.length);
+  });
+
+  it('gives every checkbox a labelled 44px target', () => {
+    // The label is tied to the input by id, and the text inside names it.
+    expect(access).toContain('<label class="adm-grant" for="adm-grant-u4-admin">');
+    expect(access).toContain('id="adm-grant-u4-admin"');
+    expect(access).toContain('id="adm-grant-u1-overview"');
+    expect(access).toContain('class="adm-sr">User 4 admin</span>');
   });
 
   it('says plainly that the gate is not enforcing', () => {
