@@ -2439,3 +2439,167 @@ Run the test: PASS. Keep everything else in that block unchanged.
   If no browser tooling is available and cannot be found, stop with NEEDS_CONTEXT instead of installing browsers.
 
 - [ ] **Step 5: Suite and commit.** `npm test` green, `npm run build` ends `check-build: ok`, `npm run typecheck | tail -3` still 7. Commit `fix: mobile nav is a fixed three-column grid so a late font swap cannot shift the page`.
+
+---
+
+### Task 14: A simpler chat box (added after Andrian's review: "a bit big and clunky ... i like this better more simple")
+
+Andrian approved this design on 2026-11-08, modelled on his reference screenshot of a compact bar: three question chips with a refresh button on one row, and one input under them.
+
+- No greeting line (the input placeholder already says "Ask anything about Andrian…").
+- No agent trace lines on the home page ("orchestrator: routed to…", "verifier: 3 numbers checked ✓"). They stay in the full terminal (`/terminal`, `useTerminal`'s own trace output is unchanged).
+- The idle state is just the bar: no empty "Answers show up here." area.
+- No Experience / Projects / About / Contact row when JavaScript is on (the top nav already has them). The row stays in the markup and shows without JavaScript, because it is the no-JS path and an existing test pins it.
+- Answers appear above the bar, clipped to the first few lines with a "Show more" / "Show less" toggle, and keep their source links. (The agent's answers can be thousands of characters long; the home box must not become a wall of text.)
+- A flatter look: smaller padding and radius, lighter glass, no big glow.
+
+**Files:**
+- Create: `src/components/terminal/clip.ts`, `src/components/terminal/clip.test.ts`
+- Modify: `src/components/Hero.astro`, `src/components/terminal/IntroTerminal.tsx`, `src/components/terminal/IntroTerminal.test.tsx`, `src/styles/vapor.css` (the chat panel section, about lines 138 to 166), `src/styles/global.css` (remove one dead rule), `src/styles/vapor.test.ts` (append)
+
+**Interfaces — Produces (`clip.ts`):**
+- `visibleLines<T extends { kind: string }>(lines: T[]): T[]` returns the lines whose `kind` is not `'trace'`.
+- `clipAnswer(text: string, max?: number): { text: string; clipped: boolean }` with `max` defaulting to 320. If `text.length <= max` it returns the text unchanged and `clipped: false`. Otherwise it cuts at the last sentence end (`.`, `!`, `?` followed by whitespace) before `max` if that leaves at least 120 characters; else at the last space before `max`; else at `max`. It trims trailing whitespace, appends `…`, and returns `clipped: true`.
+
+- [ ] **Step 1: Failing tests.** `src/components/terminal/clip.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { visibleLines, clipAnswer } from './clip';
+
+describe('visibleLines', () => {
+  it('drops the agent trace lines and keeps the question and the answer, in order', () => {
+    const lines = [
+      { id: 1, kind: 'input', text: 'q' },
+      { id: 2, kind: 'trace', text: 'orchestrator: routed' },
+      { id: 3, kind: 'trace', text: 'verifier: ok' },
+      { id: 4, kind: 'answer', text: 'a' },
+    ];
+    expect(visibleLines(lines).map((l) => l.id)).toEqual([1, 4]);
+  });
+});
+
+describe('clipAnswer', () => {
+  it('leaves a short answer alone', () => {
+    expect(clipAnswer('Short answer.')).toEqual({ text: 'Short answer.', clipped: false });
+  });
+  it('leaves an answer of exactly max characters alone', () => {
+    const t = 'x'.repeat(320);
+    expect(clipAnswer(t)).toEqual({ text: t, clipped: false });
+  });
+  it('cuts a long answer at the last sentence end before max', () => {
+    const sentence = 'This is a sentence that runs for a while. ';
+    const text = sentence.repeat(20);
+    const out = clipAnswer(text);
+    expect(out.clipped).toBe(true);
+    expect(out.text.endsWith('.…')).toBe(true);
+    expect(out.text.length).toBeLessThanOrEqual(321);
+    expect(out.text.length).toBeGreaterThan(120);
+  });
+  it('falls back to a word boundary when there is no usable sentence end', () => {
+    const text = 'word '.repeat(200);
+    const out = clipAnswer(text);
+    expect(out.clipped).toBe(true);
+    expect(out.text.endsWith('word…')).toBe(true);
+    expect(out.text.length).toBeLessThanOrEqual(321);
+  });
+  it('hard-cuts text with no spaces at all', () => {
+    const out = clipAnswer('x'.repeat(1000));
+    expect(out.text).toBe('x'.repeat(320) + '…');
+    expect(out.clipped).toBe(true);
+  });
+  it('honours a custom max', () => {
+    expect(clipAnswer('a b c d e f g h i j', 9).text.length).toBeLessThanOrEqual(10);
+  });
+});
+```
+
+Append to `src/components/terminal/IntroTerminal.test.tsx` (it already renders the component to static markup in `html`):
+
+```tsx
+describe('IntroTerminal, simplified', () => {
+  it('has no greeting and no empty placeholder text in the markup', () => {
+    expect(html).not.toContain('Answers show up here');
+    expect(html).not.toContain('hey there');
+  });
+  it('keeps the log region in the DOM (a live region must exist before it is updated) but empty', () => {
+    expect(html).toMatch(/<div class="intro-out"[^>]*role="log"[^>]*><\/div>/);
+  });
+});
+```
+
+Append to `src/styles/vapor.test.ts`:
+
+```ts
+describe('simpler chat box', () => {
+  it('collapses the empty log instead of reserving space for it', () => {
+    expect(vapor).toMatch(/\.intro-out:empty\s*\{[^}]*(display:\s*none|max-height:\s*0|height:\s*0)/);
+  });
+  it('hides the route row once JavaScript is on, but keeps it for no-JS', () => {
+    expect(vapor).toMatch(/\.js \.topics\s*\{\s*display:\s*none/);
+  });
+  it('lays the chips out on one row with the refresh button, wrapping their text instead of cutting it', () => {
+    const rule = vapor.match(/\.js \.intro-suggest\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(rule).toContain('display: grid');
+    expect(vapor).toMatch(/\.intro-suggest\s*\{[^}]*grid-template-columns:\s*auto repeat\(3, minmax\(0, 1fr\)\)/);
+    expect(vapor).not.toMatch(/\.intro-chip\s*\{[^}]*text-overflow:\s*ellipsis/);
+  });
+  it('drops the old placeholder text rule from global.css', () => {
+    const globalCss = fs.readFileSync(path.join(process.cwd(), 'src/styles/global.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(globalCss).not.toContain('Answers show up here');
+  });
+});
+```
+
+Run all new tests, expect FAIL.
+
+- [ ] **Step 2: `src/components/terminal/clip.ts`:**
+
+```ts
+/** The home chat shows the question and the answer; the agent's routing trace stays in the full terminal. */
+export function visibleLines<T extends { kind: string }>(lines: T[]): T[] {
+  return lines.filter((line) => line.kind !== 'trace');
+}
+
+/** The first few lines of a long answer, cut at a sentence if there is a sensible one. */
+export function clipAnswer(text: string, max = 320): { text: string; clipped: boolean } {
+  if (text.length <= max) return { text, clipped: false };
+  const head = text.slice(0, max);
+  const sentence = [...head.matchAll(/[.!?](?=\s)/g)].pop();
+  let cut = head;
+  if (sentence && sentence.index !== undefined && sentence.index + 1 >= 120) cut = head.slice(0, sentence.index + 1);
+  else {
+    const space = head.lastIndexOf(' ');
+    if (space > 0) cut = head.slice(0, space);
+  }
+  return { text: `${cut.trimEnd()}…`, clipped: true };
+}
+```
+
+Run `clip.test.ts`: PASS.
+
+- [ ] **Step 3: `Hero.astro`:** delete the `<p class="chat-hello">…</p>` line. Nothing else in Hero changes.
+
+- [ ] **Step 4: `IntroTerminal.tsx`.** Read the current file. Make these changes only:
+  - `import { visibleLines, clipAnswer } from './clip';`
+  - Add `const [open, setOpen] = useState<Set<number>>(new Set());` and `const shown = visibleLines(term.lines);`
+  - Render `shown.map(...)` instead of `term.lines.map(...)`.
+  - For a line with `kind === 'answer'`, compute `const clipped = clipAnswer(line.text)` and render `open.has(line.id) ? line.text : clipped.text` inside `.intro-text`; if `clipped.clipped` render after the text a `<button type="button" className="intro-more" aria-expanded={open.has(line.id)} onClick={() => setOpen((s) => { const n = new Set(s); if (n.has(line.id)) n.delete(line.id); else n.add(line.id); return n; })}>{open.has(line.id) ? 'Show less' : 'Show more'}</button>`. Other kinds render unchanged.
+  - The log `<div className="intro-out" role="log" ...>` stays rendered always (a live region must exist before it is updated) and must render no children when there is nothing to show: with `shown` empty and `term.busy` false the div has no child nodes at all (so `:empty` matches and the static markup test passes). Keep the `ref`, `onClick={term.flush}`, `aria-live`.
+  - The scroll-to-bottom effect keeps working on `term.lines`.
+  - Leave the suggestion chips, the form/input, and the `topics` nav as they are.
+
+- [ ] **Step 5: CSS.** In `src/styles/vapor.css`, in the chat panel section:
+  - `.chat`: change `width` to `min(640px, 100%)`, `border-radius` to `12px`, `padding` to `12px`, replace the `background` with `color-mix(in srgb, var(--color-card) 70%, transparent)`, and replace the soft `box-shadow` with `none`. Keep `margin-top`, `text-align`, the border, and the `backdrop-filter` declaration. Make `.chat:focus-within` `border-color: var(--color-num); box-shadow: 0 0 0 1px var(--color-num);` (drop the big glow).
+  - Add `.intro-out:empty { display: none; }`. If an `aria-live` region inside `display: none` concerns you, use this instead and keep it accessible: `.intro-out:empty { min-height: 0; max-height: 0; margin: 0; overflow: hidden; }`. Use the second form (it keeps the live region in the accessibility tree), and make the test accept it (the regex allows `max-height: 0`).
+  - `.intro-out`: when it has content, `max-height: min(40svh, 320px); overflow-y: auto; margin-bottom: 8px;`.
+  - `.intro-suggest`: `display: none; grid-template-columns: auto repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; align-items: stretch;` and `.js .intro-suggest { display: grid; }`. Chips wrap their text (no `white-space: nowrap`, no ellipsis); `.intro-refresh { align-self: stretch; }`.
+  - Under `@media (max-width: 639px)`: `.intro-suggest { grid-template-columns: 1fr; }` and `.intro-refresh { justify-self: start; }`; remove the old `.intro-chip { flex: 1 1 100% }` rule.
+  - `.js .topics { display: none; }`.
+  - `.intro-more`: a small text button: `margin-left: 8px; padding: 0; background: none; border: 0; color: var(--color-accent); font: 400 12px var(--font-mono); cursor: pointer; text-decoration: underline; text-underline-offset: 3px;`
+  - The `.chat-hello` rule, if present anywhere, is deleted.
+  In `src/styles/global.css`, delete the one rule `.js .intro-out:empty::before { content: "Answers show up here."; color: var(--color-muted); }` and any `.chat-hello` rule.
+
+- [ ] **Step 6: Verify.** `npx vitest run src/components/terminal src/styles` PASS; `npm test` green (update, never delete, any test the change invalidates); `npm run build` ends `check-build: ok`; `npm run typecheck | tail -3` still 7. Then, in a real browser if browser tooling is available (preview on port 4326; do not touch ports 4322 or 4323; write any harness outside the repo; stop the server when done): load `/`, confirm the box is about one third of its old height with nothing but chips and the input (report the measured height of `.chat` before typing), click the first chip, wait 3 s, confirm no `orchestrator:`/`verifier:` text appears, that the answer shows a "Show more" button when clipped, and that clicking it expands and the button then reads "Show less". Report the numbers; if no browser tooling is available, say so.
+
+- [ ] **Step 7: Commit** `feat: a simpler home chat box (chips and input, clipped answers, no trace lines)`.
