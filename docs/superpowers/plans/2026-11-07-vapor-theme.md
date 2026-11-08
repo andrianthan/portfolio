@@ -1509,3 +1509,82 @@ Expected: tests green (baseline plus the new files), `check-build: ok`, typechec
 - [ ] **Step 6: Lighthouse.** Run Lighthouse mobile on `/` and `/work/tesla` (Chrome DevTools, or `npx lighthouse http://localhost:4323/ --form-factor=mobile --only-categories=performance,accessibility`). Target 95 or higher. If performance is under, profile in this order: backdrop layer count, orbit rings (`will-change`), graph frame rate, font preload. Do not report a score that was not measured.
 
 - [ ] **Step 7: Report.** List what was checked and what was not. Do not merge or push. Leave the branch and worktree in place for Andrian's decision.
+
+---
+
+### Task 10: Stats strip (added after Andrian's review of the running branch)
+
+Andrian replaced the four home-page stats. Values and captions are his, confirmed in chat on 2026-11-08; all four are his own estimates, so a single quiet line under the strip says so (the per-tile "estimated" captions were removed at his request). Removed tiles: "32% better than baseline", "$30k+", "200+ staging deploys a week", "1st of 9". Those figures stay on the work pages and in the chat agent. Micron and the vehicle-accessories forecasting are not counted anywhere yet; the people and hours totals are floors that hold without them.
+
+**Files:**
+- Modify: `src/data/stats.ts`, `src/components/StatStrip.astro`, `src/styles/vapor.css` (append)
+- Create: `src/data/stats.test.ts`
+
+**Interfaces:**
+- Produces: `stats: { value: string; caption: string }[]` (exactly four entries, in this order) and `statsNote: string`.
+- Consumed by: `src/components/StatStrip.astro` only. The agent does not read `stats.ts`.
+
+- [ ] **Step 1: Write the failing test** `src/data/stats.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { stats, statsNote } from './stats';
+
+describe('home stats', () => {
+  it('has Andrian\'s four stats, in order', () => {
+    expect(stats.map((s) => s.value)).toEqual(['90B+', '95%+', '450+', '100+']);
+  });
+  it('captions say what each number measures', () => {
+    expect(stats[0].caption).toBe('tokens used across my work and personal AI use');
+    expect(stats[1].caption).toBe('prompt cache hit rate');
+    expect(stats[2].caption).toBe('hours saved across Tesla, Hanna Center and Blue Dome projects');
+    expect(stats[3].caption).toBe('people use what I\'ve built, across Tesla, Hanna Center and Blue Dome');
+  });
+  it('carries no per-tile "estimated" caption; one note under the strip says so', () => {
+    for (const s of stats) expect(s.caption.toLowerCase()).not.toContain('estimated');
+    expect(statsNote).toBe('Figures are my estimates.');
+  });
+  it('drops the removed tiles', () => {
+    const all = stats.map((s) => `${s.value} ${s.caption}`).join(' ');
+    for (const gone of ['32%', '$30k', '200+', '1st of 9', 'IBM', 'hackathon']) expect(all).not.toContain(gone);
+  });
+});
+```
+
+- [ ] **Step 2: Run it, expect FAIL** (`npx vitest run src/data/stats.test.ts`).
+
+- [ ] **Step 3: Replace `src/data/stats.ts`:**
+
+```ts
+export const stats = [
+  { value: '90B+', caption: 'tokens used across my work and personal AI use' },
+  { value: '95%+', caption: 'prompt cache hit rate' },
+  { value: '450+', caption: 'hours saved across Tesla, Hanna Center and Blue Dome projects' },
+  { value: '100+', caption: 'people use what I\'ve built, across Tesla, Hanna Center and Blue Dome' },
+];
+
+export const statsNote = 'Figures are my estimates.';
+```
+
+- [ ] **Step 4: Update `src/components/StatStrip.astro`** (the note sits inside the grid as a last, full-width child, so it needs no margin tricks):
+
+```astro
+---
+import { stats, statsNote } from '../data/stats';
+---
+<div class="stats reveal">
+  {stats.map((s) => <div class="stat"><b>{s.value}</b><span>{s.caption}</span></div>)}
+  <p class="stats-note">{statsNote}</p>
+</div>
+```
+
+- [ ] **Step 5: Append to `src/styles/vapor.css`:**
+
+```css
+/* ---- stats note ---- */
+.stats-note { grid-column: 1 / -1; margin: 0; text-align: center; font: 400 12px/1.4 var(--font-mono); letter-spacing: .04em; color: var(--color-muted); }
+```
+
+- [ ] **Step 6: Verify.** `npx vitest run src/data/stats.test.ts` PASS; `npm test` green (if the agent or any other test pinned the old stats, update the expectation, do not delete it); `npm run build` ends `check-build: ok`; `npm run typecheck | tail -3` still 7. Then open `dist/index.html` and confirm the four values appear in order, the note appears once, and none of `1st of 9`, `32%`, `$30k+`, `200+` appears in the stats block. If the build's number check (`scripts/lib/checks.mjs`) rejects the new numbers, report exactly which check and stop with NEEDS_CONTEXT rather than editing the check.
+
+- [ ] **Step 7: Commit** `feat: new home stats strip (tokens, cache rate, hours, people)`.
