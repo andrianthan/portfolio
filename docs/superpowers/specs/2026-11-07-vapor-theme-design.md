@@ -8,8 +8,8 @@ explicit instruction.
 ## Goal
 
 Give the portfolio a more three-dimensional, higher-personality look modeled on
-a reference site's hero (glowing title, perspective grid floor, scanlines,
-chip-plus-input Ask bar), and carry that look through the whole page. The page
+a reference site's hero (glowing title, scanlines, chip-plus-input Ask bar,
+layered depth behind the content), with a space-system backdrop of our own, and carry that look through the whole page. The page
 stays one scroll: Projects, Experience and About are reached by scrolling or
 by anchor links, not by switching views.
 
@@ -18,7 +18,8 @@ by anchor links, not by switching views.
 1. **Scope.** The whole page goes vapor: tokens, fixed background layer,
    headings, nav, cards, and the demo windows on the work pages.
 2. **Center piece.** An ASCII agent-network graph, not a face. No portrait.
-3. **Rendering (approach A).** CSS perspective grid floor, CSS scanlines and
+3. **Rendering (approach A).** A CSS space-system backdrop (tilted
+   orbit rings, parallax star layers, soft nebula glow), CSS scanlines and
    glow, one small canvas for the ASCII graph. No three.js, no full-page
    canvas.
 4. **Navigation.** Scroll anchors. Active tab follows scroll position.
@@ -38,14 +39,23 @@ by anchor links, not by switching views.
 - **Title:** "ANDRIAN THAN", wide techno face, lavender-white fill, soft violet glow,
   offset deep-indigo shadow, horizontal scanline cut-outs.
 - **Tagline:** "AI engineer · building agents that ship", light-violet pixel type.
-- **Floor:** perspective grid rising from a horizon line, faint radial
-  vanishing lines above it, sparse stars. The grid scrolls toward the viewer
-  slowly and tilts with the cursor via the existing `--mx`/`--my` variables.
-- **Ask bar:** stands on the horizon. Three suggestion chips and a refresh
+- **Backdrop (a space system, deliberately not the reference's grid floor):**
+  the agent graph is the system's sun. Around it, a few concentric orbit
+  rings drawn as tilted ellipses (CSS 3D transform), each with a small
+  planet dot that drifts along its ring. Behind them, two or three star
+  layers at different depths and a faint violet nebula glow. Layers shift at
+  different rates with the cursor via the existing `--mx`/`--my` variables,
+  which is what makes it read as 3D. Orbit speed is slow; planets are
+  decorative only.
+- **Ask bar:** sits at the bottom of the hero, over the backdrop. Three suggestion chips and a refresh
   button above an input. It drives the existing agent (`src/agent`) and the
   existing `IntroTerminal` logic; this spec changes presentation, not the
   agent. No mic button and no "Conversation mode" toggle: that is the
   reference's voice feature, which this site does not have.
+- **Answers** render in a panel over the backdrop: the question in the mono
+  face, each answer line in the readable body face behind a violet arrow
+  marker (the pattern in the reference's answer view), growing the panel
+  downward as the conversation continues.
 - The "Open the full terminal" link and the stat strip stay.
 
 ## ASCII agent graph
@@ -64,7 +74,8 @@ nodes, edges, pulses travelling along edges. The cursor leans the whole graph
 
 - `tokens.css` gains a vapor palette (deep indigo-black background, violet and lavender
   accents) and font tokens. A fixed background layer replaces the current
-  dot field: floor grid, stars, scanlines, vignette.
+  dot field: star layers, nebula glow, scanlines, vignette. The orbit rings
+  belong to the hero only; below it the page keeps the stars and glow.
 - Section headings use the pixel face. Body text and long paragraphs keep the
   existing readable sans, because pixel type hurts paragraph legibility.
 - Cards, timeline, skills globe, project cards, footer: restyled with the new
@@ -112,7 +123,7 @@ layout until it has been opened in a browser.
 
 ## Risks
 
-- Perspective grid and scanline layers cost paint time on low-end phones.
+- Orbit rings, star layers and scanlines cost paint time on low-end phones.
   Mitigation: transform and opacity only, `will-change` kept narrow, layers
   disabled under reduced motion and on small low-power viewports if profiling
   shows a problem.
