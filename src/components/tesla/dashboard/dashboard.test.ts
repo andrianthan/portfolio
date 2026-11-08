@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NAV, initialWarm, restart, warmStep, request } from './dashboard';
+import { NAV, initialWarm, restart, warmStep, request, stepDelayMs } from './dashboard';
 
 describe('dashboard frame logic', () => {
   it('lists every project once, in page order, plus overview and work log', () => {
@@ -30,5 +30,11 @@ describe('dashboard frame logic', () => {
     s = warmStep(s);
     expect(s.status).toBe('warming');
     expect(request(s).status).toBe(200);
+  });
+  it('waits longer before the first step out of cold', () => {
+    expect(stepDelayMs('cold')).toBe(2500);
+  });
+  it('uses the short delay for later steps', () => {
+    expect(stepDelayMs('warming')).toBe(600);
   });
 });

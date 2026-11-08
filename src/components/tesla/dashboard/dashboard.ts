@@ -24,3 +24,4 @@ export function warmStep(s: WarmState): WarmState {
 export function request(s: WarmState): { status: 200 | 503; body: string } {
   return s.status === 'cold' ? { status: 503, body: 'warming up' } : { status: 200, body: 'last good payload' };
 }
+export const stepDelayMs = (status: WarmStatus): number => (status === 'cold' ? 2500 : 600);
