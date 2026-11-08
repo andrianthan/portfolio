@@ -1,0 +1,47 @@
+/* Tab discovery demo. Frame chrome comes from qa.css. Tokens only. */
+.mod { max-width: 100%; }
+.mod .qa-top { flex-wrap: wrap; }
+.mod .mod-grid { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); min-width: 0; }
+.mod .mod-h { margin: 0 0 8px; font: 600 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); }
+.mod .mod-tree { padding: 12px; border-right: 1px solid var(--color-rule); min-width: 0; }
+.mod .mod-files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mod .mod-file {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 10px;
+  border: 1px solid var(--color-rule); border-radius: 8px; background: var(--color-card);
+  font: 12px var(--font-mono); color: var(--color-fg); min-width: 0;
+}
+.mod .mod-file.broken { border-color: var(--color-rule); border-style: dashed; }
+.mod .mod-dir { font-weight: 600; overflow-wrap: anywhere; }
+.mod .mod-path { color: var(--color-muted); overflow-wrap: anywhere; }
+.mod .mod-path.missing { color: var(--color-fg); }
+.mod .mod-owner { color: var(--color-muted); font-size: 11px; overflow-wrap: anywhere; }
+.mod .mod-main { padding: 12px; min-width: 0; display: flex; flex-direction: column; gap: 8px; color: var(--color-fg); }
+.mod .mod-main .mod-h { margin-top: 6px; }
+.mod .mod-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.mod .mod-tab {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px;
+  font: 600 12px var(--font-mono); color: var(--color-fg);
+  background: var(--color-chip); border: 1px solid var(--color-accent); border-radius: 999px;
+}
+.mod .mod-kill { display: flex; flex-wrap: wrap; gap: 8px; }
+.mod .mod-kill button {
+  min-height: 44px; padding: 0 14px; font: 600 12px var(--font-mono); color: var(--color-muted);
+  background: transparent; border: 1px solid var(--color-rule); border-radius: 8px; cursor: pointer;
+}
+.mod .mod-kill button.on { color: var(--color-fg); border-color: var(--color-accent); background: var(--color-glow); }
+.mod .mod-kill button:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.mod .mod-kill button:focus-visible { border-radius: 8px; }
+.mod .mod-note { margin: 0; font-size: 12px; color: var(--color-muted); }
+.mod .mod-log {
+  margin: 0; padding: 10px 12px; max-width: 100%; overflow-x: auto;
+  font: 12px/1.55 var(--font-mono); color: var(--color-fg);
+  background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 8px;
+  white-space: pre; overflow-wrap: normal;
+}
+.mod .mod-log:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 8px; }
+.mod .mod-status { margin: 0; font: 12px var(--font-mono); color: var(--color-fg); overflow-wrap: anywhere; }
+.mod .mod-cap { margin: 0; font-size: 12px; color: var(--color-muted); }
+@media (max-width: 640px) {
+  .mod .mod-grid { grid-template-columns: minmax(0, 1fr); }
+  .mod .mod-tree { border-right: 0; border-bottom: 1px solid var(--color-rule); }
+}
