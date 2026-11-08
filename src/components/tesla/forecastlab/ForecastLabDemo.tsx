@@ -1,8 +1,8 @@
 import '../../qa/qa.css';
 import './forecastlab.css';
-import { useState } from 'react';
-import { MOCK_PARTS, series } from '../fixtures';
-import { initialState, toggle, setBacktest, dryRun, commit, forecastSeries, type FLState, type PreviewRow } from './forecastlab';
+import { useMemo, useState } from 'react';
+import { MOCK_PARTS } from '../fixtures';
+import { initialState, toggle, setBacktest, dryRun, commit, forecastSeries, backtestSeries, rowFor, type FLState } from './forecastlab';
 
 const W = 240;
 const H = 120;
@@ -19,19 +19,19 @@ function path(vals: number[], lo: number, hi: number): string {
 
 export default function ForecastLabDemo() {
   const [state, setState] = useState<FLState>(initialState);
-  const [rows, setRows] = useState<PreviewRow[]>([]);
 
   const first = state.selected[0];
   const part = MOCK_PARTS.find((p) => p.id === first);
   const vals = first ? forecastSeries(first) : [];
-  const back = first ? series(Number(first.replace(/\D/g, '')) + 11, vals.length, 500, 200) : [];
+  const back = backtestSeries(vals);
   const all = state.backtest ? [...vals, ...back] : vals;
-  const lo = Math.min(...all);
-  const hi = Math.max(...all);
+  const lo = all.length ? Math.min(...all) : 0;
+  const hi = all.length ? Math.max(...all) : 0;
   const chartLabel = part
-    ? `Sample 12 week forecast for ${part.name}, units per week: ${vals.join(', ')}.${state.backtest ? ` Backtest overlay: ${back.join(', ')}.` : ''}`
+    ? `Sample 12 week forecast for ${part.name}, units per week: ${vals.join(', ')}.${state.backtest ? ` Solid: forecast. Dashed: illustrative backtest (sample), units per week: ${back.join(', ')}.` : ''}`
     : '';
 
+  const rows = useMemo(() => state.selected.map(rowFor), [state.selected]);
   const canPreview = state.selected.length > 0;
   const previewed = state.phase === 'previewed';
   const committed = state.phase === 'committed';
@@ -51,7 +51,7 @@ export default function ForecastLabDemo() {
               <label key={p.id} className="fl-check">
                 <input
                   type="checkbox" checked={state.selected.includes(p.id)}
-                  onChange={() => { setState((s) => toggle(s, p.id)); setRows([]); }}
+                  onChange={() => setState((s) => toggle(s, p.id))}
                 />
                 <span>{p.name} <em>{p.id}</em></span>
               </label>
@@ -65,21 +65,22 @@ export default function ForecastLabDemo() {
         <div className="fl-main">
           {part ? (
             <figure className="fl-fig">
-              <figcaption>{part.name}: 12 week forecast{state.backtest ? ', with backtest overlay' : ''}</figcaption>
+              <figcaption>{part.name}{state.selected.length > 1 ? ' (first selected part)' : ''}: 12 week forecast{state.backtest ? ', with backtest overlay' : ''}</figcaption>
               <svg className="fl-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={chartLabel}>
                 <path d={path(vals, lo, hi)} fill="none" stroke="var(--color-accent)" strokeWidth={2} />
                 {state.backtest && (
                   <path d={path(back, lo, hi)} fill="none" stroke="var(--color-muted)" strokeWidth={1.5} strokeDasharray="4 3" />
                 )}
               </svg>
+              {state.backtest && <p className="fl-note">Solid: forecast. Dashed: illustrative backtest (sample).</p>}
             </figure>
           ) : (
             <p className="fl-note">Select a part to see its forecast.</p>
           )}
           <div className="fl-actions">
             <button
-              type="button" disabled={!canPreview}
-              onClick={() => { const r = dryRun(state); setState(r.state); setRows(r.rows); }}
+              type="button" disabled={!canPreview || previewed || committed}
+              onClick={() => setState((s) => dryRun(s).state)}
             >
               Preview (dry run)
             </button>
@@ -91,16 +92,14 @@ export default function ForecastLabDemo() {
             {!canPreview
               ? 'Preview is unavailable until you select at least one part.'
               : committed
-                ? 'Commit is unavailable: this preview was already committed. Change the selection to start over.'
+                ? 'Preview and commit are unavailable: already committed. Change the selection to start over.'
                 : previewed
-                  ? 'Review the preview below, then commit.'
+                  ? 'Preview is unavailable: already previewed. Review the table below, then commit, or change the selection to start over.'
                   : 'Commit is unavailable until you run a preview.'}
           </p>
           <div role="status" aria-live="polite">
-            {(previewed || committed) && rows.length > 0 && (
-              <p className="fl-banner">Dry run: nothing has been sent</p>
-            )}
-            {committed && <p className="fl-done">Committed (mock)</p>}
+            {previewed && <p className="fl-banner">Dry run: nothing has been sent</p>}
+            {committed && <p className="fl-done">Committed (mock): sample only, nothing was actually sent</p>}
           </div>
           {(previewed || committed) && rows.length > 0 && (
             <div className="fl-scroll" tabIndex={0} role="region" aria-label="Preview table, scrolls horizontally">

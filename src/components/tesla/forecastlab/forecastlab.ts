@@ -42,3 +42,8 @@ export function dryRun(s: FLState): { state: FLState; rows: PreviewRow[] } {
 export function commit(s: FLState): FLState {
   return s.phase === 'previewed' ? { ...s, phase: 'committed' } : s;
 }
+
+// Illustrative 'prior run': the forecast with a fixed per-index perturbation.
+export function backtestSeries(vals: number[]): number[] {
+  return vals.map((v, i) => Math.round(v * (1 + (i % 3 === 0 ? -0.08 : i % 3 === 1 ? 0.05 : -0.03))) + (i % 2 === 0 ? 7 : -5));
+}

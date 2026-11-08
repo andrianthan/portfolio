@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initialState, toggle, setBacktest, dryRun, commit } from './forecastlab';
+import { initialState, toggle, setBacktest, dryRun, commit, backtestSeries } from './forecastlab';
 
 describe('forecast lab logic', () => {
   it('starts idle with backtest off', () => {
@@ -33,4 +33,12 @@ describe('forecast lab logic', () => {
     expect(a).toEqual(b);
   });
   it('toggles backtest', () => { expect(setBacktest(initialState, true).backtest).toBe(true); });
+  it('backtestSeries derives only from its input', () => {
+    const v = [100, 200, 300, 400];
+    const b = backtestSeries(v);
+    expect(b).toHaveLength(v.length);
+    expect(backtestSeries(v)).toEqual(b);
+    expect(b).not.toEqual(v);
+    expect(backtestSeries([])).toEqual([]);
+  });
 });
