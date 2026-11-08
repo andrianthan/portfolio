@@ -191,7 +191,7 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     });
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // The system preference can be turned on while the page is open (HeroGraph does the same):
+    // The system preference can be turned on while the page is open:
     // freeze to the static frame, or resume the loop if it is turned back off.
     const onMotion = () => {
       if (reduced.matches) {

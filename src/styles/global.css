@@ -210,11 +210,6 @@ a.prow:hover .arrow { transform: translate(4px, -50%); color: var(--color-num); 
 .about img { width: 200px; height: 250px; object-fit: cover; border-radius: 20px; display: block; box-shadow: 0 20px 50px -24px var(--color-glow); }
 .about p { margin: 0 0 14px; }
 
-/* how this site answers */
-.how-copy { max-width: 36rem; margin: 0 auto var(--space-lg); text-align: center; color: var(--color-muted); }
-.how-graph { margin-bottom: var(--space-md); }
-.how-link { text-align: center; margin: 0; }
-
 /* footer */
 footer { padding: var(--space-lg) 0 56px; border-top: 1px solid var(--color-rule); }
 footer .inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-md); font: 400 13px var(--font-mono); color: var(--color-muted); }
@@ -236,8 +231,6 @@ footer a:hover { color: var(--color-fg); }
 #experience .job:nth-child(n+5) { --reveal-step: 4; }
 #projects .plist { --reveal-step: 5; }
 #about .about { --reveal-step: 6; }
-#how .how-copy { --reveal-step: 7; }
-#how .how-graph { --reveal-step: 8; }
 
 /* detail page (wrap the page in an element or body with class "detail") */
 .detail { --measure: 46rem; --space-xl: 72px; line-height: 1.7; }
