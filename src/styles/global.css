@@ -4,12 +4,49 @@
 html, body { overflow-x: clip; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--color-bg); color: var(--color-fg); font: 400 17px/1.65 var(--font-sans); -webkit-font-smoothing: antialiased; position: relative; }
-/* the glow and the dot grid sit behind everything, anchored to the top of the page */
-body::before { content: ""; position: absolute; inset: 0 0 auto 0; height: min(760px, 100vh); z-index: -1; pointer-events: none;
+/* the cursor field: two layers behind everything, both held in the viewport so they
+   stay put (and stay aligned with each other) while the page scrolls.
+   the quiet grid drifts with a transform, which the compositor does on its own. the
+   field layer repaints itself on every pointer update (about 0.9ms measured). the
+   page's content is never repainted. */
+body::before, body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; }
+
+/* the quiet grid: the same 24px dot tile as before, drifting against the pointer.
+   the inset leaves room for the worst-case drift (0.3% of the larger viewport
+   dimension), so a translated layer never shows an edge. the tile starts at the
+   viewport origin, which is where the field's tile starts too */
+body::before {
+  inset: -0.4vmax;
+  background: radial-gradient(var(--color-dot) 1.1px, transparent 1.1px) 0.4vmax 0.4vmax / 24px 24px;
+  -webkit-mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
+  /* the fade covers the viewport, so the field can fade with it */
+  mask-size: 100% 100vh; mask-position: 0 0.4vmax; mask-repeat: no-repeat;
+  transform: translate3d(calc((var(--mx, 50vw) - 50vw) * -0.006), calc((var(--my, 50vh) - 50vh) * -0.006), 0); }
+
+/* the field: bigger, brighter dots and the glow, masked to a soft patch around the
+   pointer. the tile carries the same drift as the grid, so the lit dots land on the
+   quiet ones instead of crossing them */
+body::after {
+  inset: 0;
   background:
-    radial-gradient(ellipse 60% 55% at 50% 0%, var(--color-glow), transparent 70%),
-    radial-gradient(var(--color-dot) 1.1px, transparent 1.1px) 0 0 / 24px 24px;
-  -webkit-mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); }
+    radial-gradient(circle 300px at var(--mx, 50vw) var(--my, 50vh), var(--color-glow), transparent 70%),
+    radial-gradient(color-mix(in srgb, var(--color-num) 50%, transparent) 1.7px, transparent 1.7px) calc((var(--mx, 50vw) - 50vw) * -0.006) calc((var(--my, 50vh) - 50vh) * -0.006) / 24px 24px;
+  -webkit-mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%); mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%);
+  opacity: 0; transition: opacity .45s ease-out .25s; }
+/* the field fades down with the grid, so the lit dots never outlive the quiet dots
+   they are lighting up. only where the two masks can be intersected */
+@supports (mask-composite: intersect) {
+  body::after {
+    -webkit-mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%), linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
+    mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%), linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
+    mask-composite: intersect; } }
+/* the field is lit while the pointer is over the page. the root element's hover
+   region is the viewport, so the scrollbar (which sits outside the content box but
+   inside the viewport) does not un-light it. the fade-out waits a moment and the
+   fade-in does not, so a stray hover loss cannot flicker the field */
+html:hover body::after { opacity: 1; transition: opacity .18s ease-out; }
+/* without JS the field stays lit and inert, resting on its centred fallback */
+html:not(.js) body::after { opacity: 1; transition: none; }
 a { color: var(--color-accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
@@ -38,16 +75,28 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); 
 h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.05; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 var(--space-sm); overflow-wrap: anywhere; min-width: 0; }
 h1 .w { display: inline-block; opacity: 0; filter: blur(10px); transform: translateY(8px); animation: bi .8s cubic-bezier(.2,.8,.2,1) forwards; }
 h1 .w:nth-child(2) { animation-delay: .12s; }
-h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* the name's gradient drifts. the ramp is drawn twice as wide and folded back on
+   itself (a -> b -> a), so the window that slides across the words always shows a
+   full a-to-b ramp and the fold never shows an edge. the entrance (bi) is repeated
+   here because this rule replaces the one on .w */
+h1 .grad { background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: bi .8s cubic-bezier(.2,.8,.2,1) forwards, grad-drift 26s ease-in-out infinite alternate; }
 @keyframes bi { to { opacity: 1; filter: blur(0); transform: none; } }
+@keyframes grad-drift { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 .status { font-size: 15px; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 
 /* the chat card */
-.chat { width: min(640px, 100%); text-align: left; background: var(--color-glass); border: 1px solid var(--color-rule); border-radius: 18px; padding: 20px 20px 16px; box-shadow: 0 24px 60px -30px var(--color-glow); backdrop-filter: blur(18px) saturate(1.35); }
+.chat { width: min(640px, 100%); text-align: left; background: var(--color-glass); border: 1px solid var(--color-rule); border-radius: 18px; padding: 20px 20px 16px; box-shadow: 0 24px 60px -30px var(--color-glow); backdrop-filter: blur(18px) saturate(1.35); transition: box-shadow .25s ease; }
 /* the -webkit- alias lives in its own rule: the CSS minifier merges the prefixed and the
    unprefixed declaration into one property and keeps only the last, so the standard
    property has to sit in the base rule and the alias in this @supports block */
 @supports (-webkit-backdrop-filter: blur(1px)) { .chat { -webkit-backdrop-filter: blur(18px) saturate(1.35); } }
+/* the card glows while something inside it holds the focus: the prompt is the reason
+   to be here, so the halo says "this is the live part of the page". the halo is the
+   card's own glow token, which carries the theme's tint, and the hairline is the
+   accent token, which reads on both the light background and the dark one. the
+   resting shadow stays in the list, so focusing adds a glow rather than trading
+   the card's depth away */
+.chat:focus-within { box-shadow: 0 0 0 1px var(--color-num), 0 0 28px -6px var(--color-glow), 0 24px 60px -30px var(--color-glow); }
 .chat-hello { margin: 0 0 var(--space-md); color: var(--color-muted); font-size: 16px; line-height: 1.55; }
 .intro-out { min-height: 120px; max-height: 34svh; overflow-y: auto; font: 400 14px/1.6 var(--font-mono); overflow-wrap: anywhere; }
 .intro-line-out { white-space: pre-wrap; margin: 0 0 4px; color: var(--color-fg); }
@@ -87,18 +136,22 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -we
 /* stats */
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg) var(--space-md); margin-bottom: var(--space-xl); text-align: center; }
 .stat { padding: 0 6px; }
-.stat b { display: block; font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; margin-bottom: 10px; background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat b { display: block; font-size: clamp(34px, 5vw, 52px); line-height: 1; font-weight: 700; letter-spacing: -0.035em; margin-bottom: 10px; background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: grad-drift 26s ease-in-out infinite alternate; transition: background-size .85s ease; }
+/* the pointer passing over a number opens the ramp, so the magenta lands in the middle
+   of it. the numbers already drift on background-position, and a running animation beats
+   any transition on the same property, so the sweep moves the ramp's size instead */
+.stat b:hover { background-size: 100% 100%; }
 .stat span { font-size: 14px; line-height: 1.45; color: var(--color-muted); display: block; }
 
 /* section head */
 .sh { text-align: center; margin: 0 0 var(--space-lg); }
 .eyebrow { font: 500 12px var(--font-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 10px; }
 .sh h2 { display: inline-block; font: 700 clamp(32px, 5vw, 48px)/1.1 var(--font-sans); letter-spacing: -0.035em; text-transform: none; margin: 0;
-  background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-/* the gradient only paints the glyphs where background-clip: text is understood */
-@supports not (background-clip: text) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } }
-/* forced-colors mode does not paint the gradient, so the title needs a real colour there */
-@media (forced-colors: active) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } }
+  background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  transition: background-position .85s ease; }
+/* the light passes across the heading: the window slides to the far end of the ramp */
+.sh h2:hover { background-position: 100% 50%; }
 .sh h2::after { display: none; }
 h2 { display: flex; align-items: center; gap: var(--space-md); font: 500 13px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 h2::after { content: ""; flex: 1; height: 1px; background: var(--color-rule); }
@@ -107,14 +160,14 @@ section.s { padding: 0 0 var(--space-xl); }
 /* timeline */
 .tl { position: relative; padding-left: 36px; max-width: 46rem; margin: 0 auto; }
 .tl::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 1px; background: var(--color-rule); }
-.job { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-md) 18px; margin-bottom: var(--space-xl); }
+.job { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--space-md) 18px; margin-bottom: var(--space-xl); transition: translate .2s ease; }
 .job:last-child { margin-bottom: 0; }
 .job::before { content: ""; position: absolute; left: -36px; top: 14px; width: 15px; height: 15px; border-radius: 50%; background: var(--color-bg); border: 2px solid var(--color-muted); }
 .job.now::before { background: var(--color-num); border-color: var(--color-num); box-shadow: 0 0 0 5px var(--color-glow); }
 .logo { width: 48px; height: 48px; border-radius: 12px; background: var(--color-logo-bg); border: 1px solid var(--color-rule); display: grid; place-items: center; overflow: hidden; }
 .logo img { width: 64%; height: 64%; object-fit: contain; display: block; }
 .logo.fill img { width: 100%; height: 100%; object-fit: cover; }
-.job h3 { font-size: 20px; line-height: 1.3; font-weight: 600; margin: 0; letter-spacing: -0.015em; }
+.job h3 { font-size: 20px; line-height: 1.3; font-weight: 600; margin: 0; letter-spacing: -0.015em; width: fit-content; transition: color .3s ease; }
 .org { color: var(--color-muted); font-weight: 500; }
 .tag { font: 500 12px var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--color-num); margin-left: 10px; vertical-align: 2px; white-space: nowrap; }
 .job p.dates { font: 400 13px var(--font-mono); line-height: 1.5; color: var(--color-muted); margin: 3px 0 10px; }
@@ -129,15 +182,26 @@ section.s { padding: 0 0 var(--space-xl); }
 
 /* projects */
 .plist { max-width: 46rem; margin: 0 auto; }
-.prow { position: relative; display: block; color: inherit; padding: 28px 40px 28px 0; transition: padding .2s; }
+.prow { position: relative; display: block; color: inherit; padding: 28px 40px 28px 0; transition: padding .2s, translate .2s ease; }
 a.prow:hover { text-decoration: none; padding-left: 12px; }
 .prow-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
-.prow b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-a.prow:hover b { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.prow b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; transition: color .3s ease; }
 .prow .m { font: 400 13px var(--font-mono); color: var(--color-muted); }
 .prow p { margin: 6px 0 0; font-size: 16px; line-height: 1.55; color: var(--color-muted); max-width: 40rem; }
 .prow .arrow { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--color-muted); transition: transform .2s, color .2s; }
 a.prow:hover .arrow { transform: translate(4px, -50%); color: var(--color-num); }
+/* both row types catch the gradient as the pointer passes: the title takes the ramp.
+   the role row's heading hugs its own text, so the ramp lands on the title */
+.job:hover h3, .prow:hover b { background: linear-gradient(90deg, var(--grad-a), var(--grad-b)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* the ramp's fallbacks. they sit after the rule above, so they win the cascade:
+   the ramp and its fallback have the same specificity, and only the later one
+   applies. without background-clip: text the glyphs would be left transparent, and
+   forced-colors mode paints no gradient at all */
+@supports not (background-clip: text) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } .job:hover h3, .prow:hover b { background: none; color: var(--color-fg); } }
+@media (forced-colors: active) { .sh h2, h1 .grad, .stat b { color: var(--color-fg); } .job:hover h3, .prow:hover b { background: none; color: var(--color-fg); } }
+/* both row types lift a little under the pointer. the lift is the individual
+   translate property, so it never fights the reveal's transform on the same row */
+.job:hover, .prow:hover { translate: 0 -2px; }
 .shot { aspect-ratio: 16/9; background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 14px; display: grid; place-items: center; color: var(--color-muted); font: 400 12px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; margin: var(--space-lg) 0 var(--space-xl); }
 .detail .shot-img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border: 1px solid var(--color-rule); border-radius: 14px; margin: var(--space-lg) 0 var(--space-xl); }
 
@@ -158,8 +222,22 @@ footer .links { display: flex; flex-wrap: wrap; gap: 20px; }
 footer a { white-space: nowrap; color: var(--color-muted); }
 footer a:hover { color: var(--color-fg); }
 
-.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out, transform .6s ease-out; }
+/* the reveal: each element fades up as it comes into view. the delay is declared
+   once, here, as the step times 70ms, and every section sets its own step — so the
+   stagger is one number per section and the components stay untouched */
+.reveal { --reveal-step: 0; --reveal-delay: calc(var(--reveal-step) * 70ms); }
+.js .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease-out var(--reveal-delay), transform .6s ease-out var(--reveal-delay), translate .2s ease; }
 .js .reveal.in { opacity: 1; transform: none; }
+/* the stagger: the sections arrive one after another, in the order they are read */
+#experience .job:nth-child(1) { --reveal-step: 1; }
+#experience .job:nth-child(2) { --reveal-step: 2; }
+#experience .job:nth-child(3) { --reveal-step: 3; }
+#experience .job:nth-child(4) { --reveal-step: 4; }
+#experience .job:nth-child(n+5) { --reveal-step: 4; }
+#projects .plist { --reveal-step: 5; }
+#about .about { --reveal-step: 6; }
+#how .how-copy { --reveal-step: 7; }
+#how .how-graph { --reveal-step: 8; }
 
 /* detail page (wrap the page in an element or body with class "detail") */
 .detail { --measure: 46rem; --space-xl: 72px; line-height: 1.7; }
@@ -251,10 +329,19 @@ header.ph { padding: 48px 0 var(--space-lg); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* the field is frozen: the grid stops drifting and the field is a fixed, soft glow.
+     the hovered selector is repeated so it wins over the hover rule above */
+  body::before { transform: none; }
+  body::after, html:hover body::after { opacity: 1; transition: none; background-image: radial-gradient(circle 300px at 50vw 50vh, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
   h1 .w { animation: none; opacity: 1; filter: none; transform: none; }
   .intro-think::after, .intro-answer, .intro-trace { animation: none; }
+  /* the foreground is still: the gradient stops drifting, the sweeps land at once
+     and the rows do not lift */
+  h1 .grad, .stat b { animation: none; }
+  .sh h2, .stat b { transition: none; }
+  .job:hover, .prow:hover { translate: none; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
-  .more span, #theme-toggle, .topics a, .bar a, .prow, .prow .arrow { transition: none; }
+  .more span, #theme-toggle, .topics a, .bar a, .prow, .prow .arrow, .job, .job h3, .prow b, .chat { transition: none; }
   a.prow:hover { padding-left: 0; } a.prow:hover .arrow { transform: translateY(-50%); }
   .more:hover span { transform: none; }
 }
@@ -273,4 +360,10 @@ header.ph { padding: 48px 0 var(--space-lg); }
 .skills-legend-chip { font: 500 12px var(--font-mono); letter-spacing: .08em; color: var(--color-fg); border: 1px solid var(--color-rule); border-radius: 8px; padding: 5px 12px; }
 @media (prefers-reduced-motion: reduce) {
   .globe-node { will-change: auto; }
+}
+
+/* a touch screen has no cursor to follow: the field falls back to the site's original
+   top glow, so a phone keeps the look it always had */
+@media (hover: none) {
+  body::after { opacity: 1; background-image: radial-gradient(ellipse 60% 45% at 50% 0%, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
 }
