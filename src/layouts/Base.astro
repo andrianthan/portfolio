@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import Analytics from '@vercel/analytics/astro';
+import '@fontsource-variable/orbitron/index.css';
+import '@fontsource/silkscreen/400.css';
 
 interface Props { title: string; description?: string; ogImage?: string; path?: string }
 const { title, description = 'Andrian Than, software engineer building AI agents.', ogImage = '/og.png', path = Astro.url.pathname } = Astro.props;
