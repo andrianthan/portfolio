@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { scrollToSection } from './scrollTo';
 import { useTerminal } from './useTerminal';
 import { pickSuggestions } from './suggestions';
+import { visibleLines, clipAnswer } from './clip';
 
 // Real links: they work without JavaScript, and the prompt routes to the same places.
 const TOPICS = [
@@ -22,6 +23,8 @@ export default function IntroTerminal() {
   const out = useRef<HTMLDivElement | null>(null);
   const [page, setPage] = useState(0);
   const chips = pickSuggestions(page);
+  const [open, setOpen] = useState<Set<number>>(new Set());
+  const shown = visibleLines(term.lines);
 
   useEffect(() => {
     const element = out.current;
@@ -31,14 +34,34 @@ export default function IntroTerminal() {
   return (
     <div className="intro-term">
       <div className="intro-out" role="log" aria-live="polite" ref={out} onClick={term.flush}>
-        {term.lines.map((line) => (
+        {shown.map((line) => {
+          const clipped = line.kind === 'answer' ? clipAnswer(line.text) : null;
+          const expanded = open.has(line.id);
+          return (
           <div
             key={line.id}
             className={`intro-line-out intro-${line.kind}${line.status ? ` intro-${line.status}` : ''}${line.refused ? ' intro-refused' : ''}`}
           >
             {line.kind === 'input' ? <span className="intro-mark">&gt;</span> : null}
             {line.kind === 'answer' ? <span className="intro-arrow" aria-hidden="true">↳</span> : null}
-            <span className="intro-text">{line.text}</span>
+            <span className="intro-text">{clipped && !expanded ? clipped.text : line.text}</span>
+            {clipped?.clipped ? (
+              <button
+                type="button"
+                className="intro-more"
+                aria-expanded={expanded}
+                onClick={() =>
+                  setOpen((s) => {
+                    const n = new Set(s);
+                    if (n.has(line.id)) n.delete(line.id);
+                    else n.add(line.id);
+                    return n;
+                  })
+                }
+              >
+                {expanded ? 'Show less' : 'Show more'}
+              </button>
+            ) : null}
             {line.sources && line.sources.length > 0 ? (
               <span className="intro-sources">
                 {line.sources.map((source) => (
@@ -49,7 +72,8 @@ export default function IntroTerminal() {
               </span>
             ) : null}
           </div>
-        ))}
+          );
+        })}
         {term.busy ? <div className="intro-line-out intro-info intro-think">{term.spinner} thinking</div> : null}
       </div>
       <div className="intro-suggest" role="group" aria-label="Suggested questions">

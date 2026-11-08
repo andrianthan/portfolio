@@ -56,3 +56,13 @@ describe('IntroTerminal chip focus', () => {
     expect(html).not.toMatch(/<button[^>]*disabled[^>]*class="intro-chip"/);
   });
 });
+
+describe('IntroTerminal, simplified', () => {
+  it('has no greeting and no empty placeholder text in the markup', () => {
+    expect(html).not.toContain('Answers show up here');
+    expect(html).not.toContain('hey there');
+  });
+  it('keeps the log region in the DOM (a live region must exist before it is updated) but empty', () => {
+    expect(html).toMatch(/<div class="intro-out"[^>]*role="log"[^>]*><\/div>/);
+  });
+});

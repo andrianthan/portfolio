@@ -167,3 +167,22 @@ describe('mobile nav layout', () => {
     expect(link).toContain('white-space: nowrap');
   });
 });
+
+describe('simpler chat box', () => {
+  it('collapses the empty log instead of reserving space for it', () => {
+    expect(vapor).toMatch(/\.intro-out:empty\s*\{[^}]*(display:\s*none|max-height:\s*0|height:\s*0)/);
+  });
+  it('hides the route row once JavaScript is on, but keeps it for no-JS', () => {
+    expect(vapor).toMatch(/\.js \.topics\s*\{\s*display:\s*none/);
+  });
+  it('lays the chips out on one row with the refresh button, wrapping their text instead of cutting it', () => {
+    const rule = vapor.match(/\.js \.intro-suggest\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(rule).toContain('display: grid');
+    expect(vapor).toMatch(/\.intro-suggest\s*\{[^}]*grid-template-columns:\s*auto repeat\(3, minmax\(0, 1fr\)\)/);
+    expect(vapor).not.toMatch(/\.intro-chip\s*\{[^}]*text-overflow:\s*ellipsis/);
+  });
+  it('drops the old placeholder text rule from global.css', () => {
+    const globalCss = fs.readFileSync(path.join(process.cwd(), 'src/styles/global.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(globalCss).not.toContain('Answers show up here');
+  });
+});
