@@ -18,7 +18,7 @@ export const initialState: PSState = { partId: null, tab: 'overview', message: '
 export function matches(query: string, parts: readonly MockPart[]): MockPart[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return parts.filter((p) => p.id.toLowerCase() === q || p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
+  return parts.filter((p) => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
 }
 
 export function search(s: PSState, query: string, parts: readonly MockPart[]): PSState {

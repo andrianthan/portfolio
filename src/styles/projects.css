@@ -53,11 +53,11 @@ html:has(.toc) { scroll-behavior: auto; }
        title that wraps to two lines — or a page with more rows — makes the
        list taller and this value has to grow with it. Five hundred covers
        the Tesla page's eight rows; the Hanna and Blue Dome pages have three
-       rows, so their jumps land higher than strictly needed. It
-       holds only from 900px to 1199px, where the
-       list is stuck at the top of the viewport and the content scrolls behind
-       it; from 1200px the list is a rail in the gutter and the project scroll
-       margin is reset, so it constrains nothing. */
+       rows, so their jumps land higher than strictly needed. It holds only
+       from 900px to 1199px, where the list is stuck at the top of the viewport
+       and the content scrolls behind it; from 1200px the list is a rail in
+       the gutter and the project scroll margin is reset, so it constrains
+       nothing. */
     --toc-list-height: 500px;
     /* The clearance between the bottom of the list and the heading an anchor
        jump lands on. */
