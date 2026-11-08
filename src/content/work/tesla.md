@@ -512,7 +512,7 @@ The deck and the KPI files came from one weekly run, so the number in the deck m
 
 ### Impact
 
-- **Deck:** weekly demand data reached the 77-slide executive deck without a hand-assembled run. Hours saved per cycle were not timed, so this is not measured.
+- **Deck:** weekly demand data reached the 77-slide executive deck without a hand-assembled run. The scheduled run saves an estimated 20+ hours per run, an estimate rather than a measured figure.
 - **Weekly CSV:** 45 minutes × 8 Mondays is about 6 hours, an estimate.
 
 ### About the demo

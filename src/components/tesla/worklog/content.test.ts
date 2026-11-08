@@ -68,13 +68,16 @@ describe('the mock work log', () => {
     expect(text).toContain('165');
   });
 
-  it('claims no hours saved for the deck, because none were timed', () => {
-    // The page's Slideshow section says the hours saved per cycle were not
-    // timed, so the pane may not assert a figure the page disclaims.
-    const text = stringsOf(doc).join(' ');
-    expect(text).not.toContain('20+');
-    expect(text).not.toMatch(/worth[^.]*hours/i);
-    expect(text).not.toMatch(/\d+\+?\s*hours\b/i);
+  it('states the deck saving as an estimate of 20+ hours per run, not as measured', () => {
+    const entry = doc.sections
+      .flatMap((s) => s.entries ?? [])
+      .find((e) => e.label === 'Executive reporting');
+    expect(entry).toBeDefined();
+    const detail = entry!.detail;
+    expect(detail).toContain('20+');
+    expect(detail).toMatch(/estimate/i);
+    expect(detail).not.toMatch(/measured (saving|hours)|timed at/i);
+    expect(detail).not.toMatch(/\bnot (timed|measured)\b/i);
   });
 
   it('uses the page\'s current section names, not the retired ones', () => {

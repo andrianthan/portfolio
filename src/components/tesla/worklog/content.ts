@@ -14,7 +14,7 @@ export interface WorklogDoc {
 
 export const PUBLIC_NUMBERS: readonly string[] = [
   '32%', '0.854', '0.80', '35', '0%', '17', '165', '77', '200+', '10+', '30+',
-  '$17.0M', '$11.6M', '10',
+  '$17.0M', '$11.6M', '10', '20+',
 ];
 
 export const WORKLOG: WorklogDoc = {
@@ -56,7 +56,7 @@ export const WORKLOG: WorklogDoc = {
       id: 'data-pipelines',
       title: 'Slideshow generation',
       entries: [
-        { label: 'Executive reporting', detail: 'Weekly demand data reached the 77-slide executive deck without a hand-assembled run. The hours saved per cycle were not timed, so this is not measured.' },
+        { label: 'Executive reporting', detail: 'A scheduled run produces the 77-slide executive deck from weekly demand data instead of a hand-assembled one. The saving is an estimated 20+ hours per run, an estimate rather than a measured figure.' },
       ],
     },
     {
