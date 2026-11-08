@@ -28,18 +28,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); 
 /* hero */
 .hero { padding: clamp(24px, 6svh, 64px) 0 var(--space-xl); text-align: center; }
 .hero-in { display: flex; flex-direction: column; align-items: center; }
-.avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; display: block; margin-bottom: var(--space-md); box-shadow: 0 0 0 1px var(--color-rule), 0 12px 40px var(--color-glow); }
 h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.05; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 var(--space-sm); overflow-wrap: anywhere; min-width: 0; }
-h1 .w { display: inline-block; opacity: 0; filter: blur(10px); transform: translateY(8px); animation: bi .8s cubic-bezier(.2,.8,.2,1) forwards; }
-h1 .w:nth-child(2) { animation-delay: .12s; }
-/* the name's gradient drifts. the ramp is drawn twice as wide and folded back on
-   itself (a -> b -> a), so the window that slides across the words always shows a
-   full a-to-b ramp and the fold never shows an edge. the entrance (bi) is repeated
-   here because this rule replaces the one on .w */
-h1 .grad { background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50%, var(--grad-a) 100%) no-repeat; background-size: 200% 100%; background-position: 0% 50%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: bi .8s cubic-bezier(.2,.8,.2,1) forwards, grad-drift 26s ease-in-out infinite alternate; }
-@keyframes bi { to { opacity: 1; filter: blur(0); transform: none; } }
 @keyframes grad-drift { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
-.status { font-size: 15px; color: var(--color-muted); margin: 0 0 var(--space-lg); }
 
 /* the chat card */
 .chat { width: min(640px, 100%); text-align: left; background: var(--color-glass); border: 1px solid var(--color-rule); border-radius: 18px; padding: 20px 20px 16px; box-shadow: 0 24px 60px -30px var(--color-glow); backdrop-filter: blur(18px) saturate(1.35); transition: box-shadow .25s ease; }
@@ -256,9 +246,6 @@ header.ph { padding: 48px 0 var(--space-lg); }
 }
 @media (max-width: 480px) {
   /* tight enough that the prompt is still above the fold on a 320x568 screen */
-  .avatar { width: 64px; height: 64px; margin-bottom: 10px; }
-  h1 { font-size: clamp(32px, 9vw, 40px); }
-  .status { margin-bottom: var(--space-sm); }
   .chat { padding: 14px 14px 12px; }
   .intro-out { min-height: 64px; max-height: 26svh; }
   .topics { margin: 10px 0 10px; }
@@ -268,11 +255,10 @@ header.ph { padding: 48px 0 var(--space-lg); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  h1 .w { animation: none; opacity: 1; filter: none; transform: none; }
   .intro-think::after, .intro-answer, .intro-trace { animation: none; }
   /* the foreground is still: the gradient stops drifting, the sweeps land at once
      and the rows do not lift */
-  h1 .grad, .stat b { animation: none; }
+  .stat b { animation: none; }
   .sh h2, .stat b { transition: none; }
   .job:hover, .prow:hover { translate: none; }
   .js .reveal { opacity: 1; transform: none; transition: none; }

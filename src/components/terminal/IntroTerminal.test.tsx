@@ -41,3 +41,11 @@ describe('IntroTerminal', () => {
     expect(html).not.toContain('intro-line-out');
   });
 });
+
+describe('IntroTerminal suggestions', () => {
+  it('renders three suggestion chips and a refresh button as buttons', () => {
+    expect(html.split('class="intro-chip"').length - 1).toBe(3);
+    expect(html).toMatch(/<button[^>]*class="intro-chip"/);
+    expect(html).toContain('aria-label="Show other questions"');
+  });
+});

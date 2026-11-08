@@ -1,15 +1,18 @@
 ---
 import IntroTerminal from './terminal/IntroTerminal.tsx';
+import AsciiGraph from './ascii/AsciiGraph.tsx';
+import Orbits from './Orbits.astro';
 ---
 <header class="hero" id="top">
-  <div class="hero-in">
-    <img class="avatar" src="/headshot.jpg" alt="Andrian Than" width="96" height="96" fetchpriority="high" />
-    <h1><span class="w">Hi, I'm</span> <span class="w grad">Andrian<span class="dot">.</span></span></h1>
-    <p class="status">Graduating Spring 2027 · San Jose, CA</p>
-    <div class="chat">
-      <p class="chat-hello">hey there! i build AI agents people can trust. Ask me anything about my work.</p>
-      <IntroTerminal client:idle />
-    </div>
-    <a class="full" href="/terminal">Open the full terminal →</a>
+  <h1 class="vtitle" data-text="Andrian Than">Andrian Than</h1>
+  <p class="vtag">AI engineer · building agents that ship</p>
+  <div class="hero-scene">
+    <Orbits />
+    <AsciiGraph client:visible />
   </div>
+  <div class="chat">
+    <p class="chat-hello">hey there! i build AI agents people can trust. Ask me anything about my work.</p>
+    <IntroTerminal client:idle />
+  </div>
+  <a class="full" href="/terminal">Open the full terminal →</a>
 </header>

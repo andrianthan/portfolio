@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { scrollToSection } from './scrollTo';
 import { useTerminal } from './useTerminal';
+import { pickSuggestions } from './suggestions';
 
 // Real links: they work without JavaScript, and the prompt routes to the same places.
 const TOPICS = [
@@ -10,7 +11,7 @@ const TOPICS = [
   { label: 'Contact', href: '#contact' },
 ];
 
-/** The chat card on the home page's first screen: type a route or a question. */
+/** The chat panel on the home page's first screen: type a route or a question, or pick a suggestion. */
 export default function IntroTerminal() {
   const term = useTerminal({
     autoHelp: false,
@@ -19,6 +20,8 @@ export default function IntroTerminal() {
     quietRefusals: true,
   });
   const out = useRef<HTMLDivElement | null>(null);
+  const [page, setPage] = useState(0);
+  const chips = pickSuggestions(page);
 
   useEffect(() => {
     const element = out.current;
@@ -34,6 +37,7 @@ export default function IntroTerminal() {
             className={`intro-line-out intro-${line.kind}${line.status ? ` intro-${line.status}` : ''}${line.refused ? ' intro-refused' : ''}`}
           >
             {line.kind === 'input' ? <span className="intro-mark">&gt;</span> : null}
+            {line.kind === 'answer' ? <span className="intro-arrow" aria-hidden="true">↳</span> : null}
             <span className="intro-text">{line.text}</span>
             {line.sources && line.sources.length > 0 ? (
               <span className="intro-sources">
@@ -48,13 +52,16 @@ export default function IntroTerminal() {
         ))}
         {term.busy ? <div className="intro-line-out intro-info intro-think">{term.spinner} thinking</div> : null}
       </div>
-      <nav className="topics" aria-label="Topics">
-        {TOPICS.map((topic) => (
-          <a key={topic.href} href={topic.href}>
-            {topic.label}
-          </a>
+      <div className="intro-suggest" role="group" aria-label="Suggested questions">
+        <button type="button" className="intro-refresh" aria-label="Show other questions" onClick={() => setPage((p) => p + 1)}>
+          ↻
+        </button>
+        {chips.map((question) => (
+          <button key={question} type="button" className="intro-chip" disabled={term.busy} onClick={() => void term.submit(question)}>
+            <span aria-hidden="true">↳ </span>{question}
+          </button>
         ))}
-      </nav>
+      </div>
       <form
         className="intro-prompt"
         onSubmit={(event) => {
@@ -78,6 +85,13 @@ export default function IntroTerminal() {
           onKeyDown={term.keyDown}
         />
       </form>
+      <nav className="topics" aria-label="Jump to">
+        {TOPICS.map((topic) => (
+          <a key={topic.href} href={topic.href}>
+            {topic.label}
+          </a>
+        ))}
+      </nav>
     </div>
   );
 }

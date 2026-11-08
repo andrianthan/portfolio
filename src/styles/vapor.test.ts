@@ -46,4 +46,9 @@ describe('vapor scene', () => {
   it('shows the text fallback only without JavaScript', () => {
     expect(vapor).toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
   });
+  it('no longer carries the old hero rules', () => {
+    expect(global).not.toContain('.avatar');
+    expect(global).not.toContain('h1 .w');
+    expect(global).not.toContain('@keyframes bi');
+  });
 });
