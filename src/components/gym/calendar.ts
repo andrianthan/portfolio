@@ -67,10 +67,10 @@ export function phaseSpans(
   });
 }
 
-export function dayLabel(isoDate: string, went: boolean): string {
+export function dayLabel(isoDate: string, went: boolean, future = false): string {
   const [y, m, d] = isoDate.split('-').map(Number);
   const dow = DAY_SHORT[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-  return `${dow}, ${MONTH_SHORT[m - 1]} ${d}, ${y}: ${went ? 'went to the gym' : 'rest day'}`;
+  return `${dow}, ${MONTH_SHORT[m - 1]} ${d}, ${y}: ${future ? 'upcoming' : went ? 'went to the gym' : 'rest day'}`;
 }
 
 /** A year as weeks (columns) by weekdays (rows), Sunday first, for the overview wall. */
@@ -89,4 +89,15 @@ export function weekGrid(year: number, set: Set<string>): { cols: number; cells:
 
 export function formatHours(sessions: number, hoursEach: number): string {
   return `${((sessions * hoursEach) / 1000).toFixed(1)}k`;
+}
+
+/** The day a navigation key moves the roving focus to, or null for any other key. */
+export function nextFocusDay(key: string, focusDay: number, days: number): number | null {
+  const steps: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+  let next: number;
+  if (key in steps) next = focusDay + steps[key];
+  else if (key === 'Home') next = 1;
+  else if (key === 'End') next = days;
+  else return null;
+  return Math.max(1, Math.min(days, next));
 }

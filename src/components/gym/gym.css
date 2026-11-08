@@ -24,7 +24,7 @@
 .gym-cell { aspect-ratio: 1; display: grid; place-items: center; padding: 0; font: 400 12px var(--font-mono); color: var(--color-muted); background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 6px; cursor: default; }
 .gym-blank { aspect-ratio: 1; }
 .gym-went { background: var(--gym-go); border-color: var(--gym-go); color: var(--gym-go-ink); font-weight: 500; }
-.gym-future { opacity: .35; }
+.gym-future { background: transparent; border-style: dashed; }
 .gym-cell:hover, .gym-cell:focus-visible { border-color: var(--color-num); }
 /* the fill: without JS the days stay green; with JS they start empty and fill in order when the grid scrolls into view */
 .js .gym-grid:not(.gym-on) .gym-went { background: var(--color-chip); border-color: var(--color-rule); color: var(--color-muted); }

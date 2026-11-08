@@ -4,7 +4,7 @@ import data from '../../data/gym-checkins.json';
 import { calendarCaption } from '../../data/lifting';
 import YearWall from './YearWall';
 import {
-  MONTH_NAMES, toSet, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel,
+  MONTH_NAMES, toSet, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel, nextFocusDay,
 } from './calendar';
 import type { Cell } from './calendar';
 import './gym.css';
@@ -57,20 +57,18 @@ export default function GymCalendar() {
   const go = useCallback((delta: number) => {
     const next = shiftMonth(cursor, delta);
     if (!within(next)) return;
+    moved.current = false;
     setCursor(next);
     setFocusDay(1);
     setSelected(null);
   }, [cursor]);
 
   const onKey = (e: ReactKeyboardEvent) => {
-    const step = ({ ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 } as Record<string, number>)[e.key];
-    let next = focusDay;
-    if (step !== undefined) next = focusDay + step;
-    else if (e.key === 'Home') next = 1;
-    else if (e.key === 'End') next = view.days;
-    else return;
+    if (e.altKey || e.metaKey || e.ctrlKey) return;
+    const next = nextFocusDay(e.key, focusDay, view.days);
+    if (next === null) return;
     e.preventDefault();
-    next = Math.max(1, Math.min(view.days, next));
+    if (next === focusDay) return;
     moved.current = true;
     setFocusDay(next);
     setSelected(view.cells[next - 1].iso);
@@ -92,6 +90,7 @@ export default function GymCalendar() {
         <select className="gym-year" aria-label="Year" value={cursor.year} onChange={(e) => {
           const y = Number(e.target.value);
           const m = { year: y, month: Math.min(Math.max(cursor.month, y === first.year ? first.month : 0), y === last.year ? last.month : 11) };
+          moved.current = false;
           setCursor(m); setFocusDay(1); setSelected(null);
         }}>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
@@ -113,7 +112,7 @@ export default function GymCalendar() {
                 tabIndex={cell.day === focusDay ? 0 : -1}
                 className={`gym-cell${cell.went ? ' gym-went' : ''}${cell.future ? ' gym-future' : ''}`}
                 style={cell.went ? ({ '--d': `${Math.min(order++ * 45, 1500)}ms` } as CSSProperties) : undefined}
-                aria-label={dayLabel(cell.iso, cell.went)}
+                aria-label={dayLabel(cell.iso, cell.went, cell.future)}
                 onMouseEnter={() => setSelected(cell.iso)}
                 onFocus={() => { setFocusDay(cell.day); setSelected(cell.iso); }}
                 onClick={() => { setFocusDay(cell.day); setSelected(cell.iso); }}
@@ -122,7 +121,7 @@ export default function GymCalendar() {
           </div>
         ))}
       </div>
-      <p className="gym-status" aria-live="polite">{picked ? dayLabel(picked.iso, picked.went) : ' '}</p>
+      <p className="gym-status" aria-live="polite">{picked ? dayLabel(picked.iso, picked.went, picked.future) : ' '}</p>
 
       <p className="gym-wall-note">{data.dates.length} check-ins since June 2022</p>
       <YearWall />

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import data from '../../data/gym-checkins.json';
 import {
-  MONTH_NAMES, toSet, daysInMonth, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel, weekGrid, formatHours,
+  MONTH_NAMES, toSet, daysInMonth, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel, weekGrid, formatHours, nextFocusDay,
 } from './calendar';
 
 const set = toSet(data.dates);
@@ -80,6 +80,9 @@ describe('dayLabel', () => {
     expect(dayLabel('2025-08-01', true)).toBe('Fri, Aug 1, 2025: went to the gym');
     expect(dayLabel('2025-08-06', false)).toBe('Wed, Aug 6, 2025: rest day');
   });
+  it('calls days that have not happened yet upcoming, not rest days', () => {
+    expect(dayLabel('2026-11-10', false, true)).toBe('Tue, Nov 10, 2026: upcoming');
+  });
 });
 
 describe('weekGrid', () => {
@@ -98,5 +101,26 @@ describe('formatHours', () => {
   it('rounds to one decimal in thousands', () => {
     expect(formatHours(861, 1.9)).toBe('1.6k');
     expect(formatHours(1000, 2)).toBe('2.0k');
+  });
+});
+
+describe('nextFocusDay', () => {
+  it('maps each navigation key', () => {
+    expect(nextFocusDay('ArrowLeft', 10, 30)).toBe(9);
+    expect(nextFocusDay('ArrowRight', 10, 30)).toBe(11);
+    expect(nextFocusDay('ArrowUp', 10, 30)).toBe(3);
+    expect(nextFocusDay('ArrowDown', 10, 30)).toBe(17);
+    expect(nextFocusDay('Home', 10, 30)).toBe(1);
+    expect(nextFocusDay('End', 10, 30)).toBe(30);
+  });
+  it('clamps to 1..days', () => {
+    expect(nextFocusDay('ArrowLeft', 1, 30)).toBe(1);
+    expect(nextFocusDay('ArrowUp', 3, 30)).toBe(1);
+    expect(nextFocusDay('ArrowRight', 30, 30)).toBe(30);
+    expect(nextFocusDay('ArrowDown', 28, 30)).toBe(30);
+  });
+  it('returns null for other keys', () => {
+    expect(nextFocusDay('Tab', 5, 30)).toBeNull();
+    expect(nextFocusDay('Enter', 5, 30)).toBeNull();
   });
 });

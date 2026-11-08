@@ -30,4 +30,8 @@ describe('GymCalendar', () => {
     expect(html).toContain('Summer 2022: slower start');
     expect(html).toContain('861 check-ins since June 2022');
   });
+  it('calls future days upcoming, never rest days', () => {
+    expect(html).toContain('Tue, Nov 10, 2026: upcoming');
+    expect(html).not.toContain('Nov 10, 2026: rest day');
+  });
 });
