@@ -10,6 +10,7 @@
     "build": "astro build && node scripts/check-build.mjs",
     "preview": "astro preview",
     "test": "vitest run",
+    "typecheck": "astro check",
     "eval": "vitest run src/agent/golden.test.ts"
   },
   "dependencies": {
@@ -21,9 +22,11 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "gray-matter": "^4.0.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.12"
   }
 }
