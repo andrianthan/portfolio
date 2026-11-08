@@ -13,7 +13,7 @@ describe('personal automation copy', () => {
     ]);
   });
   it('claims no numbers, accounts or institutions (only what was confirmed)', () => {
-    const all = automation.cards.map((c) => `${c.name} ${c.tag} ${c.text}`).join(' ');
+    const all = [automation.eyebrow, automation.heading, ...automation.cards.map((c) => `${c.name} ${c.tag} ${c.text}`)].join(' ');
     expect(all).not.toMatch(/\d/);
     expect(all.toLowerCase()).not.toMatch(/bank|account|plaid|card|balance|\$/);
   });
