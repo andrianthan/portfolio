@@ -2,51 +2,8 @@
 
 * { box-sizing: border-box; }
 html, body { overflow-x: clip; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 body { margin: 0; background: var(--color-bg); color: var(--color-fg); font: 400 17px/1.65 var(--font-sans); -webkit-font-smoothing: antialiased; position: relative; }
-/* the cursor field: two layers behind everything, both held in the viewport so they
-   stay put (and stay aligned with each other) while the page scrolls.
-   the quiet grid drifts with a transform, which the compositor does on its own. the
-   field layer repaints itself on every pointer update (about 0.9ms measured). the
-   page's content is never repainted. */
-body::before, body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; }
-
-/* the quiet grid: the same 24px dot tile as before, drifting against the pointer.
-   the inset leaves room for the worst-case drift (0.3% of the larger viewport
-   dimension), so a translated layer never shows an edge. the tile starts at the
-   viewport origin, which is where the field's tile starts too */
-body::before {
-  inset: -0.4vmax;
-  background: radial-gradient(var(--color-dot) 1.1px, transparent 1.1px) 0.4vmax 0.4vmax / 24px 24px;
-  -webkit-mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%); mask-image: linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
-  /* the fade covers the viewport, so the field can fade with it */
-  mask-size: 100% 100vh; mask-position: 0 0.4vmax; mask-repeat: no-repeat;
-  transform: translate3d(calc((var(--mx, 50vw) - 50vw) * -0.006), calc((var(--my, 50vh) - 50vh) * -0.006), 0); }
-
-/* the field: bigger, brighter dots and the glow, masked to a soft patch around the
-   pointer. the tile carries the same drift as the grid, so the lit dots land on the
-   quiet ones instead of crossing them */
-body::after {
-  inset: 0;
-  background:
-    radial-gradient(circle 300px at var(--mx, 50vw) var(--my, 50vh), var(--color-glow), transparent 70%),
-    radial-gradient(color-mix(in srgb, var(--color-num) 50%, transparent) 1.7px, transparent 1.7px) calc((var(--mx, 50vw) - 50vw) * -0.006) calc((var(--my, 50vh) - 50vh) * -0.006) / 24px 24px;
-  -webkit-mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%); mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%);
-  opacity: 0; transition: opacity .45s ease-out .25s; }
-/* the field fades down with the grid, so the lit dots never outlive the quiet dots
-   they are lighting up. only where the two masks can be intersected */
-@supports (mask-composite: intersect) {
-  body::after {
-    -webkit-mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%), linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
-    mask-image: radial-gradient(circle 460px at var(--mx, 50vw) var(--my, 50vh), var(--color-mask) 0%, transparent 72%), linear-gradient(to bottom, var(--color-mask) 0%, transparent 95%);
-    mask-composite: intersect; } }
-/* the field is lit while the pointer is over the page. the root element's hover
-   region is the viewport, so the scrollbar (which sits outside the content box but
-   inside the viewport) does not un-light it. the fade-out waits a moment and the
-   fade-in does not, so a stray hover loss cannot flicker the field */
-html:hover body::after { opacity: 1; transition: opacity .18s ease-out; }
-/* without JS the field stays lit and inert, resting on its centred fallback */
-html:not(.js) body::after { opacity: 1; transition: none; }
 a { color: var(--color-accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
@@ -311,10 +268,6 @@ header.ph { padding: 48px 0 var(--space-lg); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  /* the field is frozen: the grid stops drifting and the field is a fixed, soft glow.
-     the hovered selector is repeated so it wins over the hover rule above */
-  body::before { transform: none; }
-  body::after, html:hover body::after { opacity: 1; transition: none; background-image: radial-gradient(circle 300px at 50vw 50vh, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
   h1 .w { animation: none; opacity: 1; filter: none; transform: none; }
   .intro-think::after, .intro-answer, .intro-trace { animation: none; }
   /* the foreground is still: the gradient stops drifting, the sweeps land at once
@@ -345,10 +298,4 @@ header.ph { padding: 48px 0 var(--space-lg); }
   .globe-node { will-change: auto; }
   /* drag does nothing under reduced motion, so do not offer the grab cursor */
   .globe, .globe:active { cursor: default; }
-}
-
-/* a touch screen has no cursor to follow: the field falls back to the site's original
-   top glow, so a phone keeps the look it always had */
-@media (hover: none) {
-  body::after { opacity: 1; background-image: radial-gradient(ellipse 60% 45% at 50% 0%, var(--color-glow), transparent 70%); -webkit-mask-image: none; mask-image: none; }
 }

@@ -1,0 +1,39 @@
+/* ---- backdrop: a space system behind everything ---- */
+.vb { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.vb i { position: absolute; inset: -4%; display: block; will-change: transform; }
+.vb-neb {
+  background:
+    radial-gradient(ellipse 60% 50% at 18% 12%, var(--color-neb-a), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 85% 70%, var(--color-neb-b), transparent 72%);
+  transform: translate3d(calc(var(--nx, 0) * -4px), calc(var(--ny, 0) * -3px), 0);
+}
+.vb-far {
+  background-image:
+    radial-gradient(1px 1px at 14px 22px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 96px 71px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 151px 133px, var(--color-star), transparent);
+  background-size: 173px 157px; opacity: .55;
+  transform: translate3d(calc(var(--nx, 0) * -8px), calc(var(--ny, 0) * -6px), 0);
+}
+.vb-mid {
+  background-image:
+    radial-gradient(1px 1px at 40px 60px, var(--color-star), transparent),
+    radial-gradient(1.2px 1.2px at 180px 150px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 120px 20px, var(--color-star), transparent);
+  background-size: 241px 223px; opacity: .8;
+  transform: translate3d(calc(var(--nx, 0) * -16px), calc(var(--ny, 0) * -12px), 0);
+}
+.vb-near {
+  background-image:
+    radial-gradient(1.6px 1.6px at 70px 90px, var(--color-star), transparent),
+    radial-gradient(1.4px 1.4px at 260px 200px, var(--color-star), transparent);
+  background-size: 331px 307px;
+  transform: translate3d(calc(var(--nx, 0) * -30px), calc(var(--ny, 0) * -22px), 0);
+}
+/* the vignette and the scanlines sit over the stars and under the content */
+.vb::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 65% at 50% 38%, transparent 55%, var(--color-vig)); }
+.vb::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--color-scan) 2px 3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vb i { will-change: auto; transform: none; }
+}

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import '../styles/vapor.css';
 import Analytics from '@vercel/analytics/astro';
 import '@fontsource-variable/orbitron/index.css';
 import '@fontsource/silkscreen/400.css';
@@ -33,6 +34,7 @@ const og = new URL(ogImage, Astro.site).toString();
     </script>
   </head>
   <body>
+    <div class="vb" aria-hidden="true"><i class="vb-neb"></i><i class="vb-far"></i><i class="vb-mid"></i><i class="vb-near"></i></div>
     <slot />
     <Analytics />
     <script>import '../scripts/enhance.ts';</script>
