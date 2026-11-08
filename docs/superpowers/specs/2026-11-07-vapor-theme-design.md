@@ -38,7 +38,7 @@ by anchor links, not by switching views.
   control sits at the right.
 - **Title:** "ANDRIAN THAN", wide techno face, lavender-white fill, soft violet glow,
   offset deep-indigo shadow, horizontal scanline cut-outs.
-- **Tagline:** "AI engineer · building agents that ship", light-violet pixel type.
+- **Tagline:** "AI Software Engineer · building agents that ship", light-violet pixel type.
 - **Backdrop (a space system, deliberately not the reference's grid floor):**
   the agent graph is the system's sun. Around it, a few concentric orbit
   rings drawn as tilted ellipses (CSS 3D transform), each with a small
