@@ -60,7 +60,7 @@ describe('globe drag', () => {
     expect(clampPitch(0.5)).toBe(0.5);
   });
   it('maps drag pixels to radians by radius', () => {
-    expect(dragToAngle(100, 50, 300)).toEqual({ dRy: 100 / 300, dRx: 50 / 300 });
+    expect(dragToAngle(100, 50, 300)).toEqual({ dRy: 100 / 300, dRx: -50 / 300 });
   });
   it('eases the auto-spin out while held and back in after release', () => {
     expect(spinEase(0, null)).toBe(1);

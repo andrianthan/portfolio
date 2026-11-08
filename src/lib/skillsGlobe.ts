@@ -74,9 +74,14 @@ export function clampPitch(rx: number): number {
 /**
  * Map a pointer drag in pixels to yaw/pitch deltas in radians. A drag across
  * the full radius of the globe is a quarter turn of the sphere.
+ *
+ * Dragging right (dxPx > 0) increases the yaw, so the front face follows the
+ * finger. Dragging down (dyPx > 0) *decreases* the pitch, because in this
+ * projection a larger pitch lifts the front face up the screen; negating it
+ * makes the front face move down with the finger, matching the yaw axis.
  */
 export function dragToAngle(dxPx: number, dyPx: number, radiusPx: number): { dRy: number; dRx: number } {
-  return { dRy: dxPx / radiusPx, dRx: dyPx / radiusPx };
+  return { dRy: dxPx / radiusPx, dRx: -dyPx / radiusPx };
 }
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
