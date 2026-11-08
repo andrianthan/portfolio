@@ -31,6 +31,43 @@ Every cold open rebuilt its data on the request path, against several backends, 
 
 ### Architecture
 
+<figure class="arch">
+<svg viewBox="0 0 640 230" role="img" aria-label="Dashboard architecture. The browser reads through a stale-while-revalidate frontend cache to a read-only API, which serves the last good copy from a warm registry backed by an atomic disk snapshot shared by every worker. Builds happen off the request path: a weekly ETL that fails loud feeds pooled backends, a single-flight startup build fills the registry, and a memory ceiling stops hot-part warming.">
+<defs><marker id="at1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<rect x="266" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="530" y="30" width="108" height="56" rx="10"/>
+<rect x="2" y="150" width="108" height="56" rx="10"/>
+<rect x="134" y="150" width="108" height="56" rx="10"/>
+<rect x="266" y="150" width="108" height="56" rx="10"/>
+<g stroke-dasharray="5 4"><rect x="398" y="150" width="108" height="56" rx="10"/></g>
+<path d="M110 58H134" marker-end="url(#at1)"/>
+<path d="M242 58H266" marker-end="url(#at1)"/>
+<path d="M374 58H398" marker-end="url(#at1)"/>
+<path d="M506 58H530" marker-end="url(#at1)"/>
+<path d="M110 178H134" marker-end="url(#at1)"/>
+<path d="M242 178H266" marker-end="url(#at1)"/>
+<path d="M320 150V118H430V86" marker-end="url(#at1)"/>
+<path d="M470 150V86" marker-end="url(#at1)" stroke-dasharray="5 4"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Browser</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">planner</text>
+<text x="188" y="56" font-weight="600">SWR cache</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">gzip, lazy charts</text>
+<text x="320" y="56" font-weight="600">API</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">request path reads</text>
+<text x="452" y="56" font-weight="600">Warm registry</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">last good copy</text>
+<text x="584" y="56" font-weight="600">Disk snapshot</text><text x="584" y="72" font-size="11" style="fill:var(--color-muted)">atomic, shared</text>
+<text x="56" y="176" font-weight="600">Weekly ETL</text><text x="56" y="192" font-size="11" style="fill:var(--color-muted)">fails loud</text>
+<text x="188" y="176" font-weight="600">Backends</text><text x="188" y="192" font-size="11" style="fill:var(--color-muted)">pooled, DuckDB</text>
+<text x="320" y="176" font-weight="600">Startup build</text><text x="320" y="192" font-size="11" style="fill:var(--color-muted)">single-flight</text>
+<text x="452" y="176" font-weight="600">Memory ceiling</text><text x="452" y="192" font-size="11" style="fill:var(--color-muted)">stops hot warming</text>
+</g>
+</svg>
+<figcaption>Dashboard architecture</figcaption>
+</figure>
+
 The rule behind the design is that the request path only reads, and all building happens at startup or in the background.
 
 - **Warm at startup, never build per request.** A request gets the last good copy, or a "warming up" response in milliseconds while the first build finishes.
@@ -85,6 +122,43 @@ To understand one part, planners pulled each view from a separate report: consum
 
 ### Architecture
 
+<figure class="arch">
+<svg viewBox="0 0 640 230" role="img" aria-label="Part Summary architecture. A part search opens a sub-tab, which asks a single-flight slice loader for only its own slice. The loader queries the backend through pooled SQL clients, demand comes back aggregated to weeks, results stream in with a retry on timeout, and the sub-tab view renders them, with an LLM writing the Overview insights.">
+<defs><marker id="at2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<rect x="266" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="530" y="30" width="108" height="56" rx="10"/>
+<rect x="2" y="150" width="108" height="56" rx="10"/>
+<rect x="134" y="150" width="108" height="56" rx="10"/>
+<rect x="266" y="150" width="108" height="56" rx="10"/>
+<rect x="398" y="150" width="108" height="56" rx="10"/>
+<path d="M110 58H134" marker-end="url(#at2)"/>
+<path d="M242 58H266" marker-end="url(#at2)"/>
+<path d="M374 58H398" marker-end="url(#at2)"/>
+<path d="M506 58H530" marker-end="url(#at2)"/>
+<path d="M584 86V178H506" marker-end="url(#at2)"/>
+<path d="M398 178H374" marker-end="url(#at2)"/>
+<path d="M266 178H242" marker-end="url(#at2)"/>
+<path d="M134 178H110" marker-end="url(#at2)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Part search</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">one part</text>
+<text x="188" y="56" font-weight="600">Sub-tab</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">asks for its slice</text>
+<text x="320" y="56" font-weight="600">Slice loader</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">single-flight</text>
+<text x="452" y="56" font-weight="600">Pooled SQL</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">reused clients</text>
+<text x="584" y="56" font-weight="600">Backend</text><text x="584" y="72" font-size="11" style="fill:var(--color-muted)">can be slow</text>
+<text x="56" y="176" font-weight="600">Insight writer</text><text x="56" y="192" font-size="11" style="fill:var(--color-muted)">LLM, Overview</text>
+<text x="188" y="176" font-weight="600">Sub-tab view</text><text x="188" y="192" font-size="11" style="fill:var(--color-muted)">chart or matrix</text>
+<text x="320" y="176" font-weight="600">Stream in</text><text x="320" y="192" font-size="11" style="fill:var(--color-muted)">retry on timeout</text>
+<text x="452" y="176" font-weight="600">Weekly demand</text><text x="452" y="192" font-size="11" style="fill:var(--color-muted)">aggregated</text>
+</g>
+</svg>
+<figcaption>Part Summary architecture</figcaption>
+</figure>
+
 Part Summary loads only what the open sub-tab needs, and loads it in a way that survives a slow backend.
 
 - **Slices per sub-tab.** Each sub-tab fetches its own slice, so opening Overview does not pay for the matrices.
@@ -126,6 +200,53 @@ Demand planners were already asking an LLM questions about consumption data, and
 - **Grades every change in CI.** Routing, metric and grounding changes are graded against a golden set, and the set includes a fabricated number that must fail grounding.
 
 ### Architecture
+
+<figure class="arch">
+<svg viewBox="0 0 640 340" role="img" aria-label="Ask SDP architecture. A question passes a routing floor in code before the model, tools run in parallel, a typed verdict is computed in code from the tool results, the LLM writes the draft, and an output rail strips any number with no source before the answer ships. Below, every pull request runs a golden set with a negative control through routing, metrics and grounding gates, every branch deploys to its own staging, and merging to main is the only path to production.">
+<defs><marker id="at3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<rect x="266" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="530" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="150" width="108" height="56" rx="10"/>
+<rect x="530" y="150" width="108" height="56" rx="10"/>
+<rect x="2" y="260" width="108" height="56" rx="10"/>
+<rect x="134" y="260" width="108" height="56" rx="10"/>
+<rect x="266" y="260" width="108" height="56" rx="10"/>
+<rect x="398" y="260" width="108" height="56" rx="10"/>
+<rect x="530" y="260" width="108" height="56" rx="10"/>
+<path d="M110 58H134" marker-end="url(#at3)"/>
+<path d="M242 58H266" marker-end="url(#at3)"/>
+<path d="M374 58H398" marker-end="url(#at3)"/>
+<path d="M506 58H530" marker-end="url(#at3)"/>
+<path d="M320 86V178H398" marker-end="url(#at3)"/>
+<path d="M452 150V86" marker-end="url(#at3)"/>
+<path d="M506 168H530" marker-end="url(#at3)" stroke-dasharray="5 4"/>
+<path d="M584 86V150" marker-end="url(#at3)"/>
+<path d="M110 288H134" marker-end="url(#at3)"/>
+<path d="M242 288H266" marker-end="url(#at3)"/>
+<path d="M374 288H398" marker-end="url(#at3)"/>
+<path d="M506 288H530" marker-end="url(#at3)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Question</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">plain language</text>
+<text x="188" y="56" font-weight="600">Routing floor</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">code, mandatory</text>
+<text x="320" y="56" font-weight="600">Tools</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">in parallel</text>
+<text x="452" y="56" font-weight="600">LLM writer</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">drafts the answer</text>
+<text x="584" y="56" font-weight="600">Output rail</text><text x="584" y="72" font-size="11" style="fill:var(--color-muted)">checks numbers</text>
+<text x="452" y="176" font-weight="600">Typed verdict</text><text x="452" y="192" font-size="11" style="fill:var(--color-muted)">computed in code</text>
+<text x="584" y="176" font-weight="600">Answer</text><text x="584" y="192" font-size="11" style="fill:var(--color-muted)">sourced figures</text>
+<text x="56" y="286" font-weight="600">Golden set</text><text x="56" y="302" font-size="11" style="fill:var(--color-muted)">+ negative control</text>
+<text x="188" y="286" font-weight="600">CI gates</text><text x="188" y="302" font-size="11" style="fill:var(--color-muted)">per pull request</text>
+<text x="320" y="286" font-weight="600">Branch staging</text><text x="320" y="302" font-size="11" style="fill:var(--color-muted)">every branch</text>
+<text x="452" y="286" font-weight="600">Main</text><text x="452" y="302" font-size="11" style="fill:var(--color-muted)">only path</text>
+<text x="584" y="286" font-weight="600">Production</text><text x="584" y="302" font-size="11" style="fill:var(--color-muted)">after merge</text>
+</g>
+</svg>
+<figcaption>Ask SDP architecture</figcaption>
+</figure>
 
 The shape is a pipeline with one mandatory gate, wrapped in a CI pipeline that grades it on every change.
 
@@ -175,6 +296,40 @@ Firming a forecast used to mean exporting a CSV, filling in a template and uploa
 
 ### Architecture
 
+<figure class="arch">
+<svg viewBox="0 0 640 230" role="img" aria-label="Forecast Lab architecture. Selected parts go to a warm Chronos-2 runner in one batch call. Shaping and buffer layers sit on top of the generated forecast without changing the model, Firm Selected shows a dry-run preview, and only a planner commit writes to the firming system. A failed batch returns a loud error instead of an empty overlay.">
+<defs><marker id="at4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<rect x="266" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="530" y="30" width="108" height="56" rx="10"/>
+<g stroke-dasharray="5 4"><rect x="266" y="150" width="108" height="56" rx="10"/></g>
+<rect x="398" y="150" width="108" height="56" rx="10"/>
+<rect x="530" y="150" width="108" height="56" rx="10"/>
+<path d="M110 58H134" marker-end="url(#at4)"/>
+<path d="M242 58H266" marker-end="url(#at4)"/>
+<path d="M374 58H398" marker-end="url(#at4)"/>
+<path d="M506 58H530" marker-end="url(#at4)"/>
+<path d="M584 86V150" marker-end="url(#at4)"/>
+<path d="M530 178H506" marker-end="url(#at4)"/>
+<path d="M320 86V150" marker-end="url(#at4)" stroke-dasharray="5 4"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Selected parts</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">watchlist</text>
+<text x="188" y="56" font-weight="600">Batch request</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">one call</text>
+<text x="320" y="56" font-weight="600">Warm runner</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">Chronos-2 loaded</text>
+<text x="452" y="56" font-weight="600">Shaping layers</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">shaping, buffer</text>
+<text x="584" y="56" font-weight="600">Dry-run</text><text x="584" y="72" font-size="11" style="fill:var(--color-muted)">shows the change</text>
+<text x="320" y="176" font-weight="600">Loud failure</text><text x="320" y="192" font-size="11" style="fill:var(--color-muted)">error, not blank</text>
+<text x="452" y="176" font-weight="600">Firming system</text><text x="452" y="192" font-size="11" style="fill:var(--color-muted)">only write</text>
+<text x="584" y="176" font-weight="600">Commit</text><text x="584" y="192" font-size="11" style="fill:var(--color-muted)">planner confirms</text>
+</g>
+</svg>
+<figcaption>Forecast Lab architecture</figcaption>
+</figure>
+
 Generating a forecast and writing one are separate paths, because a forecast is cheap to regenerate and expensive to undo.
 
 - **A warm Chronos-2 runner.** The model stays loaded, so a request does not pay the start-up cost.
@@ -220,6 +375,40 @@ Campaign demand inflates a part's history, and when a campaign winds down the fo
 - **Sends weekly notices.** One email per planner with only their parts, a consolidated copy to the team, and one listing bulletin demand missing from the campaign list. 6 planners receive alerts.
 
 ### Architecture
+
+<figure class="arch">
+<svg viewBox="0 0 640 230" role="img" aria-label="Campaigns architecture. Campaign and service data land in one snapshot of campaign-linked parts. The wind-down gate compares pace share, best of three windows, against a threshold; uncertain parts are held for verification, and the actionable list feeds the four views and per-planner weekly notices. A completion simulator reads the same snapshot for P10, P50 and P90 dates.">
+<defs><marker id="at5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<rect x="266" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="530" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="150" width="108" height="56" rx="10"/>
+<g stroke-dasharray="5 4"><rect x="398" y="150" width="108" height="56" rx="10"/></g>
+<rect x="530" y="150" width="108" height="56" rx="10"/>
+<path d="M110 58H134" marker-end="url(#at5)"/>
+<path d="M242 58H266" marker-end="url(#at5)"/>
+<path d="M374 58H398" marker-end="url(#at5)"/>
+<path d="M506 58H530" marker-end="url(#at5)"/>
+<path d="M188 86V150" marker-end="url(#at5)"/>
+<path d="M320 86V178H398" marker-end="url(#at5)" stroke-dasharray="5 4"/>
+<path d="M490 86V118H584V150" marker-end="url(#at5)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Campaign data</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">parts, service</text>
+<text x="188" y="56" font-weight="600">Snapshot</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">one, shared</text>
+<text x="320" y="56" font-weight="600">Wind-down gate</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">best of three</text>
+<text x="452" y="56" font-weight="600">Actionable</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">alert parts</text>
+<text x="584" y="56" font-weight="600">Views</text><text x="584" y="72" font-size="11" style="fill:var(--color-muted)">four, CSV export</text>
+<text x="188" y="176" font-weight="600">Simulator</text><text x="188" y="192" font-size="11" style="fill:var(--color-muted)">P10/P50/P90</text>
+<text x="452" y="176" font-weight="600">Held</text><text x="452" y="192" font-size="11" style="fill:var(--color-muted)">for verification</text>
+<text x="584" y="176" font-weight="600">Weekly notices</text><text x="584" y="192" font-size="11" style="fill:var(--color-muted)">one per planner</text>
+</g>
+</svg>
+<figcaption>Campaigns architecture</figcaption>
+</figure>
 
 The gate, the views and the notices read the same snapshot of campaign-linked parts, so every planner sees the same numbers.
 
@@ -273,6 +462,40 @@ The executive deck was assembled by hand from queries that drifted between runs,
 
 ### Architecture
 
+<figure class="arch">
+<svg viewBox="0 0 640 250" role="img" aria-label="Slideshow architecture. A weekly GitHub Actions run, whose schedule was later stopped, pulls the week's demand data and builds tables that are verified before anything reads them. The verified tables are the one source for the in-app Regenerate button, which rebuilds the executive deck as a PPTX, and for the accessories KPIs and the Part Miss by Lag CSV.">
+<defs><marker id="at6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<g stroke-dasharray="5 4"><rect x="2" y="100" width="108" height="56" rx="10"/></g>
+<rect x="134" y="100" width="108" height="56" rx="10"/>
+<rect x="266" y="100" width="108" height="56" rx="10"/>
+<rect x="398" y="100" width="108" height="56" rx="10"/>
+<rect x="398" y="10" width="108" height="56" rx="10"/>
+<rect x="530" y="10" width="108" height="56" rx="10"/>
+<rect x="530" y="100" width="108" height="56" rx="10"/>
+<rect x="530" y="190" width="108" height="56" rx="10"/>
+<path d="M110 128H134" marker-end="url(#at6)"/>
+<path d="M242 128H266" marker-end="url(#at6)"/>
+<path d="M374 128H398" marker-end="url(#at6)"/>
+<path d="M452 100V66" marker-end="url(#at6)"/>
+<path d="M506 38H530" marker-end="url(#at6)"/>
+<path d="M506 128H530" marker-end="url(#at6)"/>
+<path d="M506 146C518 146 518 218 530 218" marker-end="url(#at6)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="126" font-weight="600">Weekly run</text><text x="56" y="142" font-size="11" style="fill:var(--color-muted)">schedule stopped</text>
+<text x="188" y="126" font-weight="600">Build tables</text><text x="188" y="142" font-size="11" style="fill:var(--color-muted)">week's demand</text>
+<text x="320" y="126" font-weight="600">Verify</text><text x="320" y="142" font-size="11" style="fill:var(--color-muted)">before any read</text>
+<text x="452" y="126" font-weight="600">Verified set</text><text x="452" y="142" font-size="11" style="fill:var(--color-muted)">one source</text>
+<text x="452" y="36" font-weight="600">Regenerate</text><text x="452" y="52" font-size="11" style="fill:var(--color-muted)">in-app button</text>
+<text x="584" y="36" font-weight="600">Executive deck</text><text x="584" y="52" font-size="11" style="fill:var(--color-muted)">PPTX download</text>
+<text x="584" y="126" font-weight="600">KPI files</text><text x="584" y="142" font-size="11" style="fill:var(--color-muted)">accessories</text>
+<text x="584" y="216" font-weight="600">Weekly CSV</text><text x="584" y="232" font-size="11" style="fill:var(--color-muted)">Part Miss by Lag</text>
+</g>
+</svg>
+<figcaption>Slideshow generation architecture</figcaption>
+</figure>
+
 The deck and the KPI files came from one weekly run, so the number in the deck matched the number in the app.
 
 - **A weekly GitHub Actions run.** It pulled the week's demand data and built the tables.
@@ -312,6 +535,40 @@ The app had grown screen-first: features reached directly into whatever data the
 - **A visual harness guards the refactor.** A deterministic 28-shot visual harness catches unintended changes.
 
 ### Architecture
+
+<figure class="arch">
+<svg viewBox="0 0 640 230" role="img" aria-label="Modular architecture. Each tab is a manifest plus one frontend file. The shell reads the manifests at start-up and discovers the tabs, imports each in isolation, checks the runtime kill switch, and mounts the tab behind sign-in. A tab whose import fails is skipped and reported, and mounted screens reach data only through a lint-guarded data-client facade.">
+<defs><marker id="at7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<rect x="266" y="30" width="108" height="56" rx="10"/>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="530" y="30" width="108" height="56" rx="10"/>
+<g stroke-dasharray="5 4"><rect x="266" y="150" width="108" height="56" rx="10"/></g>
+<rect x="398" y="150" width="108" height="56" rx="10"/>
+<rect x="530" y="150" width="108" height="56" rx="10"/>
+<path d="M110 58H134" marker-end="url(#at7)"/>
+<path d="M242 58H266" marker-end="url(#at7)"/>
+<path d="M374 58H398" marker-end="url(#at7)"/>
+<path d="M506 58H530" marker-end="url(#at7)"/>
+<path d="M320 86V150" marker-end="url(#at7)" stroke-dasharray="5 4"/>
+<path d="M584 86V150" marker-end="url(#at7)"/>
+<path d="M530 178H506" marker-end="url(#at7)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Tab manifest</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">+ one front file</text>
+<text x="188" y="56" font-weight="600">Shell</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">auto-discovery</text>
+<text x="320" y="56" font-weight="600">Import</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">isolated per tab</text>
+<text x="452" y="56" font-weight="600">Kill switch</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">runtime flag</text>
+<text x="584" y="56" font-weight="600">Mounted tab</text><text x="584" y="72" font-size="11" style="fill:var(--color-muted)">behind sign-in</text>
+<text x="320" y="176" font-weight="600">Skipped</text><text x="320" y="192" font-size="11" style="fill:var(--color-muted)">and reported</text>
+<text x="452" y="176" font-weight="600">Backend data</text><text x="452" y="192" font-size="11" style="fill:var(--color-muted)">one data client</text>
+<text x="584" y="176" font-weight="600">Data facade</text><text x="584" y="192" font-size="11" style="fill:var(--color-muted)">lint-guarded</text>
+</g>
+</svg>
+<figcaption>Modular architecture</figcaption>
+</figure>
 
 The shell owns sign-in, navigation and discovery, and tabs plug into it through a manifest.
 
@@ -363,6 +620,44 @@ Access was managed by editing code, and nobody could see who used the dashboard.
 - **Usage per person.** Active days over 30 days, visits over the last week and the last 30 days, top tab, Ask request count and LLM spend, plus a per-tab LLM usage ledger on the Status view.
 
 ### Architecture
+
+<figure class="arch">
+<svg viewBox="0 0 640 330" role="img" aria-label="Admin architecture. An admin, who manages access without holding full access, edits per-person and per-group grants; every change is written to the audit log, and a default-deny gate that stays off until a server flag is set sits between the grants and the tabs and Ask data a person sees. Separately, the request log is grouped into visits with gaps under 30 minutes for per-person usage, and an LLM ledger records spend per tab for the Status view.">
+<defs><marker id="at8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
+<rect x="2" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="30" width="108" height="56" rx="10"/>
+<g stroke-dasharray="5 4"><rect x="266" y="30" width="108" height="56" rx="10"/></g>
+<rect x="398" y="30" width="108" height="56" rx="10"/>
+<rect x="134" y="130" width="108" height="56" rx="10"/>
+<rect x="2" y="260" width="108" height="56" rx="10"/>
+<rect x="134" y="260" width="108" height="56" rx="10"/>
+<rect x="266" y="260" width="108" height="56" rx="10"/>
+<rect x="398" y="260" width="108" height="56" rx="10"/>
+<rect x="530" y="260" width="108" height="56" rx="10"/>
+<path d="M110 58H134" marker-end="url(#at8)"/>
+<path d="M242 58H266" marker-end="url(#at8)"/>
+<path d="M374 58H398" marker-end="url(#at8)"/>
+<path d="M188 86V130" marker-end="url(#at8)"/>
+<path d="M110 288H134" marker-end="url(#at8)"/>
+<path d="M242 288H266" marker-end="url(#at8)"/>
+<path d="M506 288H530" marker-end="url(#at8)"/>
+</g>
+<g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
+<text x="56" y="56" font-weight="600">Admin</text><text x="56" y="72" font-size="11" style="fill:var(--color-muted)">not full access</text>
+<text x="188" y="56" font-weight="600">Grants</text><text x="188" y="72" font-size="11" style="fill:var(--color-muted)">person, group</text>
+<text x="320" y="56" font-weight="600">Default-deny</text><text x="320" y="72" font-size="11" style="fill:var(--color-muted)">off until flag</text>
+<text x="452" y="56" font-weight="600">Person sees</text><text x="452" y="72" font-size="11" style="fill:var(--color-muted)">tabs, Ask data</text>
+<text x="188" y="156" font-weight="600">Audit log</text><text x="188" y="172" font-size="11" style="fill:var(--color-muted)">every change</text>
+<text x="56" y="286" font-weight="600">Request log</text><text x="56" y="302" font-size="11" style="fill:var(--color-muted)">every request</text>
+<text x="188" y="286" font-weight="600">Visits</text><text x="188" y="302" font-size="11" style="fill:var(--color-muted)">gaps under 30 min</text>
+<text x="320" y="286" font-weight="600">Usage view</text><text x="320" y="302" font-size="11" style="fill:var(--color-muted)">per person</text>
+<text x="452" y="286" font-weight="600">LLM ledger</text><text x="452" y="302" font-size="11" style="fill:var(--color-muted)">spend per tab</text>
+<text x="584" y="286" font-weight="600">Status view</text><text x="584" y="302" font-size="11" style="fill:var(--color-muted)">per-tab spend</text>
+</g>
+</svg>
+<figcaption>Admin architecture</figcaption>
+</figure>
 
 Access rules and usage both sit in the backend, and the Admin views read them.
 
