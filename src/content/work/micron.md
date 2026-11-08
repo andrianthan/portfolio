@@ -26,7 +26,7 @@ Python and Snowflake SQL pipelines that process the manufacturing data, and a wo
 
 ### How it was used
 
-Engineers used it daily to investigate wafer failure rates, including what made a specific wafer fail.
+Used daily by 10+ engineers to investigate wafer failure rates, including what made a specific wafer fail. Explaining one failure went from hours by hand to minutes.
 
 ## Wafer risk model
 
@@ -46,4 +46,4 @@ I back-tested it on earlier failures.
 
 ### How it was used
 
-Engineers used the ranking to decide which wafers to analyze first and to inform yield optimization work.
+The model scored 1,000+ wafers. Engineers used the ranking to decide which wafers to analyze first and to inform yield optimization work.

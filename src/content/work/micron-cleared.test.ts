@@ -16,8 +16,10 @@ describe('the micron entry', () => {
     expect(content).not.toContain('[to confirm]');
   });
 
-  it('carries no digit in the body', () => {
-    expect(content).not.toMatch(/\d/);
+  it('carries only the three confirmed figures: 10+ engineers, 1,000+ wafers, hours to minutes', () => {
+    const numbers = content.match(/\d[\d,]*\+?/g) ?? [];
+    expect(numbers).toEqual(['10+', '1,000+']);
+    expect(content).toContain('from hours by hand to minutes');
   });
 
   it('names no internal tool, system or machine', () => {

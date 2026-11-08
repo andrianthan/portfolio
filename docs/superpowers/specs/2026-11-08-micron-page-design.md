@@ -37,9 +37,11 @@ Not allowed, never on the page or in a demo:
 - Real data, real screenshots, real wafer or lot identifiers.
 - Internal tool, system or machine names. Anything named is written as
   "internal tools" or a generic label ("Tool A").
-- Any figure (wafers scored, accuracy, hours saved, users, data volume).
-  Andrian gave none. The "1k+ hours" tile on the home page already includes
-  Micron and stays as it is.
+- Any figure other than the three Andrian confirmed on 2026-11-08: 10+ engineers
+  used the copilot daily, the risk model scored 1,000+ wafers, and explaining
+  one failure went from hours by hand to minutes. No accuracy or data-volume
+  figure. The "1k+ hours" tile on the home page already includes Micron and
+  stays as it is.
 - Claims about how the model was validated. Andrian has not said; the page
   omits it (see Open items).
 
@@ -148,6 +150,5 @@ pushing.
 - **How the model was checked.** Not said; the page makes no validation claim.
   One line from Andrian (for example "back-tested on earlier failures") would
   let the risk section say it.
-- **Any figure.** None given. If he wants one, it must be his to say.
 - **Resume line.** Whether to update the resume's project title to match the
   page.
