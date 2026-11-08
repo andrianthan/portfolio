@@ -41,4 +41,36 @@ describe('forecast lab logic', () => {
     expect(b).not.toEqual(v);
     expect(backtestSeries([])).toEqual([]);
   });
+  it('keeps the backtest within a bounded deviation of the forecast line', () => {
+    // The backtest is an illustrative prior run, so it must stay close to the
+    // forecast it sits against: at most 8% below it, and at most 5% plus
+    // seven units above it. A change that widens the series fails here.
+    // The series is rounded, so the bounds carry a unit of slack.
+    const values = [120, 480, 940, 2100, 6400, 15];
+    const back = backtestSeries(values);
+    values.forEach((v, i) => {
+      expect(back[i]).toBeLessThanOrEqual(v * 1.05 + 8);
+      expect(back[i]).toBeGreaterThanOrEqual(v * 0.92 - 6);
+    });
+  });
+  it('keeps the backtest within the same bounds for a long series', () => {
+    const values = Array.from({ length: 60 }, (_, i) => 200 + i * 37);
+    const back = backtestSeries(values);
+    values.forEach((v, i) => {
+      expect(back[i]).toBeLessThanOrEqual(v * 1.05 + 8);
+      expect(back[i]).toBeGreaterThanOrEqual(v * 0.92 - 6);
+    });
+  });
+  it('reaches the deviation bounds, so a narrower series fails too', () => {
+    // The bounds are only meaningful if the series actually uses them: a
+    // series that stays closer to the forecast line than the bounds allow
+    // is a change of the same kind as one that strays further.
+    const values = Array.from({ length: 60 }, (_, i) => 200 + i * 37);
+    const back = backtestSeries(values);
+    const rel = values.map((v, i) => (back[i] - v) / v);
+    // The steepest fall reaches the lower bound, and the steepest rise
+    // reaches the upper one.
+    expect(Math.min(...rel)).toBeLessThanOrEqual(-0.075);
+    expect(Math.max(...rel)).toBeGreaterThanOrEqual(0.05);
+  });
 });
