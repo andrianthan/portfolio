@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { problems, pages, entries } = runChecks({
   distDir: path.join(root, 'dist'),
   contentDir: path.join(root, 'src', 'content'),
+  dataFile: path.join(root, 'src', 'data', 'outside.ts'),
 });
 
 if (problems.length) {

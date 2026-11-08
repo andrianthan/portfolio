@@ -11,9 +11,13 @@
 .travel-map .dot-selected circle { fill: var(--color-fg); r: .72px; }
 .travel-list { display: grid; gap: var(--space-sm); grid-template-columns: minmax(0, 1fr); }
 .country { border: 1px solid var(--color-rule); border-radius: 12px; background: var(--color-card); min-width: 0; }
-.country summary { display: flex; justify-content: space-between; gap: var(--space-sm); padding: 12px 16px; cursor: pointer; color: var(--color-fg); font: 400 14px var(--font-mono); }
+.country summary { display: flex; justify-content: space-between; gap: var(--space-sm); padding: 12px 40px 12px 16px; cursor: pointer; color: var(--color-fg); font: 400 14px var(--font-mono); position: relative; }
 .country summary:focus-visible { outline: 2px solid var(--color-num); outline-offset: 2px; border-radius: 12px; }
 .country[open] { border-color: var(--color-num); }
+/* The native disclosure triangle is gone (a `display` on the summary hides it), so the
+   list draws its own: the same arrow the project index uses, flipped when open. */
+.country summary::after { content: "↓"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--color-muted); }
+.country[open] summary::after { content: "↑"; color: var(--color-num); }
 .country-years { color: var(--color-muted); }
 .country-body { padding: 0 16px 16px; }
 .chips { list-style: none; margin: 0 0 var(--space-md); padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
@@ -37,13 +41,15 @@
 @media (min-width: 1024px) {
   .food-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-/* An open country lights its dots on the map (CSS only; no JS needed). */
-.travel:has(details[data-c="KOR"][open]) .travel-map .dot-KOR circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="JPN"][open]) .travel-map .dot-JPN circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="VNM"][open]) .travel-map .dot-VNM circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="TWN"][open]) .travel-map .dot-TWN circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="THA"][open]) .travel-map .dot-THA circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="MEX"][open]) .travel-map .dot-MEX circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="SGP"][open]) .travel-map .dot-SGP circle { fill: var(--color-fg); r: .72px; }
-.travel:has(details[data-c="MYS"][open]) .travel-map .dot-MYS circle { fill: var(--color-fg); r: .72px; }
+/* An open country lights its dots on the map (CSS only; no JS needed).
+   The country codes below are the ones in src/data/outside.ts -- keep the two in step:
+   a new country needs its code added to this list. */
+.travel:has(details[data-c="KOR"][open]) .travel-map .dot-KOR circle,
+.travel:has(details[data-c="JPN"][open]) .travel-map .dot-JPN circle,
+.travel:has(details[data-c="VNM"][open]) .travel-map .dot-VNM circle,
+.travel:has(details[data-c="TWN"][open]) .travel-map .dot-TWN circle,
+.travel:has(details[data-c="THA"][open]) .travel-map .dot-THA circle,
+.travel:has(details[data-c="MEX"][open]) .travel-map .dot-MEX circle,
+.travel:has(details[data-c="SGP"][open]) .travel-map .dot-SGP circle,
+.travel:has(details[data-c="MYS"][open]) .travel-map .dot-MYS circle,
 .travel:has(details[data-c="IDN"][open]) .travel-map .dot-IDN circle { fill: var(--color-fg); r: .72px; }

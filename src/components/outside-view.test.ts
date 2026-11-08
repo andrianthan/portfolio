@@ -34,3 +34,28 @@ describe('Outside nav link', () => {
     expect(r).toBeGreaterThan(o);
   });
 });
+
+describe('Travel map', () => {
+  it('is rendered server-side, not hydrated', () => {
+    const src = read('src/components/Travel.astro');
+    expect(src).toContain('<TravelMap selected={null} />');
+    expect(src).not.toMatch(/<TravelMap[^>]*client:/);
+  });
+  it('lights the dots of the nine countries with one rule', () => {
+    const css = read('src/components/outside.css');
+    const rule = css.match(/\.travel:has\(details\[data-c="KOR"\]\[open\]\)[^{]*\{[^}]*\}/);
+    expect(rule).toBeTruthy();
+    for (const code of ['KOR', 'JPN', 'VNM', 'TWN', 'THA', 'MEX', 'SGP', 'MYS', 'IDN']) {
+      expect(rule![0]).toContain(`details[data-c="${code}"][open]`);
+    }
+    expect(rule![0]).toContain('fill: var(--color-fg); r: .72px;');
+  });
+});
+
+describe('Country list affordance', () => {
+  it('draws a chevron that flips when the details is open', () => {
+    const css = read('src/components/outside.css');
+    expect(css).toMatch(/\.country summary::after \{[^}]*content: "↓"/);
+    expect(css).toMatch(/\.country\[open\] summary::after \{[^}]*content: "↑"/);
+  });
+});

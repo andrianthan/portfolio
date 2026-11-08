@@ -5,7 +5,7 @@ import './outside.css';
 ---
 <div class="travel reveal">
   <header class="out-head"><p class="eyebrow">Travel</p><h3>{headline}</h3></header>
-  <div class="travel-mapwrap"><TravelMap client:visible selected={null} /></div>
+  <div class="travel-mapwrap"><TravelMap selected={null} /></div>
   <div class="travel-list">
     {countries.map((c) => {
       const pics = photosFor(c.name).filter((p) => p.kind === 'travel');
