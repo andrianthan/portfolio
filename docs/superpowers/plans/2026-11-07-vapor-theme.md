@@ -53,7 +53,7 @@
 | `src/components/terminal/IntroTerminal.tsx` (+test) | Suggestion chips, refresh, arrow markers on answers |
 | `src/components/ThemeToggle.tsx` (+test) | "vapor / light" control |
 | `src/layouts/Base.astro` | Fonts, theme script, `.vb` backdrop markup |
-| `src/styles/global.css` | Remove the old cursor field and hero rules; import `vapor.css` |
+| `src/styles/global.css` | Remove the old cursor field and hero rules (vapor.css is imported from `Base.astro`, after it) |
 
 ---
 
@@ -433,7 +433,7 @@ In `clear()` after the two existing `removeProperty` calls add `root.style.remov
 
 **Files:**
 - Create: `src/styles/vapor.css` (backdrop section only in this task), `src/styles/vapor.test.ts`
-- Modify: `src/layouts/Base.astro` (markup), `src/styles/global.css`
+- Modify: `src/layouts/Base.astro` (markup, and the `vapor.css` import after `global.css`), `src/styles/global.css`
 
 **Interfaces:** Consumes tokens `--color-star`, `--color-neb-a/b`, `--color-scan`, `--color-vig`, and `--nx`/`--ny`. Produces `.vb` and its four children (`.vb-neb`, `.vb-far`, `.vb-mid`, `.vb-near`).
 
@@ -463,8 +463,12 @@ describe('vapor backdrop', () => {
   it('has a reduced-motion block that stills the layers', () => {
     expect(vapor).toContain('@media (prefers-reduced-motion: reduce)');
   });
-  it('is imported by global.css and the old cursor field is gone', () => {
-    expect(global).toContain("@import './vapor.css'");
+  it('loads after global.css (so its rules win ties) and the old cursor field is gone', () => {
+    const base = fs.readFileSync(path.join(process.cwd(), 'src/layouts/Base.astro'), 'utf8');
+    expect(base).toContain("import '../styles/vapor.css'");
+    expect(base.indexOf("import '../styles/global.css'")).toBeGreaterThanOrEqual(0);
+    expect(base.indexOf("import '../styles/global.css'")).toBeLessThan(base.indexOf("import '../styles/vapor.css'"));
+    expect(global).not.toContain('vapor.css');
     expect(global).not.toContain('body::before');
     expect(global).not.toContain('html:hover body::after');
     expect(global).not.toContain('(hover: none)');
@@ -544,14 +548,12 @@ s = cut(s, '  /* the field is frozen:', "mask-image: none; }\n")
 # 3. the touch-screen fallback at the end of the file
 a = s.index('/* a touch screen has no cursor to follow:')
 s = s[:a].rstrip() + '\n'
-# 4. pull in the vapor layer right after the tokens
-s = s.replace("@import './tokens.css';", "@import './tokens.css';\n@import './vapor.css';", 1)
 open(p, 'w').write(s)
 EOF
 grep -n "body::before\|body::after\|hover: none" src/styles/global.css || echo clean
 ```
 
-Expected: `clean`. Keep `html { scroll-behavior: smooth; }` and the body rule; add `scroll-padding-top: 72px;` to the `html` rule (the sticky nav in Task 7 needs it).
+Expected: `clean`. Then in `Base.astro` frontmatter add `import '../styles/vapor.css';` on the line right after `import '../styles/global.css';`. It must NOT be an `@import` inside `global.css`: an import there is hoisted above global.css's own rules, so every same-specificity override in `vapor.css` would lose to the older rule. Keep `html { scroll-behavior: smooth; }` and the body rule; add `scroll-padding-top: 72px;` to the `html` rule (the sticky nav in Task 7 needs it).
 
 - [ ] **Step 6: Run `npx vitest run src/styles` then `npm test` → green; `npm run build` → `check-build: ok`.**
 
@@ -852,7 +854,8 @@ Append to `vapor.test.ts`:
 describe('vapor scene', () => {
   it('moves the orbit rings with transform only and stills them under reduced motion', () => {
     expect(vapor).toMatch(/@keyframes orbit\s*\{\s*to\s*\{\s*transform:/);
-    const rm = vapor.slice(vapor.lastIndexOf('@media (prefers-reduced-motion: reduce)'));
+    // later tasks append more reduced-motion blocks, so read all of them
+    const rm = vapor.split('@media (prefers-reduced-motion: reduce)').slice(1).join('\n');
     expect(rm).toMatch(/\.ring\s*\{[^}]*animation:\s*none/);
   });
   it('shows the text fallback only without JavaScript', () => {
@@ -1031,7 +1034,7 @@ const rings = [1, 2, 3, 4];
 }
 ```
 
-If the file already ends with a reduced-motion block from Task 4, keep both blocks (CSS allows several); the test reads the last one.
+If the file already ends with a reduced-motion block from Task 4, keep both blocks (CSS allows several); the test reads all of them.
 
 - [ ] **Step 6: Run `npx vitest run src/components/ascii src/styles` → PASS; `npm test` → green. Commit** `feat: ASCII agent graph island and orbit rings`.
 
@@ -1110,8 +1113,8 @@ Append to `IntroTerminal.test.tsx`:
 ```tsx
 describe('IntroTerminal suggestions', () => {
   it('renders three suggestion chips and a refresh button as buttons', () => {
-    const chips = [...html.matchAll(/<button[^>]*class="intro-chip"[^>]*>([^<]*(?:<!-- -->[^<]*)*)<\/button>/g)];
-    expect(chips.length).toBe(3);
+    expect(html.split('class="intro-chip"').length - 1).toBe(3);
+    expect(html).toMatch(/<button[^>]*class="intro-chip"/);
     expect(html).toContain('aria-label="Show other questions"');
   });
 });
@@ -1257,7 +1260,7 @@ export default function IntroTerminal() {
 }
 ```
 
-The existing test `renders the four topic links` reads anchors only, so the nav's new `aria-label` does not affect it; the existing label test reads the input and stays valid. Fix the new chip test's regex if React's static markup differs (inspect `html`); the assertion that matters is "three buttons with class `intro-chip`".
+The existing test `renders the four topic links` reads anchors only, so the nav's new `aria-label` does not affect it; the existing label test reads the input and stays valid. The chip test counts `class="intro-chip"` occurrences; if React's static markup orders attributes differently, adjust the `toMatch` only.
 
 - [ ] **Step 6: Replace `Hero.astro`**
 
@@ -1457,7 +1460,7 @@ h2 { font: 400 12px var(--font-pixel); letter-spacing: .14em; color: var(--color
 .stat span { color: var(--color-muted); }
 
 /* ---- surfaces ---- */
-.chat, .dec, .node, .meta, .prose pre, .qa { box-shadow: 0 0 28px -16px var(--color-glow); }
+.dec, .node, .meta, .prose pre, .qa { box-shadow: 0 0 28px -16px var(--color-glow); }
 .dec, .node { background: var(--color-card); border-color: var(--color-rule); }
 .job.now::before { box-shadow: 0 0 0 5px var(--color-glow), 0 0 14px var(--color-glow); }
 .shot { background: var(--color-chip); }
