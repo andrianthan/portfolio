@@ -181,6 +181,25 @@ describe('mobile nav layout', () => {
     const link = block.match(/\.vnav a\s*\{[^}]*\}/)?.[0] ?? '';
     expect(link).toContain('white-space: nowrap');
   });
+
+  it('lays the six nav links out as exactly two rows of three, at 320, 375 and 414 px', () => {
+    const bar = fs.readFileSync(path.join(process.cwd(), 'src/components/TopBar.astro'), 'utf8');
+    const nav = bar.match(/<nav class="vnav"[\s\S]*?<\/nav>/)?.[0] ?? '';
+    // The links are the only children of the nav, so nothing else takes a cell.
+    const cells = nav.match(/<a /g) ?? [];
+    expect(cells).toHaveLength(6);
+
+    // The small-screen block is the one that applies at 320, 375 and 414 px.
+    const block = mediaBlock('@media (max-width: 639px)');
+    const rule = block.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
+    const columns = Number(rule.match(/grid-template-columns:\s*repeat\((\d+),[^)]*\)/)?.[1]);
+    expect(columns).toBe(3);
+
+    // A fixed column count is what makes the row count fixed: six cells in three
+    // columns are two rows at every width, and a late font swap cannot change it.
+    expect(cells.length % columns).toBe(0);
+    expect(cells.length / columns).toBe(2);
+  });
 });
 
 describe('personal automation cards', () => {

@@ -7,7 +7,7 @@ const overall = overallStats(data.dates, data.asOf);
 const days = `${overall.longestStreak} ${overall.longestStreak === 1 ? 'day' : 'days'}`;
 ---
 <div class="lifting reveal">
-  <header class="lifting-head"><p class="eyebrow">Outside of work</p><h3>Lifting</h3></header>
+  <header class="lifting-head"><p class="eyebrow">Strength</p><h3>Lifting</h3></header>
   <ul class="lifting-stats">
     {lifts.map((l) => <li><b>{l.pounds}</b><span>{l.name}</span></li>)}
     <li><b>{liftTotal}</b><span>Total</span></li>

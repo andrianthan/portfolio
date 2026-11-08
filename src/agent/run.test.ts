@@ -46,6 +46,16 @@ describe('runAgent', () => {
     expect(stepText(result)[0]).toBe('orchestrator: routed to experience (matched "Tesla")');
   });
 
+  it('answers a question about life outside work from the outside chunk', () => {
+    for (const query of ['where have you travelled', 'do you hike']) {
+      const result = run(query);
+      expect(result.refused, query).toBe(false);
+      expect(result.answer?.sources[0].url, query).toBe('/#outside');
+      expect(result.answer?.text, query).toContain('Japan');
+      expect(stepText(result), query).toContain('search: 1 chunk (about:outside)');
+    }
+  });
+
   it('clears on /clear without an answer', () => {
     const result = run('/clear');
     expect(result.answer).toBeNull();

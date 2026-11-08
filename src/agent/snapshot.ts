@@ -1,5 +1,8 @@
 import type { ProfileData } from '../data/profile';
 import { extractNumbers } from './verify';
+import { countries, states, trails, yearsLabel } from '../data/outside';
+import { lifts, liftTotal, percentileLine, hoursLabel } from '../data/lifting';
+import { swimEvents, swimPercentileLine, swimContextLine } from '../data/swimming';
 import type { Chunk, ChunkKind, Snapshot } from './types';
 
 export interface SnapshotEntryInput {
@@ -96,6 +99,16 @@ export function buildSnapshot(input: SnapshotInput): Snapshot {
 
   const aboutText = [input.profile.oneLine, ...input.profile.about].join('\n\n');
   add({ id: 'about:bio', kind: 'about', title: 'About', text: aboutText, url: '/#about', facts: extractNumbers(aboutText) });
+
+  // The chunk carries the same facts as the section, in sentences, so the agent
+  // answers "where have you travelled" and "do you hike" from the page itself.
+  const outsideText = [
+    `Travel: Andrian has travelled to ${countries.length} countries — ${countries.map((c) => (c.years.length ? `${c.name} (${yearsLabel(c.years)})` : c.name)).join(', ')} — and to ${states.length} US states: ${states.join(', ')}.`,
+    `He hikes: his hike trails are ${trails.map((t) => `${t.name} (${t.place}${t.year ? `, ${t.year}` : ''})`).join(', ')}.`,
+    `Lifting: ${lifts.map((l) => `${l.name} ${l.pounds}`).join(', ')}, ${liftTotal} total, ${percentileLine}, ${hoursLabel} in the gym.`,
+    `Swimming: ${swimEvents.map((e) => `${e.name} ${e.time}`).join(', ')}, ${swimPercentileLine}, ${swimContextLine}.`,
+  ].join('\n');
+  add({ id: 'about:outside', kind: 'about', title: 'Outside of work', text: outsideText, url: '/#outside', facts: extractNumbers(outsideText) });
 
   for (const group of input.profile.skillGroups) {
     const text = `${group.label}: ${group.items.join(', ')}`;

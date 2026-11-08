@@ -8,7 +8,7 @@ import './outside.css';
   <div class="travel-mapwrap"><TravelMap client:visible selected={null} /></div>
   <div class="travel-list">
     {countries.map((c) => {
-      const pics = photosFor(c.name);
+      const pics = photosFor(c.name).filter((p) => p.kind === 'travel');
       return (
         <details class="country" data-c={c.code}>
           <summary><span>{c.name}</span>{c.years.length > 0 && <span class="country-years">{yearsLabel(c.years)}</span>}</summary>

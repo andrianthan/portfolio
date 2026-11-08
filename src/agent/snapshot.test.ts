@@ -93,6 +93,7 @@ describe('snapshot of the real content', () => {
     for (const group of profile.skillGroups) {
       expect(snapshot.chunks.some((c) => c.id === `skill:${group.slug}`)).toBe(true);
     }
+    expect(snapshot.chunks.some((c) => c.id === 'about:outside')).toBe(true);
     const about = snapshot.chunks.find((c) => c.id === 'about:bio')!;
     expect(about.text.startsWith(profile.oneLine)).toBe(true);
   });
@@ -169,5 +170,34 @@ describe('text helpers', () => {
     expect(sections).toHaveLength(2);
     expect(sections[0].heading).toBe('One');
     expect(sections[1].text.trim()).toBe('beta');
+  });
+});
+
+describe('about:outside chunk', () => {
+  const chunk = snapshot.chunks.find((c) => c.id === 'about:outside')!;
+  it('is titled Outside of work and points at the section', () => {
+    expect(chunk.title).toBe('Outside of work');
+    expect(chunk.url).toBe('/#outside');
+    expect(chunk.kind).toBe('about');
+  });
+  it('lists countries with years, states, trails, lifting and swimming', () => {
+    expect(chunk.text).toContain('Japan (2023, 2024, 2026)');
+    expect(chunk.text).toContain('Indonesia');
+    expect(chunk.text).not.toMatch(/Indonesia \(/);
+    expect(chunk.text).toContain('Colorado');
+    expect(chunk.text).toContain('Point Lobos');
+    expect(chunk.text).toContain('Yosemite');
+    expect(chunk.text).not.toMatch(/Yosemite[^,.]*\d{4}/);
+    expect(chunk.text).toContain('~1,105 lb');
+    expect(chunk.text).toContain('50 Free');
+  });
+  it('states the lifting and swimming facts in one sentence each', () => {
+    const lines = chunk.text.split('\n');
+    expect(lines).toHaveLength(4);
+    expect(lines[2].startsWith('Lifting:')).toBe(true);
+    expect(lines[3].startsWith('Swimming:')).toBe(true);
+    // one sentence each: the sentence ends at its own full stop
+    expect(lines[2].split('. ')).toHaveLength(1);
+    expect(lines[3].split('. ')).toHaveLength(1);
   });
 });
