@@ -57,7 +57,7 @@ The rule behind the design is that the request path only reads, and all building
 - **Entry JavaScript:** 5.8 MB before, 1.1 MB raw and 335 KB gzipped after, measured (local).
 - **First paint at 25 Mbps:** 2.3 s before, 0.37 s after, measured (local).
 - **On stage:** Overview rows load in about 4.6 s and Campaigns in about 1.9 s, measured (stage).
-- **Data restored:** about 66M rows back in place, and the association data moved from early May to early July.
+- **Data restored:** about 66M rows back in place, and the association data moved from early May to early July, measured.
 - **Cost to watch:** stage RAM idles at 1.75 GB and reached 3.6 to 4.0 GB after opening every deep-dive tab on a cold part, against a 3500 MB ceiling, measured (stage). Production runs one worker and is not yet verified.
 
 I am confident in the direction of these results; the exact figures are a mix of local and stage runs, so treat them as medium confidence.
@@ -148,7 +148,7 @@ The shape is a pipeline with one mandatory gate, wrapped in a CI pipeline that g
 - **Dead-ends fixed:** 9 of 9 reproduced dead-ends fixed, which were 8.3% of 109 real turns mined from use.
 - **Routing and metrics gated in CI:** 17/17 metric intents, and grounding at micro-F1 0.854 against a 0.80 gate.
 - **Routing:** tool-routing coverage 35/35 with 0% free-route answers on the routing evals.
-- **Answer speed:** mean answer time from 39 s to 11 s, and the slowest narrative answer from 196 s to 16 s.
+- **Answer speed:** mean answer time from 39 s to 11 s, and the slowest narrative answer from 196 s to 16 s, quoted from a PR, not re-measured.
 - **Tests:** 1375 backend tests and 1639 frontend tests, measured (stage).
 - **Delivery:** 200+ staging deploys a week across 10+ data analysts and demand planners.
 
