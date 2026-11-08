@@ -6,6 +6,25 @@ import DashboardDemo from './DashboardDemo';
 
 const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/tesla/dashboard/dashboard.css'), 'utf8');
 
+/**
+ * Whether the stylesheet has a rule for `selector` that sets `property`.
+ *
+ * Tolerant of how the rule is written out: the selector list, the whitespace
+ * and the declaration order do not matter, only that the rule is there and
+ * says what it has to say.
+ */
+function ruleSets(selector: string, property: string, value: string): boolean {
+  const rules = css.split('}');
+  return rules.some((rule) => {
+    const [head, ...body] = rule.split('{');
+    if (!body.length) return false;
+    const selectors = head.split(',').map((s) => s.trim());
+    if (!selectors.includes(selector)) return false;
+    const declarations = body.join('{');
+    return new RegExp(`(^|;)\\s*${property}\\s*:\\s*${value}\\s*(;|$)`).test(declarations);
+  });
+}
+
 const overview = renderToStaticMarkup(<DashboardDemo />);
 const worklog = renderToStaticMarkup(<DashboardDemo initialView="worklog" />);
 
@@ -24,9 +43,10 @@ describe('DashboardDemo', () => {
     expect(worklog).toContain('class="dash-wl"');
     expect(worklog).toContain('Field notes');
     // The work log's own window chrome is neutralised by the dashboard's
-    // stylesheet rather than drawn a second time.
-    expect(css).toContain('.dash .dash-wl .qa-top { display: none; }');
-    expect(css).toContain('.dash .dash-wl .qa {');
+    // stylesheet rather than drawn a second time: its title bar is taken out
+    // of the page, and its frame is flattened.
+    expect(ruleSets('.dash .dash-wl .qa-top', 'display', 'none')).toBe(true);
+    expect(ruleSets('.dash .dash-wl .qa', 'border', '0')).toBe(true);
   });
 
   it('puts the nav rail in a focusable labelled region', () => {

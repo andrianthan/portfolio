@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import WorklogDemo from '../worklog/WorklogDemo';
 import { WORKLOG } from '../worklog/content';
 import { series } from '../fixtures';
-import { NAV, initialWarm, replyLine, request, restart, stepDelayMs, warmStep, type WarmState } from './dashboard';
+import { NAV, initialReply, initialWarm, replyLine, resetReply, restart, sendRequest, stepDelayMs, warmStep, type ReplyState, type WarmState } from './dashboard';
 
 type View = 'overview' | 'worklog';
 
@@ -23,12 +23,11 @@ export default function DashboardDemo({ initialView = 'overview' }: { initialVie
   const [view, setView] = useState<View>(initialView);
   const [warm, setWarm] = useState<WarmState>(initialWarm);
   const [restarts, setRestarts] = useState(0);
-  const [reply, setReply] = useState<{ status: number; body: string } | null>(null);
-  const [requests, setRequests] = useState(0);
+  const [replyState, setReplyState] = useState<ReplyState>(initialReply);
   const bars = series(7, 12, 60, 30);
   const max = Math.max(...bars);
   const warming = warm.status !== 'warm';
-  const line = replyLine(reply, requests);
+  const line = replyLine(replyState.reply, replyState.count);
 
   useEffect(() => {
     if (!warming) return;
@@ -110,9 +109,9 @@ export default function DashboardDemo({ initialView = 'overview' }: { initialVie
                 </div>
                 <p className="dash-meta">RSS {warm.rssMb} MB, ceiling {warm.ceilingMb} MB</p>
                 <div className="dash-actions">
-                  <button type="button" onClick={() => { setWarm((s) => restart(s)); setRestarts((n) => n + 1); setReply(null); }}>Restart server</button>
+                  <button type="button" onClick={() => { setWarm((s) => restart(s)); setRestarts((n) => n + 1); setReplyState(resetReply()); }}>Restart server</button>
                   <button type="button" disabled={warm.status === 'warm'} onClick={() => setWarm((s) => warmStep(s))}>Warm step</button>
-                  <button type="button" onClick={() => { setRequests((n) => n + 1); setReply(request(warm)); }}>Request</button>
+                  <button type="button" onClick={() => setReplyState((s) => sendRequest(s, warm))}>Request</button>
                 </div>
                 <p className="dash-meta">Restart, then Request. Warm step is available while the server is warming.</p>
                 <p className="dash-reply" role="status" aria-live="polite">

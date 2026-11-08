@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { VIEWS, VISIT_GAP_MIN, canOpen, grant, mockRequests, revoke, usageFor, type Req } from './admin';
+import {
+  CHECK_NAME, CHECK_TAB, CHECK_TAB_LABEL, CHECK_USER, REQUESTS, VIEWS, VISIT_GAP_MIN,
+  canOpen, grant, mockRequests, revoke, usageFor, type Req, type View,
+} from './admin';
 
 const DAY = 1440;
 const now = 40 * DAY;
@@ -86,5 +89,24 @@ describe('admin usage', () => {
     // The component holds no data of its own, so the view list lives here.
     expect(VIEWS.map((v) => v.id)).toEqual(['usage', 'access', 'audit']);
     expect(VIEWS.map((v) => v.label)).toEqual(['Usage', 'Access', 'Audit']);
+  });
+  it('derives the view type from the section list, so the two cannot drift', () => {
+    // Every id in the list is a valid view, and every view is in the list.
+    const ids = VIEWS.map((v) => v.id);
+    for (const id of ids) {
+      const asView: View = id;
+      expect(ids).toContain(asView);
+    }
+    expect(ids).toHaveLength(new Set(ids).size);
+  });
+  it('holds the check-line data in the module', () => {
+    expect(CHECK_USER).toBe('u4');
+    expect(CHECK_TAB).toBe('admin');
+    expect(CHECK_TAB_LABEL).toBe('Admin');
+    expect(CHECK_NAME).toBe('User 4');
+  });
+  it('holds the request log the usage table reads in the module', () => {
+    expect(REQUESTS.length).toBeGreaterThan(20);
+    expect(REQUESTS).toEqual(mockRequests());
   });
 });

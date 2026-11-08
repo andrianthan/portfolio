@@ -3,8 +3,9 @@ import './admin.css';
 import { useState } from 'react';
 import { MOCK_USERS } from '../fixtures';
 import {
-  MOCK_NOW, MOCK_TABS, USAGE_WINDOW_DAYS, VIEWS, VISIT_GAP_MIN, VISIT_WINDOW_DAYS, auditKey, canOpen,
-  grant, mockRequests, revoke, usageFor, type AuditEntry, type Grants, type View,
+  CHECK_NAME, CHECK_TAB, CHECK_TAB_LABEL, CHECK_USER, MOCK_NOW, MOCK_TABS, REQUESTS,
+  USAGE_WINDOW_DAYS, VIEWS, VISIT_GAP_MIN, VISIT_WINDOW_DAYS, auditKey, canOpen,
+  grant, revoke, usageFor, type AuditEntry, type Grants, type View,
 } from './admin';
 
 // A mock of the admin surface: per-user usage read from the request log,
@@ -12,14 +13,6 @@ import {
 //
 // The default-deny gate is built but off in production, so the switch below
 // only ever shows what the gate would do. Nothing here is enforced.
-
-/** The tab the check line asks about, and the name it shows. */
-const CHECK_USER = 'u4';
-const CHECK_TAB = 'admin';
-const CHECK_TAB_LABEL = 'Admin';
-const CHECK_NAME = MOCK_USERS.find((u) => u.id === CHECK_USER)?.name ?? CHECK_USER;
-
-const REQUESTS = mockRequests();
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 

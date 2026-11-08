@@ -41,4 +41,25 @@ export function replyLine(
   return { visible: `${reply.status} ${reply.body}`, announced: `Request ${count}.` };
 }
 
+export interface ReplyState { reply: { status: number; body: string } | null; count: number }
+
+export const initialReply: ReplyState = { reply: null, count: 0 };
+
+/**
+ * Send a request: record the reply and count it.
+ *
+ * The count belongs to the reply, so the two cannot drift apart.
+ */
+export function sendRequest(s: ReplyState, warm: WarmState): ReplyState {
+  return { reply: request(warm), count: s.count + 1 };
+}
+
+/**
+ * Start the server over: the reply line and its count go back to the start,
+ * so the announced count reads as scoped to the current run.
+ */
+export function resetReply(): ReplyState {
+  return initialReply;
+}
+
 export const stepDelayMs = (status: WarmStatus): number => (status === 'cold' ? 2500 : 600);

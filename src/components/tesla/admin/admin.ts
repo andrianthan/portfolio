@@ -105,14 +105,25 @@ function burstStarts(reqs: readonly Req[]): number[] {
 /** The tabs the request log names, and the tabs an admin can grant. */
 export const MOCK_TABS: readonly string[] = ['overview', 'part-summary', 'ask', 'forecast', 'campaigns', 'slides', 'admin'];
 
-export type View = 'usage' | 'access' | 'audit';
-
-/** The sections of the admin demo, in the order they are shown. */
-export const VIEWS: readonly { id: View; label: string }[] = [
+/**
+ * The sections of the admin demo, in the order they are shown.
+ *
+ * The list is the single source of truth: the view type is derived from it,
+ * so a section cannot be added to one and forgotten in the other.
+ */
+export const VIEWS = [
   { id: 'usage', label: 'Usage' },
   { id: 'access', label: 'Access' },
   { id: 'audit', label: 'Audit' },
-];
+] as const;
+
+export type View = (typeof VIEWS)[number]['id'];
+
+/** The tab the check line asks about, and the name it shows. */
+export const CHECK_USER = 'u4';
+export const CHECK_TAB = 'admin';
+export const CHECK_TAB_LABEL = 'Admin';
+export const CHECK_NAME = MOCK_USERS.find((u) => u.id === CHECK_USER)?.name ?? CHECK_USER;
 
 /**
  * A deterministic mock request log: roughly 30 requests across the mock users
@@ -143,6 +154,9 @@ export function mockRequests(): Req[] {
   }
   return out;
 }
+
+/** The request log the usage table reads. It is the same for every render. */
+export const REQUESTS: readonly Req[] = mockRequests();
 
 export interface Grants {
   [userId: string]: string[];
