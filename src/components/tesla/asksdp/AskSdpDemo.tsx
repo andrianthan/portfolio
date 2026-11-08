@@ -1,30 +1,30 @@
 import '../../qa/qa.css';
 import './asksdp.css';
 import { useEffect, useId, useRef, useState } from 'react';
-import { PRESETS, ask, type Answer, type Verdict } from './asksdp';
+import { PRESETS, initialAsk, scrollToBottom, sendQuestion, type AskState, type Verdict } from './asksdp';
 
 const VERDICT_LABEL: Record<Verdict, string> = { firm: 'Firm', hold: 'Hold', 'no-action': 'No action' };
 
 export default function AskSdpDemo() {
-  const [log, setLog] = useState<Answer[]>([]);
-  const [draft, setDraft] = useState('');
+  const [state, setState] = useState<AskState>(initialAsk);
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
+  const { log, draft } = state;
   const empty = draft.trim() === '';
 
-  const send = (q: string, clear: boolean) => {
-    const text = q.trim();
-    if (!text) return;
-    setLog((l) => [...l, ask(text)]);
-    if (clear) setDraft('');
-  };
+  // A preset click and the send button take the same path, so a preset always
+  // leaves the demo in the state the question would have left it in.
+  const send = (q: string) => setState((s) => sendQuestion(s, q));
 
+  // The newest turn is the one to show, so the scroll follows the last answer
+  // rather than the length of the log: a capped log keeps its length, and a
+  // tall answer still has to be scrolled into view.
+  const lastAnswer = log[log.length - 1];
   useEffect(() => {
-    const el = logRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [log.length]);
+    scrollToBottom(logRef.current);
+  }, [lastAnswer]);
 
   return (
     <div className="qa ask" role="group" aria-label="Sample Ask SDP chat">
@@ -59,25 +59,25 @@ export default function AskSdpDemo() {
       </div>
       <div className="ask-presets" role="group" aria-label="Sample questions">
         {PRESETS.map((p) => (
-          <button key={p} type="button" className="ask-chip" onClick={() => send(p, false)}>{p}</button>
+          <button key={p} type="button" className="ask-chip" onClick={() => send(p)}>{p}</button>
         ))}
       </div>
       <form
         className="ask-form"
-        onSubmit={(e) => { e.preventDefault(); send(draft, true); inputRef.current?.focus(); }}
+        onSubmit={(e) => { e.preventDefault(); send(draft); inputRef.current?.focus(); }}
       >
         <label htmlFor={inputId} className="ask-label">Your question</label>
         <div className="ask-row">
           <input
             id={inputId} ref={inputRef} type="text" value={draft} autoComplete="off" aria-describedby={hintId}
             placeholder="Ask about a part"
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => setState((s) => ({ ...s, draft: e.target.value }))}
           />
           <button type="submit" className="ask-send" disabled={empty}>Send</button>
         </div>
         <p id={hintId} className="ask-hint">{empty ? 'Type a question to enable Send.' : 'Press Enter or Send.'}</p>
       </form>
-      <p className="ask-cap">Every number in an answer must come from a tool result.</p>
+      <p className="ask-cap">Every number in an answer must come from a tool result, and a question with a figure the data does not hold is refused.</p>
     </div>
   );
 }
