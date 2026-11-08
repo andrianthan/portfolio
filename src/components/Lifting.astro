@@ -4,12 +4,7 @@ import data from '../data/gym-checkins.json';
 import { overallStats } from './gym/calendar';
 import { lifts, liftTotal, percentileLine, hoursLabel } from '../data/lifting';
 const overall = overallStats(data.dates, data.asOf);
-const overallItems = [
-  [String(overall.checkIns), 'Check-ins'],
-  [overall.since, 'Since'],
-  [overall.perWeek, 'Avg per week'],
-  [`${overall.longestStreak} days`, 'Longest streak'],
-];
+const days = `${overall.longestStreak} ${overall.longestStreak === 1 ? 'day' : 'days'}`;
 ---
 <div class="lifting reveal">
   <header class="lifting-head"><p class="eyebrow">Outside of work</p><h3>Lifting</h3></header>
@@ -19,8 +14,6 @@ const overallItems = [
   </ul>
   <p class="lifting-pct">{percentileLine}</p>
   <p class="lifting-hours"><b>{hoursLabel}</b> in the gym</p>
-  <ul class="gym-stats lifting-overall">
-    {overallItems.map(([value, label]) => <li><b>{value}</b><span>{label}</span></li>)}
-  </ul>
+  <p class="gym-stats lifting-overall"><b>{overall.checkIns}</b> check-ins · since <b>{overall.since}</b> · <b>{overall.perWeek}</b> avg per week · longest streak <b>{days}</b></p>
   <GymCalendar client:visible />
 </div>

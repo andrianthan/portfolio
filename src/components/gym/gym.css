@@ -6,8 +6,10 @@
 .lifting-stats li { padding: 14px 8px; border: 1px solid var(--color-rule); border-radius: 12px; background: var(--color-card); }
 .lifting-stats b { display: block; font: 800 clamp(20px, 3.4vw, 28px)/1.1 var(--font-title); color: var(--color-fg); }
 .lifting-stats span { display: block; margin-top: 6px; font: 400 11px/1.3 var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); }
+.swimming-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .lifting-pct { margin: 0 0 var(--space-lg); text-align: center; font: 400 14px/1.5 var(--font-mono); color: var(--color-accent); }
 .lifting-hours { margin: 0 0 var(--space-lg); text-align: center; font: 400 14px/1.5 var(--font-mono); color: var(--color-muted); }
+.swimming-context { margin: 0 0 var(--space-lg); text-align: center; font: 400 14px/1.5 var(--font-mono); color: var(--color-muted); }
 .lifting-hours b { color: var(--color-fg); font-weight: 500; }
 
 .gym { --gym-go: #5ee38a; --gym-go-ink: #08210f; }
@@ -26,9 +28,7 @@
   display: block; width: 100%;
   height: calc(var(--wall-years) * (var(--wall-rows) * (100cqw - var(--wall-label)) / var(--wall-cols) + var(--wall-gap-y)));
 }
-.gym-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-sm, 8px); margin: var(--space-md) 0 0; padding: 0; list-style: none; text-align: center; }
-.gym-stats li { padding: 8px 6px; border: 1px solid var(--color-rule); border-radius: 10px; background: var(--color-chip); min-width: 0; }
-.gym-stats b { display: block; font: 500 15px/1.2 var(--font-mono); color: var(--color-fg); overflow-wrap: anywhere; }
-.gym-stats span { display: block; margin-top: 4px; font: 400 10px/1.3 var(--font-pixel); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); }
+.gym-stats { margin: var(--space-md) 0 0; text-align: center; font: 400 13px/1.6 var(--font-mono); color: var(--color-muted); overflow-wrap: anywhere; }
+.gym-stats b { font-weight: 500; color: var(--color-fg); }
 .lifting-overall { margin: 0 0 var(--space-lg); }
-@media (max-width: 639px) { .lifting-stats, .gym-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 639px) { .lifting-stats, .swimming-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

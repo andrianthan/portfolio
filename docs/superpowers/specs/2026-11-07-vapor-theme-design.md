@@ -142,10 +142,16 @@ running branch and asked for them. Each carries the ruling that shaped it.
   three lifts, a percentile line, an hours figure with overall check-in metrics,
   and a year-at-a-time check-in wall with previous/next year arrows and that
   year's check-ins, weekly average, longest streak and best month as text. The
+  stats are plain text lines, not boxed chips. The
   data is a static export of Andrian's own check-ins with no live feed and no
   regeneration job, so the page states its cutoff rather than claiming to be
   current, and it never claims to be synced, connected, estimated or
   reconstructed.
+- **The Swimming block.** Below Lifting, a sibling block with the same header
+  and tile grid: six events and times (50, 100 and 200 Free, 100 Back, 100
+  Breast, 100 Fly), an accent line reading "80th percentile competitive
+  swimmer" and a muted line "High school, ages 14 to 18 · short course yards".
+  It carries no source link, no source claim and no standard names.
 - **The mobile nav grid (Task 13).** The mobile nav is a fixed three-column
   grid, so the bar's row count cannot change when the pixel face swaps in late.
 - **The simpler chat box (Task 14).** The Ask bar is three question chips with

@@ -27,17 +27,20 @@ describe('GymCalendar', () => {
   it('carries the selected year metrics as text in a polite live region', () => {
     const s = yearStats(2026, data.dates, data.asOf);
     expect(html).toContain('aria-live="polite"');
-    expect(html).toContain(`<b>${s.checkIns}</b><span>Check-ins</span>`);
-    expect(html).toContain(`<b>${s.perWeek}</b><span>Avg per week</span>`);
-    expect(html).toContain('Longest streak');
-    expect(html).toContain('Best month');
+    expect(html).toContain(`<b>${s.checkIns}</b> check-ins`);
+    expect(html).toContain(`<b>${s.perWeek}</b> avg per week`);
+    expect(html).toContain('longest streak');
+    expect(html).toContain('best month');
   });
   it('metrics text follows the year', () => {
     for (const y of [2022, 2023, 2024, 2025, 2026]) {
       const s = yearStats(y, data.dates, data.asOf);
       const m = renderToStaticMarkup(<YearMetrics year={y} />);
       expect(m).toContain(`<b>${s.checkIns}</b>`);
-      expect(m).toContain(`<b>${s.bestMonth.name}</b><span>Best month · ${s.bestMonth.count}</span>`);
+      const days = `${s.longestStreak} ${s.longestStreak === 1 ? 'day' : 'days'}`;
+      expect(m.replace(/<!-- -->/g, '')).toContain(
+        `<p class="gym-stats"><b>${s.checkIns}</b> check-ins · <b>${s.perWeek}</b> avg per week · longest streak <b>${days}</b> · best month <b>${s.bestMonth.name}</b> (${s.bestMonth.count})</p>`,
+      );
     }
     expect(renderToStaticMarkup(<YearMetrics year={2022} />)).not.toBe(renderToStaticMarkup(<YearMetrics year={2026} />));
   });

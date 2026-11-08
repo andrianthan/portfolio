@@ -11,16 +11,11 @@ const asOfYear = Number(data.asOf.slice(0, 4));
 /** The selected year's numbers, as plain text: the text equivalent of the decorative wall. */
 export function YearMetrics({ year }: { year: number }) {
   const s = yearStats(year, data.dates, data.asOf);
-  const items: [string, string][] = [
-    [String(s.checkIns), 'Check-ins'],
-    [s.perWeek, 'Avg per week'],
-    [`${s.longestStreak} ${s.longestStreak === 1 ? 'day' : 'days'}`, 'Longest streak'],
-    [s.bestMonth.name, `Best month · ${s.bestMonth.count}`],
-  ];
+  const days = `${s.longestStreak} ${s.longestStreak === 1 ? 'day' : 'days'}`;
   return (
-    <ul className="gym-stats">
-      {items.map(([value, label]) => <li key={label}><b>{value}</b><span>{label}</span></li>)}
-    </ul>
+    <p className="gym-stats">
+      <b>{s.checkIns}</b> check-ins · <b>{s.perWeek}</b> avg per week · longest streak <b>{days}</b> · best month <b>{s.bestMonth.name}</b> ({s.bestMonth.count})
+    </p>
   );
 }
 
