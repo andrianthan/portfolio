@@ -120,27 +120,11 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     };
 
     measure();
-    if (reduced.matches) {
-      // Reduced motion: one static frame, no loop, but still re-render on resize.
-      frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
-      const ro = new ResizeObserver(() => {
-        measure();
-        frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
-      });
-      ro.observe(root);
-      // Theme toggles swap --color-rule on <html>; the wireframe must follow.
-      const themeObs = new MutationObserver(() => {
-        measure();
-        frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
-      });
-      themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-      return () => {
-        ro.disconnect();
-        themeObs.disconnect();
-      };
-    }
 
-    let ry = 0;
+    // Seed the yaw with the static pose when reduced motion is on at mount, so
+    // turning the preference off later resumes from where the still frame is
+    // instead of jumping.
+    let ry = reduced.matches ? STATIC_ANGLES.ry : 0;
     let rx = TILT;
     let inView = true;
     let raf: number | null = null;
@@ -155,6 +139,9 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     let holdStart = 0;
     let releaseStart: number | null = -RELEASE_EASE_MS;
 
+    // Reduced motion shows one fixed pose; otherwise the live drag angles.
+    const angles = () => (reduced.matches ? STATIC_ANGLES : { ry, rx });
+
     const tick = (now: number) => {
       raf = null;
       if (!last) last = now;
@@ -164,12 +151,12 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
       ry += SPIN_PER_MS * (now - last) * ease;
       last = now;
       frame(ry, rx);
-      if (inView && !document.hidden) raf = requestAnimationFrame(tick);
+      if (inView && !document.hidden && !reduced.matches) raf = requestAnimationFrame(tick);
       else last = 0;
     };
 
     const start = () => {
-      if (raf === null && inView && !document.hidden) {
+      if (raf === null && inView && !document.hidden && !reduced.matches) {
         last = 0;
         raf = requestAnimationFrame(tick);
       }
@@ -195,21 +182,29 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     document.addEventListener('visibilitychange', onVis);
     const ro = new ResizeObserver(() => {
       measure();
-      if (raf === null) frame(ry, rx);
+      if (raf === null) {
+        const a = angles();
+        frame(a.ry, a.rx);
+      }
     });
     ro.observe(root);
     const themeObs = new MutationObserver(() => {
       measure();
-      frame(ry, rx);
+      const a = angles();
+      frame(a.ry, a.rx);
     });
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // The system preference can be turned on while the page is open:
+    // The system preference can be turned on or off while the page is open:
     // freeze to the static frame, or resume the loop if it is turned back off.
     const onMotion = () => {
       if (reduced.matches) {
         stop();
-        frame(STATIC_ANGLES.ry, STATIC_ANGLES.rx);
+        // Keep the live angles in sync with the still frame now on screen, so
+        // turning the preference back off resumes from it instead of jumping.
+        ry = STATIC_ANGLES.ry;
+        rx = STATIC_ANGLES.rx;
+        frame(ry, rx);
       } else {
         start();
       }
@@ -261,7 +256,8 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     root.addEventListener('pointercancel', onPointerUp);
     root.addEventListener('lostpointercapture', onLostCapture);
 
-    frame(0, rx); // first paint before the loop's first tick
+    const first = angles();
+    frame(first.ry, first.rx); // first paint before the loop's first tick
     start();
     return () => {
       stop();

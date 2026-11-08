@@ -73,7 +73,7 @@ export function clampPitch(rx: number): number {
 
 /**
  * Map a pointer drag in pixels to yaw/pitch deltas in radians. A drag across
- * the full radius of the globe is a quarter turn of the sphere.
+ * the full radius of the globe turns it by one radian (≈57°).
  *
  * Dragging right (dxPx > 0) increases the yaw, so the front face follows the
  * finger. Dragging down (dyPx > 0) *decreases* the pitch, because in this

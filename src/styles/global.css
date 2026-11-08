@@ -334,7 +334,7 @@ header.ph { padding: 48px 0 var(--space-lg); }
 .globe:active { cursor: grabbing; }
 .globe-wire { position: absolute; inset: 0; width: 100%; height: 100%; }
 .globe-nodes { position: absolute; inset: 0; }
-.globe-node { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; will-change: transform, opacity; }
+.globe-node { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; will-change: transform, opacity; opacity: 0; }
 .globe-node svg { width: clamp(22px, 4.5vw, 34px); height: clamp(22px, 4.5vw, 34px); color: var(--color-fg); }
 .globe-node > svg path { fill: currentColor; }
 .globe-glyph { display: contents; }
@@ -343,6 +343,8 @@ header.ph { padding: 48px 0 var(--space-lg); }
 .skills-legend-chip { font: 500 12px var(--font-mono); letter-spacing: .08em; color: var(--color-fg); border: 1px solid var(--color-rule); border-radius: 8px; padding: 5px 12px; }
 @media (prefers-reduced-motion: reduce) {
   .globe-node { will-change: auto; }
+  /* drag does nothing under reduced motion, so do not offer the grab cursor */
+  .globe { cursor: default; }
 }
 
 /* a touch screen has no cursor to follow: the field falls back to the site's original
