@@ -105,6 +105,15 @@ function burstStarts(reqs: readonly Req[]): number[] {
 /** The tabs the request log names, and the tabs an admin can grant. */
 export const MOCK_TABS: readonly string[] = ['overview', 'part-summary', 'ask', 'forecast', 'campaigns', 'slides', 'admin'];
 
+export type View = 'usage' | 'access' | 'audit';
+
+/** The sections of the admin demo, in the order they are shown. */
+export const VIEWS: readonly { id: View; label: string }[] = [
+  { id: 'usage', label: 'Usage' },
+  { id: 'access', label: 'Access' },
+  { id: 'audit', label: 'Audit' },
+];
+
 /**
  * A deterministic mock request log: roughly 30 requests across the mock users
  * over the 30 days that end at `MOCK_NOW`.

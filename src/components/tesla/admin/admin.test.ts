@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VISIT_GAP_MIN, canOpen, grant, mockRequests, revoke, usageFor, type Req } from './admin';
+import { VIEWS, VISIT_GAP_MIN, canOpen, grant, mockRequests, revoke, usageFor, type Req } from './admin';
 
 const DAY = 1440;
 const now = 40 * DAY;
@@ -81,5 +81,10 @@ describe('admin usage', () => {
     const out = revoke(grants, 'u1', 'ask', log);
     expect(out.grants.u1).toEqual(['overview']);
     expect(out.log).toEqual([{ who: 'Admin', action: 'revoke', target: 'u1:ask' }]);
+  });
+  it('holds the admin sections and their labels in the module', () => {
+    // The component holds no data of its own, so the view list lives here.
+    expect(VIEWS.map((v) => v.id)).toEqual(['usage', 'access', 'audit']);
+    expect(VIEWS.map((v) => v.label)).toEqual(['Usage', 'Access', 'Audit']);
   });
 });
