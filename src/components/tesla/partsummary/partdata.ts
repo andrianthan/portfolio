@@ -12,6 +12,17 @@ export interface PartData {
 
 const pct = (a: number, b: number) => Math.round(((a - b) / b) * 100);
 
+/** The highest-count cell of a matrix, with the row and column labels it sits in. */
+export function peakCell(m: Matrix): { row: string; col: string; value: number } {
+  let peak = { row: m.rows[0] ?? '', col: m.cols[0] ?? '', value: -1 };
+  m.rows.forEach((row, ri) => {
+    m.cells[ri].forEach((v, ci) => {
+      if (v > peak.value) peak = { row, col: m.cols[ci] ?? '', value: v };
+    });
+  });
+  return peak;
+}
+
 export function dataFor(partId: string): PartData {
   const seed = Number(partId.slice(2)) || 1;
   const consumption = series(seed, 12, 400, 120);
@@ -25,15 +36,20 @@ export function dataFor(partId: string): PartData {
   const codes = series(seed + 3, 20, 30, 25).map((v) => Math.max(1, v));
   const toCells = (flat: number[]) => [0, 1, 2, 3].map((r) => flat.slice(r * 5, r * 5 + 5));
   const symptoms = ['Intermittent fault', 'Wear beyond limit', 'Noise or vibration', 'Fit or alignment'];
+  const regions = ['Region A', 'Region B', 'Region C', 'Region D'];
+  const locationMatrix: Matrix = { rows: regions, cols: years, cells: toCells(location) };
+  // The peak insight is read off the same cells the heatmap renders, so the
+  // sentence can never name a region the heatmap does not show.
+  const peak = peakCell(locationMatrix);
   return {
     insights: [
       `Consumption is running ${Math.abs(pct(last, avg))}% ${last >= avg ? 'above' : 'below'} the 12-week average.`,
       `Failure rate is ${fLast >= fAvg ? 'up' : 'down'} ${Math.abs(pct(fLast, fAvg))}% against its 12-week average.`,
-      `Region A shows the highest count for build year ${years[seed % years.length]}.`,
+      `${peak.row} shows the highest count for build year ${peak.col}: ${peak.value}.`,
     ],
     consumption,
     failureRate,
-    locationMatrix: { rows: ['Region A', 'Region B', 'Region C', 'Region D'], cols: years, cells: toCells(location) },
+    locationMatrix,
     codeMatrix: {
       rows: ['CC-01', 'CC-02', 'CC-03', 'CC-04'],
       cols: ['Sub-system 1', 'Sub-system 2', 'Sub-system 3', 'Sub-system 4', 'Sub-system 5'],

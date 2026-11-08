@@ -2,7 +2,7 @@ import '../../qa/qa.css';
 import './partsummary.css';
 import { useState } from 'react';
 import { MOCK_PARTS } from '../fixtures';
-import { SUBTABS, initialState, search, selectTab, type PSState } from './partsummary';
+import { SUBTABS, initialState, search, selectTab, type PSState, type SubTab } from './partsummary';
 import { dataFor, type Matrix } from './partdata';
 
 function LineChart({ values, label, unit }: { values: number[]; label: string; unit: string }) {
@@ -31,7 +31,7 @@ function LineChart({ values, label, unit }: { values: number[]; label: string; u
 function Heatmap({ m, caption, corner }: { m: Matrix; caption: string; corner: string }) {
   const max = Math.max(...m.cells.flat());
   return (
-    <div className="ps-scroll">
+    <div className="ps-scroll" tabIndex={0} role="region" aria-label={`${caption}, scrolls horizontally`}>
       <table className="ps-table">
         <caption>{caption}</caption>
         <thead>
@@ -55,8 +55,16 @@ function Heatmap({ m, caption, corner }: { m: Matrix; caption: string; corner: s
   );
 }
 
-export default function PartSummaryDemo() {
-  const [state, setState] = useState<PSState>(initialState);
+/**
+ * The part summary demo. `partId` and `tab` open a part on the first render;
+ * they exist so the render test can reach the tabs, and both default to the
+ * closed state.
+ */
+export default function PartSummaryDemo({ partId, tab }: { partId?: string; tab?: SubTab } = {}) {
+  const [state, setState] = useState<PSState>(() => {
+    const opened = partId ? search(initialState, partId, MOCK_PARTS) : initialState;
+    return tab ? selectTab(opened, tab) : opened;
+  });
   const [text, setText] = useState('');
   const part = state.partId ? MOCK_PARTS.find((p) => p.id === state.partId) ?? null : null;
   const data = part ? dataFor(part.id) : null;
@@ -88,7 +96,7 @@ export default function PartSummaryDemo() {
         {part && data && (
           <section className="ps-result" aria-label={`Summary for ${part.id}`}>
             <h3 className="ps-head"><span>{part.id}</span> {part.name} <em>{part.system}</em></h3>
-            <div className="ps-tabs">
+            <div className="ps-tabs" role="group" aria-label="Summary sections">
               {SUBTABS.map((t) => (
                 <button
                   key={t.id} type="button" aria-pressed={state.tab === t.id}
@@ -113,7 +121,7 @@ export default function PartSummaryDemo() {
               {state.tab === 'location' && <Heatmap m={data.locationMatrix} caption="Sample repair counts by region and build year" corner="Region" />}
               {state.tab === 'codes' && <Heatmap m={data.codeMatrix} caption="Sample repair counts by correction code and sub-system" corner="Code" />}
               {state.tab === 'breakdown' && (
-                <div className="ps-scroll">
+                <div className="ps-scroll" tabIndex={0} role="region" aria-label="Sample symptom breakdown, scrolls horizontally">
                   <table className="ps-table">
                     <caption>Sample symptom breakdown</caption>
                     <thead><tr><th scope="col">Symptom</th><th scope="col">Code</th><th scope="col">Share</th></tr></thead>

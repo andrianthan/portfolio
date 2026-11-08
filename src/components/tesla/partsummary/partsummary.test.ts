@@ -23,6 +23,15 @@ describe('part summary logic', () => {
     expect(s.partId).toBeNull();
     expect(s.message).toMatch(/no part matches/i);
   });
+  it('gives a neutral message for an empty or whitespace-only query', () => {
+    for (const q of ['', '   ', '\t\n']) {
+      const s = search(initialState, q, MOCK_PARTS);
+      expect(s.partId).toBeNull();
+      expect(s.message).not.toMatch(/""/);
+      expect(s.message).not.toMatch(/no part matches/i);
+      expect(s.message.length).toBeGreaterThan(0);
+    }
+  });
   it('switches sub-tabs only when a part is open', () => {
     expect(selectTab(initialState, 'consumption')).toEqual(initialState);
     const open = search(initialState, 'P-1001', MOCK_PARTS);
@@ -43,5 +52,22 @@ describe('part summary logic', () => {
     expect(d.codeMatrix.cells).toHaveLength(4);
     expect(d.breakdown.reduce((a, b) => a + b.share, 0)).toBe(100);
     expect(d.insights.length).toBeGreaterThanOrEqual(3);
+  });
+  it('names the region and build year that the location heatmap actually shows', () => {
+    // The insight must not contradict the heatmap: it has to name the cell
+    // that holds the highest count, not a hard-coded region.
+    for (const id of ['P-1001', 'P-1002', 'P-1003', 'P-1004', 'P-1005']) {
+      const d = dataFor(id);
+      const m = d.locationMatrix;
+      let best = { value: -1, row: '', col: '' };
+      m.rows.forEach((row, ri) => {
+        m.cells[ri].forEach((v, ci) => {
+          if (v > best.value) best = { value: v, row, col: m.cols[ci] };
+        });
+      });
+      const insight = d.insights.find((i) => i.includes(best.row) && i.includes(best.col));
+      expect(insight).toBeDefined();
+      expect(insight).toContain(String(best.value));
+    }
   });
 });

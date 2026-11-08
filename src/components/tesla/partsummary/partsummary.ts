@@ -11,9 +11,9 @@ export const SUBTABS: readonly { id: SubTab; label: string }[] = [
   { id: 'breakdown', label: 'Breakdown' },
 ];
 
-export interface PSState { query: string; partId: string | null; tab: SubTab; message: string }
+export interface PSState { partId: string | null; tab: SubTab; message: string }
 
-export const initialState: PSState = { query: '', partId: null, tab: 'overview', message: '' };
+export const initialState: PSState = { partId: null, tab: 'overview', message: '' };
 
 export function matches(query: string, parts: readonly MockPart[]): MockPart[] {
   const q = query.trim().toLowerCase();
@@ -22,9 +22,11 @@ export function matches(query: string, parts: readonly MockPart[]): MockPart[] {
 }
 
 export function search(s: PSState, query: string, parts: readonly MockPart[]): PSState {
+  const q = query.trim();
+  if (!q) return { ...s, partId: null, message: 'Type a part id or name to search.' };
   const hit = matches(query, parts)[0];
-  if (!hit) return { ...s, query, partId: null, message: `No part matches "${query}".` };
-  return { ...s, query, partId: hit.id, tab: 'overview', message: '' };
+  if (!hit) return { ...s, partId: null, message: `No part matches "${q}".` };
+  return { ...s, partId: hit.id, tab: 'overview', message: '' };
 }
 
 export function selectTab(s: PSState, tab: SubTab): PSState {
