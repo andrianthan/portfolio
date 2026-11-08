@@ -16,4 +16,15 @@ describe('vapor fonts', () => {
   it('does not pull the vapor faces from a third-party host', () => {
     expect(base).not.toMatch(/fonts\.googleapis\.com[^"]*(Orbitron|Silkscreen)/);
   });
+  it('preloads both self-hosted faces so the first paint already uses them', () => {
+    const preloads = base.match(/<link rel="preload"[^>]*>/g) ?? [];
+    expect(preloads).toHaveLength(2);
+    for (const tag of preloads) {
+      expect(tag).toContain('as="font"');
+      expect(tag).toContain('type="font/woff2"');
+      expect(tag).toContain('crossorigin');
+    }
+    expect(base).toContain('orbitron-latin-wght-normal.woff2');
+    expect(base).toContain('silkscreen-latin-400-normal.woff2');
+  });
 });

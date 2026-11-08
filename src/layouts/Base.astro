@@ -4,6 +4,8 @@ import '../styles/vapor.css';
 import Analytics from '@vercel/analytics/astro';
 import '@fontsource-variable/orbitron/index.css';
 import '@fontsource/silkscreen/400.css';
+import orbitronWoff2 from '@fontsource-variable/orbitron/files/orbitron-latin-wght-normal.woff2?url';
+import silkscreenWoff2 from '@fontsource/silkscreen/files/silkscreen-latin-400-normal.woff2?url';
 
 interface Props { title: string; description?: string; ogImage?: string; path?: string }
 const { title, description = 'Andrian Than, software engineer building AI agents.', ogImage = '/og.png', path = Astro.url.pathname } = Astro.props;
@@ -15,6 +17,8 @@ const og = new URL(ogImage, Astro.site).toString();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href={orbitronWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={silkscreenWoff2} as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
