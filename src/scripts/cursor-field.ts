@@ -1,8 +1,11 @@
+import { normalize } from '../lib/pointer';
+
 // The pointer position is published as two custom properties on the root element and
 // read by the background layers in global.css. The script never touches the content
 // and the page's layout never changes. The field layer repaints itself on each
 // update (about 0.9ms measured); the quiet grid's drift is a transform, so the
-// compositor moves that layer on its own.
+// compositor moves that layer on its own. Alongside the pixel pair (--mx/--my) it also
+// publishes a unitless -1..1 pair (--nx/--ny) that the backdrop reads.
 
 const root = document.documentElement;
 const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -22,6 +25,9 @@ function paint(): void {
   frame = 0;
   root.style.setProperty('--mx', `${x}px`);
   root.style.setProperty('--my', `${y}px`);
+  const n = normalize(x, y, window.innerWidth, window.innerHeight);
+  root.style.setProperty('--nx', n.nx.toFixed(3));
+  root.style.setProperty('--ny', n.ny.toFixed(3));
 }
 
 function onMove(event: PointerEvent): void {
@@ -53,6 +59,8 @@ function clear(): void {
   y = 0;
   root.style.removeProperty('--mx');
   root.style.removeProperty('--my');
+  root.style.removeProperty('--nx');
+  root.style.removeProperty('--ny');
 }
 
 function listen(): void {
