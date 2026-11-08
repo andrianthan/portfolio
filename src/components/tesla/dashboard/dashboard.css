@@ -1,0 +1,40 @@
+/* Dashboard frame: rail + main pane. Frame chrome comes from qa.css. Tokens only. */
+.dash { max-width: 100%; }
+.dash-grid { display: grid; grid-template-columns: 170px minmax(0, 1fr); min-width: 0; }
+.dash-rail {
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
+  border-right: 1px solid var(--color-rule);
+}
+.dash-rail a, .dash-rail button {
+  display: flex; align-items: center; min-height: 44px; padding: 0 12px;
+  font: 600 12px var(--font-mono); color: var(--color-muted); text-decoration: none;
+  background: transparent; border: 1px solid var(--color-rule); border-radius: 999px; cursor: pointer;
+}
+.dash-rail button.on { color: var(--color-fg); border-color: var(--color-accent); }
+.dash-rail a:hover, .dash-rail button:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.dash-main { padding: 12px; min-width: 0; }
+.dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.dash-kpi { border: 1px solid var(--color-rule); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dash-kpi-v { font: 700 18px var(--font-mono); color: var(--color-fg); }
+.dash-kpi-l { font-size: 11px; color: var(--color-muted); }
+.dash-chart { display: block; width: 100%; height: 90px; margin: 12px 0; border-bottom: 1px solid var(--color-rule); }
+.dash-server { border: 1px solid var(--color-rule); border-radius: 8px; padding: 12px; color: var(--color-fg); font-size: 13px; }
+.dash-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.dash-pill { font: 600 11px var(--font-mono); padding: 3px 10px; border-radius: 999px; border: 1px solid var(--color-rule); color: var(--color-fg); }
+.dash-pill.warm { border-color: var(--color-accent); }
+.dash-pill.cold { color: var(--color-muted); }
+.dash-rss { position: relative; height: 10px; margin: 10px 0 4px; background: var(--color-bg); border: 1px solid var(--color-rule); border-radius: 5px; }
+.dash-rss i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--color-accent); border-radius: 4px; }
+.dash-rss b { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--color-fg); }
+.dash-meta { margin: 0 0 8px; font-size: 12px; color: var(--color-muted); }
+.dash-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.dash-actions button {
+  min-height: 44px; padding: 0 14px; font: 600 12px var(--font-mono); color: var(--color-fg);
+  background: transparent; border: 1px solid var(--color-accent); border-radius: 8px; cursor: pointer;
+}
+.dash-reply { margin: 10px 0 0; font: 12px var(--font-mono); color: var(--color-muted); }
+@media (max-width: 640px) {
+  .dash-grid { grid-template-columns: minmax(0, 1fr); }
+  .dash-rail { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--color-rule); }
+  .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
