@@ -67,8 +67,11 @@ elevation.
 
 ## Photos
 
-Only photos Andrian approved appear. He approved 31 hike and travel photos from
-a local review sheet (codes below) and 11 food photos.
+Only photos Andrian approved appear. He approved 31 photos from a local review
+sheet (codes below) and sent 15 food photos directly. Four of the 31 are food
+(`jp-tokyo-03`, `jp-osaka-01`, `jp-osaka-06`, `jp-kyoto-01`) and go in the Food
+gallery, so the section has 27 hike and travel photos and 19 food photos, 46 in
+all, 2.9 MB.
 
 Approved travel and hike photos:
 `hwangnyeongsan-01 pointlobos-01 pointlobos-02 rockies-01..06 marin-01
@@ -77,11 +80,13 @@ jp-osaka-06 jp-kyoto-01 jp-hakone-06 jp-fuji-02 jp-fuji-04 jp-fuji-05
 vn-hcmc-04 vn-halong-01 vn-halong-02 th-bangkok-01 th-bangkok-03 th-kotao-01
 th-kotao-02 sg-02 sg-08`. Every other candidate is rejected and is not used.
 
-Pipeline (`scripts/build-outside-photos.mjs`, one-off, output committed):
+Pipeline (a one-off run outside the repo, because it reads Andrian's private
+Photos library; its output, `public/outside/*.webp` and
+`src/data/outside-photos.json`, is committed):
 
 - Source is the largest local preview of each approved photo; the code-to-file
   map is rebuilt from the Photos library the same way the review sheet was.
-- Re-encode to WebP, longest edge 1200 px, plus a 480 px thumbnail. **All
+- Re-encode to WebP, longest edge 800 px, quality 72, upright. **All
   metadata is stripped, including GPS.** A test reads every file under
   `public/outside/` and fails if it contains an Exif or GPS segment.
 - Food photos are cropped to the dish where other people's hands or torsos
@@ -94,7 +99,7 @@ Yosemite, Korea cities) stay text-only until Andrian approves some.
 
 ## Food block
 
-A small gallery of the 11 photos, each with a caption of dish, place and year
+A gallery of the 19 food photos, each with a caption of dish, place and year
 taken from the photo's own date and location tags, for example "Pad Thai and
 mango sticky rice, Koh Tao, Thailand, 2024". Captions are drafted by Claude and
 confirmed by Andrian (see Open items). The gallery is a CSS grid, two columns on
@@ -129,8 +134,8 @@ this branch.
 
 ## Risks
 
-- **Weight.** 42 photos can bloat the page. Mitigation: WebP, thumbnails first,
-  lazy loading, a hard 3 MB budget enforced by a test.
+- **Weight.** 46 photos can bloat the page. Mitigation: WebP at 800 px,
+  lazy loading, a hard 3 MB total budget enforced by a test (currently 2.9 MB).
 - **Wrong place or year.** Dates and places come from tags. Mitigation: Andrian
   reviews the captions before the section is cleared.
 - **Privacy.** Location metadata and bystanders. Mitigation: metadata stripped
