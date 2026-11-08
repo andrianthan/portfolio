@@ -17,4 +17,16 @@ describe('activeSection', () => {
   it('falls back to the first id when nothing has crossed yet', () => {
     expect(activeSection(tops(300, 900, 1700, 2500), 120)).toBe('top');
   });
+  it('activates the last section at the bottom of the page even if it never crossed the offset', () => {
+    // The last section is too short to reach the offset line: the page ends first.
+    expect(activeSection(tops(-3000, -2300, -1500, 308), 120, true)).toBe('about');
+    expect(activeSection(tops(0, 700, 1500, 2300), 120, true)).toBe('about');
+  });
+  it('keeps the old behaviour when not at the bottom', () => {
+    expect(activeSection(tops(-3000, -2300, -1500, 308), 120, false)).toBe('projects');
+    expect(activeSection(tops(-3000, -2300, -1500, 308), 120)).toBe('projects');
+  });
+  it('activates the last section at the bottom when it has crossed the offset too', () => {
+    expect(activeSection(tops(-3000, -2300, -1500, -200), 120, true)).toBe('about');
+  });
 });
