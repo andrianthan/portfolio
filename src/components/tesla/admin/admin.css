@@ -1,0 +1,66 @@
+/* Admin demo. Frame chrome comes from qa.css. Tokens only. */
+.adm { max-width: 100%; }
+.adm .qa-top { flex-wrap: wrap; }
+.adm .adm-body { padding: 12px; min-width: 0; color: var(--color-fg); font-size: 13px; }
+.adm .adm-views { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.adm .adm-views button {
+  min-height: 44px; padding: 0 14px; font: 600 12px var(--font-mono); color: var(--color-muted);
+  background: transparent; border: 1px solid var(--color-rule); border-radius: 999px; cursor: pointer;
+}
+.adm .adm-views button.on { color: var(--color-fg); border-color: var(--color-accent); }
+.adm .adm-views button:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.adm .adm-views button:focus-visible { border-radius: 999px; }
+.adm .adm-h { margin: 0 0 8px; font: 600 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); }
+.adm .adm-note { margin: 0 0 8px; font-size: 12px; color: var(--color-muted); }
+.adm .adm-cap { margin: 12px 0 0; font-size: 12px; color: var(--color-muted); }
+
+/* Usage table: scrolls inside its own wrapper, never the page. */
+.adm .adm-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--color-rule); border-radius: 8px; }
+.adm .adm-scroll table { border-collapse: collapse; width: 100%; min-width: 520px; }
+.adm .adm-scroll th, .adm .adm-scroll td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--color-rule); white-space: nowrap; }
+.adm .adm-scroll th { font: 600 11px var(--font-mono); color: var(--color-muted); }
+.adm .adm-scroll tr:last-child td { border-bottom: 0; }
+.adm .adm-scroll td.num { font-variant-numeric: tabular-nums; }
+.adm .adm-scroll:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 8px; }
+
+/* Access: the gate switch and its standing note. */
+.adm .adm-gate { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; }
+.adm .adm-gate button {
+  min-height: 44px; padding: 0 14px; font: 600 12px var(--font-mono); color: var(--color-muted);
+  background: transparent; border: 1px solid var(--color-rule); border-radius: 8px; cursor: pointer;
+}
+.adm .adm-gate button.on { color: var(--color-fg); border-color: var(--color-accent); background: var(--color-glow); }
+.adm .adm-gate button:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.adm .adm-gate button:focus-visible { border-radius: 8px; }
+.adm .adm-gate-note { margin: 0; font-size: 12px; color: var(--color-muted); }
+
+/* Access: the user x tab checkbox grid. */
+.adm .adm-grid { max-width: 100%; overflow-x: auto; border: 1px solid var(--color-rule); border-radius: 8px; }
+.adm .adm-grid:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 8px; }
+.adm .adm-grid table { border-collapse: collapse; width: 100%; min-width: 480px; }
+.adm .adm-grid th, .adm .adm-grid td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--color-rule); }
+.adm .adm-grid tr:last-child td { border-bottom: 0; }
+.adm .adm-grid th { font: 600 11px var(--font-mono); color: var(--color-muted); }
+.adm .adm-grid th.blank { min-width: 92px; }
+.adm .adm-grid td.cell { text-align: center; }
+.adm .adm-grid input[type='checkbox'] { width: 16px; height: 16px; margin: 0; accent-color: var(--color-accent); cursor: pointer; }
+.adm .adm-grid input[type='checkbox']:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+
+/* The canOpen check line. */
+.adm .adm-check {
+  margin: 12px 0 0; padding: 10px 12px; font: 12px var(--font-mono);
+  background: var(--color-chip); border: 1px solid var(--color-rule); border-radius: 8px; overflow-wrap: anywhere;
+}
+.adm .adm-check .yes { color: var(--color-accent); font-weight: 600; }
+.adm .adm-check .no { color: var(--color-muted); font-weight: 600; }
+
+/* Audit log. */
+.adm .adm-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.adm .adm-log li {
+  display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 8px 10px;
+  border: 1px solid var(--color-rule); border-radius: 8px; background: var(--color-chip);
+  font: 12px var(--font-mono); color: var(--color-fg); min-width: 0;
+}
+.adm .adm-log .adm-who { color: var(--color-muted); }
+.adm .adm-log .adm-target { overflow-wrap: anywhere; }
+.adm .adm-empty { margin: 0; font-size: 12px; color: var(--color-muted); }
