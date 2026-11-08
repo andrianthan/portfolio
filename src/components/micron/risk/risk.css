@@ -1,0 +1,25 @@
+/* Wafer risk ranking. Frame chrome comes from qa.css; every rule is prefixed with .risk. */
+.risk { max-width: 100%; }
+.risk .qa-top { flex-wrap: wrap; }
+.risk .risk-ctl { display: flex; flex-direction: column; gap: 6px; padding: 14px 14px 8px; }
+.risk .risk-ctl label { font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.risk .risk-ctl input[type='range'] { width: 100%; min-height: 44px; accent-color: var(--color-accent); }
+.risk .risk-label { margin: 0; font: 12px var(--font-mono); color: var(--color-fg); }
+.risk .risk-scroll { overflow-x: auto; margin: 0 14px; border: 1px solid var(--color-rule); border-radius: 10px; }
+.risk table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
+.risk th { text-align: left; font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); padding: 8px 10px; border-bottom: 1px solid var(--color-rule); white-space: nowrap; }
+.risk td { padding: 4px 10px; color: var(--color-muted); border-bottom: 1px solid var(--color-rule); white-space: nowrap; }
+.risk tbody tr:last-child td { border-bottom: 0; }
+.risk tr[data-queued='true'] td { color: var(--color-fg); background: var(--color-chip); }
+.risk .risk-pick {
+  min-height: 44px; min-width: 44px; padding: 4px 10px; font: 600 12px var(--font-mono);
+  color: var(--color-fg); background: transparent; border: 1px solid var(--color-rule); border-radius: 999px; cursor: pointer;
+}
+.risk .risk-pick:hover { border-color: var(--color-accent); }
+.risk .risk-pick[aria-pressed='true'] { border-color: var(--color-accent); background: var(--color-chip); }
+.risk .risk-factors { padding: 12px 14px 0; }
+.risk .risk-fhead { margin: 0 0 6px; font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.risk .risk-factors ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.risk .risk-factors li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--color-fg); background: var(--color-chip); border-radius: 6px; padding: 6px 10px; }
+.risk .risk-factors b { font-family: var(--font-mono); }
+.risk .risk-cap { margin: 0; padding: 10px 14px 12px; font-size: 12px; color: var(--color-muted); }
