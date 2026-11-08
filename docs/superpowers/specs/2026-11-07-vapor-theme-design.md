@@ -138,12 +138,14 @@ running branch and asked for them. Each carries the ruling that shaped it.
   background reads as streaming rather than static. Everything moves with
   `transform` and `opacity` only, and everything stills under
   `prefers-reduced-motion`.
-- **The Lifting block (Task 12).** The About section gained a "Lifting" block: a
-  month calendar that fills green day by day, a year-by-year overview wall, the
-  three lifts, a percentile line and an hours figure. The calendar is a static
-  export of Andrian's own check-ins with no live feed and no regeneration job,
-  so the page states its cutoff rather than claiming to be current, and it never
-  claims to be synced, connected, estimated or reconstructed.
+- **The Lifting block (Task 12).** The About section gained a "Lifting" block: the
+  three lifts, a percentile line, an hours figure with overall check-in metrics,
+  and a year-at-a-time check-in wall with previous/next year arrows and that
+  year's check-ins, weekly average, longest streak and best month as text. The
+  data is a static export of Andrian's own check-ins with no live feed and no
+  regeneration job, so the page states its cutoff rather than claiming to be
+  current, and it never claims to be synced, connected, estimated or
+  reconstructed.
 - **The mobile nav grid (Task 13).** The mobile nav is a fixed three-column
   grid, so the bar's row count cannot change when the pixel face swaps in late.
 - **The simpler chat box (Task 14).** The Ask bar is three question chips with

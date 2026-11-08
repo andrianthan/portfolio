@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import data from '../../data/gym-checkins.json';
 import {
-  MONTH_NAMES, toSet, daysInMonth, monthView, summaryText, shiftMonth, monthKey, yearsOf, phaseSpans, dayLabel, weekGrid, formatHours, nextFocusDay, asOfLabel,
+  MONTH_NAMES, toSet, daysInMonth, yearsOf, shiftYear, yearStats, overallStats, weekGrid, formatHours,
 } from './calendar';
 
 const set = toSet(data.dates);
@@ -16,95 +16,81 @@ describe('daysInMonth', () => {
   });
 });
 
-describe('monthView', () => {
-  it('lays out Aug 2025: starts on a Friday (5 blanks), 31 cells, 20 went', () => {
-    const v = monthView(2025, 7, set, asOf);
-    expect(v.lead).toBe(5);
-    expect(v.cells.length).toBe(31);
-    expect(v.count).toBe(20);
-    expect(v.days).toBe(31);
-    expect(v.elapsed).toBe(31);
-    expect(v.cells.every((c) => !c.future)).toBe(true);
-    expect(v.cells[0]).toEqual({ day: 1, iso: '2025-08-01', went: true, future: false });
-  });
-  it('marks days after asOf as future in the current month', () => {
-    const v = monthView(2026, 10, set, asOf);
-    expect(v.lead).toBe(0);
-    expect(v.count).toBe(5);
-    expect(v.elapsed).toBe(8);
-    expect(v.cells.filter((c) => c.future).length).toBe(22);
-    expect(v.cells[8].future).toBe(true);
-    expect(v.cells[7].future).toBe(false);
-  });
-});
-
-describe('summaryText', () => {
-  it('reads "N of D days" for a finished month', () => {
-    expect(summaryText(monthView(2025, 7, set, asOf), asOf)).toBe('20 of 31 days');
-  });
-  it('states the cutoff for the as-of month, so the sentence stays true as time passes', () => {
-    expect(summaryText(monthView(2026, 10, set, asOf), asOf)).toBe('5 of 8 days, as of Nov 8');
-  });
-  it('never says "so far", which would claim the month is still running', () => {
-    for (const m of [[2025, 7], [2026, 10]] as const) {
-      expect(summaryText(monthView(m[0], m[1], set, asOf), asOf).toLowerCase()).not.toContain('so far');
-    }
-  });
-});
-
-describe('asOfLabel', () => {
-  it('reads the cutoff as a short date, with no year to disagree with', () => {
-    expect(asOfLabel('2026-11-08')).toBe('Nov 8');
-    expect(asOfLabel('2026-01-01')).toBe('Jan 1');
-    expect(asOfLabel('2026-12-31')).toBe('Dec 31');
-  });
-  it('uses the same short month names the calendar shows', () => {
-    expect(asOfLabel('2026-09-30').slice(0, 3)).toBe(MONTH_NAMES[8].slice(0, 3));
-  });
-});
-
-describe('navigation helpers', () => {
-  it('shifts across year boundaries', () => {
-    expect(shiftMonth({ year: 2025, month: 11 }, 1)).toEqual({ year: 2026, month: 0 });
-    expect(shiftMonth({ year: 2026, month: 0 }, -1)).toEqual({ year: 2025, month: 11 });
-  });
-  it('builds sortable month keys and lists the years', () => {
-    expect(monthKey(2025, 7)).toBe('2025-08');
-    expect(yearsOf(data.dates)).toEqual([2022, 2023, 2024, 2025, 2026]);
+describe('yearsOf / shiftYear', () => {
+  it('lists the years and steps through them, null off either end', () => {
+    const years = yearsOf(data.dates);
+    expect(years).toEqual([2022, 2023, 2024, 2025, 2026]);
     expect(MONTH_NAMES.length).toBe(12);
+    expect(shiftYear(years, 2026, -1)).toBe(2025);
+    expect(shiftYear(years, 2022, 1)).toBe(2023);
+    expect(shiftYear(years, 2026, 1)).toBeNull();
+    expect(shiftYear(years, 2022, -1)).toBeNull();
+    expect(shiftYear(years, 1999, 1)).toBeNull();
   });
 });
 
-describe('phaseSpans', () => {
-  it('splits the history into the four phases and the counts add up to 861', () => {
-    const spans = phaseSpans(data.phases, data.dates, asOf);
-    expect(spans.length).toBe(4);
-    expect(spans.map((s) => s.label)).toEqual([
-      'Summer 2022: slower start',
-      'Late 2022: building consistency',
-      '2023: increasingly consistent',
-      'Nov 2023–present: consistent',
-    ]);
-    expect(spans.reduce((n, s) => n + s.count, 0)).toBe(861);
-    expect(spans[0].count).toBe(18);
-    expect(spans[3].to).toBe(asOf);
+describe('yearStats', () => {
+  it('counts check-ins, best month and a streak across a month boundary', () => {
+    const dates = ['2023-01-05', '2023-01-31', '2023-02-01', '2023-02-02', '2023-02-10', '2023-02-20', '2024-03-01'];
+    const s = yearStats(2023, dates, '2024-06-30');
+    expect(s.checkIns).toBe(6);
+    expect(s.longestStreak).toBe(3); // Jan 31, Feb 1, Feb 2
+    expect(s.bestMonth).toEqual({ name: 'February', count: 4 });
+  });
+  it('averages over the whole year for a middle year', () => {
+    const dates = ['2022-06-01', '2023-03-01', '2023-03-02', '2024-01-01'];
+    // 365 days = 52.142857 weeks
+    expect(yearStats(2023, dates, '2024-06-30').perWeek).toBe((2 / (365 / 7)).toFixed(1));
+  });
+  it('starts the first year at the first check-in and ends the as-of year at asOf', () => {
+    const dates = ['2022-12-18', '2022-12-25', '2023-01-01'];
+    // Dec 18..Dec 31 = 14 days = 2 weeks, 2 check-ins
+    expect(yearStats(2022, dates, '2023-01-14').perWeek).toBe('1.0');
+    // Jan 1..Jan 14 = 14 days = 2 weeks, 1 check-in
+    expect(yearStats(2023, dates, '2023-01-14').perWeek).toBe('0.5');
+  });
+  it('handles a year with a single check-in', () => {
+    const s = yearStats(2024, ['2022-06-01', '2024-07-04'], '2025-01-01');
+    expect(s.checkIns).toBe(1);
+    expect(s.longestStreak).toBe(1);
+    expect(s.bestMonth).toEqual({ name: 'July', count: 1 });
+    expect(s.perWeek).toBe((1 / (366 / 7)).toFixed(1));
+  });
+  it('clips a streak crossing Dec 31 to the days inside the year', () => {
+    const dates = ['2023-12-30', '2023-12-31', '2024-01-01', '2024-01-02', '2024-01-03'];
+    expect(yearStats(2023, dates, '2024-02-01').longestStreak).toBe(2);
+    expect(yearStats(2024, dates, '2024-02-01').longestStreak).toBe(3);
+    expect(overallStats(dates, '2024-02-01').longestStreak).toBe(5);
+  });
+  it('breaks a best-month tie toward the earlier month, and ignores duplicate dates in streaks', () => {
+    const s = yearStats(2024, ['2024-02-03', '2024-05-04', '2024-05-04'], '2025-01-01');
+    expect(s.longestStreak).toBe(1);
+    expect(s.bestMonth.name).toBe('February');
+  });
+  it('per-year counts add up to the total on the real data', () => {
+    const total = yearsOf(data.dates).reduce((n, y) => n + yearStats(y, data.dates, asOf).checkIns, 0);
+    expect(total).toBe(861);
+  });
+  it('never uses the old phase wording', () => {
+    expect(JSON.stringify(yearStats(2022, data.dates, asOf)).toLowerCase()).not.toMatch(/slower|estimated|reconstructed/);
   });
 });
 
-describe('dayLabel', () => {
-  it('describes a day for assistive tech', () => {
-    expect(dayLabel('2025-08-01', true)).toBe('Fri, Aug 1, 2025: went to the gym');
-    expect(dayLabel('2025-08-06', false)).toBe('Wed, Aug 6, 2025: rest day');
+describe('overallStats', () => {
+  it('reads the real history: 861 check-ins since June 2022', () => {
+    const s = overallStats(data.dates, asOf);
+    expect(s.checkIns).toBe(861);
+    expect(s.since).toBe('June 2022');
+    const weeks = (Date.UTC(2026, 10, 8) - Date.UTC(2022, 5, 1)) / 86_400_000 / 7 + 1 / 7;
+    expect(s.perWeek).toBe((861 / weeks).toFixed(1));
+    expect(s.longestStreak).toBeGreaterThanOrEqual(yearStats(2026, data.dates, asOf).longestStreak);
   });
-  it('calls days past the cutoff "not yet recorded", never upcoming and never a rest day', () => {
-    expect(dayLabel('2026-11-10', false, true)).toBe('Tue, Nov 10, 2026: not yet recorded');
-    expect(dayLabel('2026-11-10', false, true)).not.toMatch(/upcoming/i);
-    expect(dayLabel('2026-11-10', false, true)).not.toMatch(/rest day/i);
-    expect(dayLabel('2026-11-10', false, true)).not.toMatch(/went to the gym/i);
+  it('counts a streak across a year boundary and a leap day', () => {
+    expect(overallStats(['2023-12-31', '2024-01-01'], '2024-01-07').longestStreak).toBe(2);
+    expect(overallStats(['2024-02-28', '2024-02-29', '2024-03-01'], '2024-03-07').longestStreak).toBe(3);
   });
-  it('never calls a day "upcoming", which would go stale the day after the export', () => {
-    expect(dayLabel('2026-11-10', false, true).toLowerCase()).not.toContain('upcoming');
-    expect(dayLabel('2025-08-01', true).toLowerCase()).not.toContain('upcoming');
+  it('averages from the first check-in to asOf, inclusive', () => {
+    expect(overallStats(['2024-01-01', '2024-01-08'], '2024-01-14').perWeek).toBe('1.0'); // 2 / 2 weeks
   });
 });
 
@@ -124,26 +110,5 @@ describe('formatHours', () => {
   it('rounds to one decimal in thousands', () => {
     expect(formatHours(861, 1.9)).toBe('1.6k');
     expect(formatHours(1000, 2)).toBe('2.0k');
-  });
-});
-
-describe('nextFocusDay', () => {
-  it('maps each navigation key', () => {
-    expect(nextFocusDay('ArrowLeft', 10, 30)).toBe(9);
-    expect(nextFocusDay('ArrowRight', 10, 30)).toBe(11);
-    expect(nextFocusDay('ArrowUp', 10, 30)).toBe(3);
-    expect(nextFocusDay('ArrowDown', 10, 30)).toBe(17);
-    expect(nextFocusDay('Home', 10, 30)).toBe(1);
-    expect(nextFocusDay('End', 10, 30)).toBe(30);
-  });
-  it('clamps to 1..days', () => {
-    expect(nextFocusDay('ArrowLeft', 1, 30)).toBe(1);
-    expect(nextFocusDay('ArrowUp', 3, 30)).toBe(1);
-    expect(nextFocusDay('ArrowRight', 30, 30)).toBe(30);
-    expect(nextFocusDay('ArrowDown', 28, 30)).toBe(30);
-  });
-  it('returns null for other keys', () => {
-    expect(nextFocusDay('Tab', 5, 30)).toBeNull();
-    expect(nextFocusDay('Enter', 5, 30)).toBeNull();
   });
 });

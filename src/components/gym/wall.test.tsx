@@ -2,15 +2,13 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
-import data from '../../data/gym-checkins.json';
-import { yearsOf } from './calendar';
 import { WALL_COLS, WALL_ROWS, WALL_LABEL, WALL_GAP_Y, wallHeight } from './wall';
 import YearWall from './YearWall';
 
 const css = fs.readFileSync(path.join(process.cwd(), 'src/components/gym/gym.css'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '');
 
-const YEARS = yearsOf(data.dates).length;
+const YEARS = 1; // the wall shows one year at a time
 
 /**
  * The `calc()` the wall reserves its height with, read out of the stylesheet.
@@ -149,10 +147,8 @@ describe('the year wall', () => {
   });
 
   it('carries the geometry as custom properties in the server-rendered html, before any script runs', () => {
-    const html = renderToStaticMarkup(<YearWall />);
-    const years = yearsOf(data.dates).length;
-    expect(html).toContain('--wall-years:5');
-    expect(html).toContain(`--wall-years:${years}`);
+    const html = renderToStaticMarkup(<YearWall year={2026} />);
+    expect(html).toContain('--wall-years:1');
     expect(html).toContain(`--wall-cols:${WALL_COLS}`);
     expect(html).toContain(`--wall-rows:${WALL_ROWS}`);
     expect(html).toContain(`--wall-label:${WALL_LABEL}px`);
@@ -163,12 +159,10 @@ describe('the year wall', () => {
 });
 
 describe('wallHeight', () => {
-  it('is the drawn height: one block of seven rows per year, plus the gap', () => {
-    const years = yearsOf(data.dates).length;
-    expect(years).toBe(5);
+  it('is the drawn height: one block of seven rows, plus the gap', () => {
     const cell = (736 - WALL_LABEL) / WALL_COLS;
-    expect(wallHeight(736, years)).toBeCloseTo(years * (WALL_ROWS * cell + WALL_GAP_Y), 10);
-    expect(wallHeight(736, years)).toBeCloseTo(505, 6);
+    expect(wallHeight(736, 1)).toBeCloseTo(WALL_ROWS * cell + WALL_GAP_Y, 10);
+    expect(wallHeight(736, 1)).toBeCloseTo((7 * 736) / 54 + 10, 6);
   });
   it('grows with the width and with the number of years', () => {
     expect(wallHeight(736, 5)).toBeGreaterThan(wallHeight(320, 5));

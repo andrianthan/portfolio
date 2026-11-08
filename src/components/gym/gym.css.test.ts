@@ -1,23 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
-import path from 'node:path';
 
 const css = fs.readFileSync(new URL('./gym.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-const globalCss = fs.readFileSync(path.join(process.cwd(), 'src/styles/global.css'), 'utf8')
-  .replace(/\/\*[\s\S]*?\*\//g, '');
 
 describe('gym.css', () => {
-  it('marks future days with a dashed border, not reduced opacity', () => {
-    const rule = css.match(/\.gym-future\s*\{([^}]*)\}/);
-    expect(rule).not.toBeNull();
-    expect(rule![1]).toContain('border-style: dashed');
-    expect(rule![1]).not.toContain('opacity');
+  it('the year arrows dim with aria-disabled, not the disabled attribute', () => {
+    expect(css).toMatch(/\.gym-nav\[aria-disabled="true"\]\s*\{[^}]*opacity/);
   });
-  it('the year switch is a plain select, so the site focus ring covers it', () => {
-    // it must not be styled in a way that hides the ring (no outline: none of its own)
-    const rule = css.match(/\.gym-year[^{}]*\{([^}]*)\}/);
-    expect(rule).not.toBeNull();
-    expect(rule![1]).not.toMatch(/outline:\s*(none|0)/);
-    expect(globalCss).toMatch(/select:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--color-accent\)/);
+  it('is rid of the month calendar and phase list styles', () => {
+    for (const dead of ['.gym-grid', '.gym-row', '.gym-dow', '.gym-cell', '.gym-blank', '.gym-went', '.gym-future', '.gym-status', '.gym-summary', '.gym-phases', '.gym-year']) {
+      expect(css).not.toContain(dead);
+    }
+  });
+  it('has no animation or transition, so reduced-motion needs no override', () => {
+    expect(css).not.toMatch(/\btransition\s*:|@keyframes|\banimation\s*:/);
+  });
+  it('stat items go two to a row under 640px', () => {
+    expect(css).toMatch(/@media \(max-width: 639px\)\s*\{[^}]*\.gym-stats[^}]*repeat\(2,/);
   });
 });
