@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
 import DashboardDemo from './DashboardDemo';
+import { SCOPES } from './dashboard';
 
 const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/tesla/dashboard/dashboard.css'), 'utf8');
 
@@ -15,18 +16,20 @@ const css = fs.readFileSync(path.resolve(process.cwd(), 'src/components/tesla/da
  */
 function ruleSets(selector: string, property: string, value: string): boolean {
   const rules = css.split('}');
+  const wanted = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return rules.some((rule) => {
     const [head, ...body] = rule.split('{');
     if (!body.length) return false;
     const selectors = head.split(',').map((s) => s.trim());
     if (!selectors.includes(selector)) return false;
     const declarations = body.join('{');
-    return new RegExp(`(^|;)\\s*${property}\\s*:\\s*${value}\\s*(;|$)`).test(declarations);
+    return new RegExp(`(^|;)\\s*${property}\\s*:\\s*${wanted}\\s*(;|$)`).test(declarations);
   });
 }
 
 const overview = renderToStaticMarkup(<DashboardDemo />);
 const worklog = renderToStaticMarkup(<DashboardDemo initialView="worklog" />);
+const scoped = renderToStaticMarkup(<DashboardDemo initialScope="Climate" />);
 
 describe('DashboardDemo', () => {
   it('labels the window as sample data', () => {
@@ -59,5 +62,27 @@ describe('DashboardDemo', () => {
   it('keeps the reply line a live region', () => {
     expect(overview).toContain('class="dash-reply" role="status"');
     expect(overview).toContain('No request sent yet.');
+  });
+
+  it('offers the scope filter as a labelled group of pressed toggles', () => {
+    // The page says the overview has filters, so the frame has to have one:
+    // a group with a visible label and one pressed toggle.
+    expect(overview).toContain('class="dash-filters" role="group" aria-label="Overview scope"');
+    expect(overview).toContain('class="dash-filters-label">Scope</span>');
+    expect(overview).toContain('aria-pressed="true"');
+    expect(overview).not.toContain('role="tab"');
+    for (const s of SCOPES) expect(overview).toContain(s.label);
+  });
+
+  it('shows the whole catalog first, and the scope moves the tiles and the chart', () => {
+    expect(overview).toContain('Parts tracked');
+    expect(overview).toContain('Service units left');
+    // The scoped view is counted from the same mock catalog.
+    expect(scoped).toContain('aria-label="Sample weekly demand bar chart for Climate"');
+    expect(overview).toContain('aria-label="Sample weekly demand bar chart for all parts"');
+  });
+
+  it('gives the scope buttons a 44px touch target', () => {
+    expect(ruleSets('.dash .dash-filters button', 'min-height', '44px')).toBe(true);
   });
 });

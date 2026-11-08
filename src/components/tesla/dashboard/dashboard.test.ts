@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { NAV, initialReply, initialWarm, replyLine, resetReply, restart, sendRequest, warmStep, request, stepDelayMs } from './dashboard';
+import { NAV, initialReply, initialWarm, isView, replyLine, resetReply, restart, sendRequest, warmStep, request, stepDelayMs, SCOPES, scopeBars, scopeKpis } from './dashboard';
 
 describe('dashboard frame logic', () => {
   it('lists every project once, in page order, plus overview and work log', () => {
     expect(NAV.map((n) => n.id)).toEqual(['overview', 'part-summary', 'ask-sdp', 'forecast-lab', 'campaigns', 'slideshow-generation', 'modular-architecture', 'admin', 'worklog']);
     expect(NAV.find((n) => n.id === 'campaigns')!.target).toBe('campaigns');
     expect(NAV.find((n) => n.id === 'overview')!.target).toBeNull();
+  });
+  it('knows which nav entries are panes of this demo', () => {
+    // The view type is derived from these, so a nav entry with no target is
+    // a pane and everything else scrolls to a section of the page.
+    expect(isView('overview')).toBe(true);
+    expect(isView('worklog')).toBe(true);
+    expect(isView('campaigns')).toBe(false);
   });
   it('starts warm and answers 200', () => {
     expect(request(initialWarm()).status).toBe(200);
@@ -70,5 +77,38 @@ describe('dashboard frame logic', () => {
     expect(replyLine(after.reply, after.count).announced).toBe('');
     // The next request after a restart is the first of the new run.
     expect(sendRequest(after, initialWarm()).count).toBe(1);
+  });
+});
+
+describe('the overview scope filter', () => {
+  it('offers the whole catalog first, then each system in it', () => {
+    expect(SCOPES[0].label).toBe('All parts');
+    expect(SCOPES.map((s) => s.id)).toEqual(['all', 'Closures', 'Exterior', 'Climate', 'Chassis']);
+  });
+
+  it('counts the KPI tiles from the mock catalog, so the numbers follow the scope', () => {
+    // The tiles are computed from the same mock parts and campaigns the rest
+    // of the demos use, so a scope cannot show a number nothing backs.
+    expect(scopeKpis('all').map((k) => k.value)).toEqual(['5', '6', '12,600', '91%']);
+    expect(scopeKpis('Closures').map((k) => k.value)).toEqual(['2', '3', '6,300', '91%']);
+    expect(scopeKpis('Climate').map((k) => k.value)).toEqual(['1', '1', '600', '91%']);
+  });
+
+  it('names the tiles it shows', () => {
+    expect(scopeKpis('all').map((k) => k.label)).toEqual([
+      'Parts tracked', 'Open campaigns', 'Service units left', 'Forecast accuracy',
+    ]);
+  });
+
+  it('draws a different demand series for every scope', () => {
+    const all = scopeBars('all');
+    expect(all).toHaveLength(12);
+    expect(scopeBars('Closures')).not.toEqual(all);
+    expect(scopeBars('Exterior')).not.toEqual(scopeBars('Closures'));
+  });
+
+  it('scales the scoped demand down, so a narrower scope shows a smaller chart', () => {
+    const sum = (bars: number[]) => bars.reduce((a, b) => a + b, 0);
+    expect(sum(scopeBars('Closures'))).toBeLessThan(sum(scopeBars('all')));
   });
 });

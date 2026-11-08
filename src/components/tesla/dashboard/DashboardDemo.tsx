@@ -3,29 +3,24 @@ import './dashboard.css';
 import { useEffect, useState } from 'react';
 import WorklogDemo from '../worklog/WorklogDemo';
 import { WORKLOG } from '../worklog/content';
-import { series } from '../fixtures';
-import { NAV, initialReply, initialWarm, replyLine, resetReply, restart, sendRequest, stepDelayMs, warmStep, type ReplyState, type WarmState } from './dashboard';
-
-type View = 'overview' | 'worklog';
-
-const KPIS = [
-  { label: 'Parts tracked', value: '1,284' },
-  { label: 'At-risk parts', value: '37' },
-  { label: 'Forecast accuracy', value: '91%' },
-  { label: 'Open campaigns', value: '6' },
-];
+import { NAV, SCOPES, initialReply, initialWarm, isView, replyLine, resetReply, restart, scopeBars, scopeKpis, sendRequest, stepDelayMs, warmStep, type ReplyState, type Scope, type View, type WarmState } from './dashboard';
 
 /**
  * The dashboard demo. `initialView` sets the pane shown first; it exists so
  * the render test can check the work log pane, and defaults to the overview.
+ * `initialScope` sets the scope filter the overview starts on.
  */
-export default function DashboardDemo({ initialView = 'overview' }: { initialView?: View } = {}) {
+export default function DashboardDemo({
+  initialView = 'overview',
+  initialScope = 'all',
+}: { initialView?: View; initialScope?: Scope } = {}) {
   const [view, setView] = useState<View>(initialView);
+  const [scope, setScope] = useState<Scope>(initialScope);
   const [warm, setWarm] = useState<WarmState>(initialWarm);
   const [restarts, setRestarts] = useState(0);
   const [replyState, setReplyState] = useState<ReplyState>(initialReply);
-  const bars = series(7, 12, 60, 30);
-  const max = Math.max(...bars);
+  const bars = scopeBars(scope);
+  const max = 100;
   const warming = warm.status !== 'warm';
   const line = replyLine(replyState.reply, replyState.count);
 
@@ -62,7 +57,7 @@ export default function DashboardDemo({ initialView = 'overview' }: { initialVie
                   key={n.id} type="button"
                   aria-pressed={view === n.id}
                   className={view === n.id ? 'on' : ''}
-                  onClick={() => setView(n.id as View)}
+                  onClick={() => { if (isView(n.id)) setView(n.id); }}
                 >
                   {n.label}
                 </button>
@@ -80,8 +75,21 @@ export default function DashboardDemo({ initialView = 'overview' }: { initialVie
             </section>
           ) : (
             <>
+              <div className="dash-filters" role="group" aria-label="Overview scope">
+                <span className="dash-filters-label">Scope</span>
+                {SCOPES.map((s) => (
+                  <button
+                    key={s.id} type="button"
+                    aria-pressed={scope === s.id}
+                    className={scope === s.id ? 'on' : ''}
+                    onClick={() => setScope(s.id)}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
               <div className="dash-kpis">
-                {KPIS.map((k) => (
+                {scopeKpis(scope).map((k) => (
                   <div key={k.label} className="dash-kpi">
                     <span className="dash-kpi-v">{k.value}</span>
                     <span className="dash-kpi-l">{k.label}</span>
@@ -90,7 +98,7 @@ export default function DashboardDemo({ initialView = 'overview' }: { initialVie
               </div>
               <svg
                 className="dash-chart" viewBox="0 0 240 80" role="img"
-                aria-label="Sample weekly demand bar chart" preserveAspectRatio="none"
+                aria-label={`Sample weekly demand bar chart for ${scope === 'all' ? 'all parts' : scope}`} preserveAspectRatio="none"
               >
                 {bars.map((v, i) => {
                   const h = (v / max) * 70;

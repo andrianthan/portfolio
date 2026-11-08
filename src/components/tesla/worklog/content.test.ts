@@ -67,4 +67,30 @@ describe('the mock work log', () => {
     expect(text).toContain('17/17');
     expect(text).toContain('165');
   });
+
+  it('claims no hours saved for the deck, because none were timed', () => {
+    // The page's Slideshow section says the hours saved per cycle were not
+    // timed, so the pane may not assert a figure the page disclaims.
+    const text = stringsOf(doc).join(' ');
+    expect(text).not.toContain('20+');
+    expect(text).not.toMatch(/worth[^.]*hours/i);
+    expect(text).not.toMatch(/\d+\+?\s*hours\b/i);
+  });
+
+  it('uses the page\'s current section names, not the retired ones', () => {
+    const titles = doc.sections.map((s) => s.title);
+    expect(titles).not.toContain('Planning app');
+    expect(titles).not.toContain('Evals and CI');
+    expect(titles).not.toContain('Data pipelines');
+    expect(titles).toContain('Dashboard');
+    expect(titles).toContain('Modular architecture');
+    expect(titles).toContain('Slideshow generation');
+  });
+
+  it('says its figures come from the public resume, and that no internal figure appears', () => {
+    // The page's About-the-demo sentence says the same thing, so the two
+    // sides of the frame cannot contradict each other.
+    expect(doc.note).toContain('public resume');
+    expect(doc.note).toContain('no part number, person or internal figure');
+  });
 });

@@ -7,7 +7,15 @@ const raw = fs.readFileSync(path.resolve(process.cwd(), 'src/content/work/tesla.
 const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 const prose = body.replace(/<svg[\s\S]*?<\/svg>/g, '');
 
-const stripTags = (s: string) => s.replace(/<[^>]+>/g, ' ');
+/**
+ * Removes the markup, keeping the words.
+ *
+ * A tag is `<` followed by a name and a closing `>`. A bare `<` with no
+ * closing `>` is not a tag, and a regex that deletes to the next `>` would
+ * swallow the rest of the line — taking any number in it out of the scan
+ * below, which is a silent way past the allowlist. So only real tags go.
+ */
+const stripTags = (s: string) => s.replace(/<[A-Za-z/][^<>]*>/g, ' ');
 const stripCommas = (s: string) => s.replace(/,/g, '');
 
 function numberTokens(text: string): string[] {
@@ -19,6 +27,19 @@ function isAllowedNumber(token: string): boolean {
   const t = stripCommas(token);
   if (allowedSet.has(t)) return true;
   return t.startsWith('$') && allowedSet.has(t.slice(1));
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Whether a term appears as a whole word, so "Ragini" does not match "Raginiello". */
+function bannedTermMatches(text: string, needle: string): boolean {
+  const re = new RegExp('(^|[^A-Za-z0-9])' + escapeRe(needle) + '($|[^A-Za-z0-9])', 'i');
+  return re.test(text);
+}
+
+/** Whether the text carries something shaped like a commit hash. */
+function hasHexId(text: string): boolean {
+  return /\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/i.test(text);
 }
 
 function forbiddenClaims(text: string): string[] {
@@ -35,8 +56,6 @@ function forbiddenClaims(text: string): string[] {
   if (stripTags(text).toLowerCase().includes('50+ users')) out.push('50+ users');
   return out;
 }
-
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 describe('the tesla page body', () => {
   it('has the eight sections in order', () => {
@@ -61,12 +80,13 @@ describe('the tesla page body', () => {
 
   it('names no real person, team or internal identifier', () => {
     for (const needle of BANNED_TERMS) {
-      const re = new RegExp('(^|[^A-Za-z0-9])' + escapeRe(needle) + '($|[^A-Za-z0-9])', 'i');
-      expect(body, `banned term "${needle}"`).not.toMatch(re);
+      expect(bannedTermMatches(body, needle), `banned term "${needle}"`).toBe(false);
     }
     expect(prose).not.toMatch(/#\d+/);
     expect(body).not.toMatch(/\b\d{6,}-[A-Z0-9]{2}-[A-Z0-9]\b/);
-    expect(prose).not.toMatch(/\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/i);
+    // The hex scan runs on the prose: the figure markup holds path data that
+    // reads like a hash, and that is not an identifier.
+    expect(hasHexId(prose)).toBe(false);
   });
 
   it('states only numbers from the facts file', () => {
@@ -82,6 +102,36 @@ describe('the tesla page body', () => {
 
   it('never makes a forbidden claim', () => {
     expect(forbiddenClaims(prose)).toEqual([]);
+  });
+
+  it('says the same thing about the work log as the work log says about itself', () => {
+    // The pane's note and the page's About-the-demo sentence both describe
+    // what the mock contains, so they cannot contradict each other.
+    const about = body.split(/^### About the demo$/m)[1] ?? '';
+    expect(about).toContain('public resume');
+    expect(about).toContain('no part number, person or internal figure');
+    expect(about).not.toMatch(/No real part, person or figure/);
+  });
+
+  it('scopes the campaigns time-saved total to what it includes', () => {
+    // The three bullets above it add up to less than the stated total, so the
+    // total says what it covers.
+    const campaigns = body.split(/^## Campaigns$/m)[1] ?? '';
+    expect(campaigns).toContain('across the projects on this page');
+    expect(campaigns).toContain("Forecast Lab's 80-hour estimate");
+  });
+
+  it('gives every modular-architecture figure one shared basis', () => {
+    const modular = body.split(/^## Modular architecture$/m)[1] ?? '';
+    const impact = modular.split(/^### Impact$/m)[1] ?? '';
+    expect(impact).toMatch(/All figures below: measured \(local\)/);
+    // The label is stated once, above the list, not on one bullet.
+    expect(impact.match(/measured \(local\)/g) ?? []).toHaveLength(1);
+  });
+
+  it('does not say a request waits on a build it never waits on', () => {
+    expect(prose).not.toMatch(/wait on one build/i);
+    expect(prose).toContain('share one build instead of starting their own');
   });
 });
 
@@ -99,5 +149,24 @@ describe('test helpers', () => {
   it('passes a hedged default-deny sentence', () => {
     expect(forbiddenClaims('default-deny is not enforced yet')).toEqual([]);
     expect(forbiddenClaims('default-deny is enforced everywhere')).toHaveLength(1);
+  });
+  it('flags a claim that tabs run as separate processes', () => {
+    expect(forbiddenClaims('Per-tab processes run in isolation.')).toHaveLength(1);
+    expect(forbiddenClaims('Per-tab processes are a proposal only')).toEqual([]);
+  });
+  it('matches a banned term on whole words only', () => {
+    expect(bannedTermMatches('the ramparts team', 'Ram')).toBe(false);
+    expect(bannedTermMatches('Ram joined the team', 'Ram')).toBe(true);
+  });
+  it('does not swallow the rest of the line after a bare <', () => {
+    // A regex that deletes to the next `>` would take the numbers after a
+    // stray bracket out of the scan, which is a silent way past the
+    // allowlist, so a bare `<` has to leave the line alone.
+    expect(numberTokens('less < than 5 units')).toEqual(['5']);
+    expect(numberTokens('a < b and 5 > c')).toEqual(['5']);
+  });
+  it('scans the prose for hex ids, not the figure markup', () => {
+    expect(hasHexId('commit a1b2c3d landed')).toBe(true);
+    expect(hasHexId(prose)).toBe(false);
   });
 });

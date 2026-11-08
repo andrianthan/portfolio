@@ -13,10 +13,21 @@
 .dash .dash-rail button.on { color: var(--color-fg); border-color: var(--color-accent); }
 .dash .dash-rail a:hover, .dash .dash-rail button:hover { border-color: var(--color-accent); color: var(--color-fg); }
 .dash-main { padding: 12px; min-width: 0; }
+/* The scope filter: a labelled group of toggle buttons that wraps, so it
+   cannot push the frame wider than the screen at 320px. */
+.dash-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.dash-filters-label { font: 600 11px var(--font-mono); color: var(--color-muted); margin-right: 2px; }
+.dash .dash-filters button {
+  min-height: 44px; padding: 0 12px; font: 600 12px var(--font-mono); color: var(--color-muted);
+  background: transparent; border: 1px solid var(--color-rule); border-radius: 999px; cursor: pointer;
+}
+.dash .dash-filters button.on { color: var(--color-fg); border-color: var(--color-accent); background: var(--color-glow); }
+.dash .dash-filters button:hover { border-color: var(--color-accent); color: var(--color-fg); }
 .dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .dash-kpi { border: 1px solid var(--color-rule); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dash-kpi-v { font: 700 18px var(--font-mono); color: var(--color-fg); }
-.dash-kpi-l { font-size: 11px; color: var(--color-muted); }
+/* The label wraps rather than pushing the tile wider than its column. */
+.dash-kpi-l { font-size: 11px; color: var(--color-muted); overflow-wrap: anywhere; }
 .dash-chart { display: block; width: 100%; height: 90px; margin: 12px 0; border-bottom: 1px solid var(--color-rule); }
 .dash-server { border: 1px solid var(--color-rule); border-radius: 8px; padding: 12px; color: var(--color-fg); font-size: 13px; }
 .dash-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

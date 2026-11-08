@@ -13,16 +13,23 @@ export interface WorklogDoc {
 }
 
 export const PUBLIC_NUMBERS: readonly string[] = [
-  '32%', '0.854', '0.80', '35', '0%', '17', '165', '77', '20+', '200+', '10+', '30+',
+  '32%', '0.854', '0.80', '35', '0%', '17', '165', '77', '200+', '10+', '30+',
   '$17.0M', '$11.6M', '10',
 ];
 
 export const WORKLOG: WorklogDoc = {
   title: 'Field notes',
   subtitle: 'A work log from the service demand planning team',
-  note: 'This window is a mock. It recreates the shape of the work log kept during the internship, with invented names and identifiers, because the organisation of the work is worth showing. Every figure in it is real and public; everything else is stand-in.',
+  note: 'This window is a mock. It recreates the shape of the work log kept during the internship, with invented names and identifiers, because the organisation of the work is worth showing. Every figure in it comes from the public resume; no part number, person or internal figure from the internal dashboard appears in it.',
   headline: { label: 'Backtest error, better than baseline', value: '32%', detail: 'Forecasts from the shipped model beat the previous baseline by a third on backtest, at lag-zero error of $11.6M, down from $17.0M.' },
   sections: [
+    {
+      id: 'planning-app',
+      title: 'Dashboard',
+      entries: [
+        { label: 'Freshness', detail: 'A freshness job rebuilds the analytics tables on a schedule, verifies each build before it is used, swaps it in atomically, and polls every 10 minutes so a stale table is a non-event.' },
+      ],
+    },
     {
       id: 'ask-sdp',
       title: 'Ask SDP',
@@ -31,6 +38,9 @@ export const WORKLOG: WorklogDoc = {
         { label: 'Routing floor', detail: 'Free-route answers scored 0% on the routing evals: if the question needs data, the model must call a tool. A code-gated floor forces the call, so tool-routing coverage is 35/35 with 0% free-route answers, and metric intents grade 17/17.' },
         { label: 'Typed verdict', detail: 'The model may not flip a conclusion silently. Each answer ends in a typed verdict that states what the data supports, so a disagreement between runs is visible instead of buried in prose. The grounding grade scored 0.854 against a 0.80 bar.' },
         { label: 'The tool it calls', detail: 'A sandboxed Python tool answers numeric questions. It accepts an allow-listed subset of the language, reads no network, and returns its result into the conversation as a checked fact the rail can verify.' },
+        { label: 'Golden set', detail: 'A golden set of graded questions gates routing, metric and grounding changes in CI. Its negative control is a fabricated number: a change that lets an invented figure through must fail the run — that is the point of the control.' },
+        { label: 'The bar', detail: 'The grounding grade holds at 0.854 against a 0.80 threshold; tool routing grades at 35/35 and metric intents at 17/17. A change that drops a grade is a revert, not a debate.' },
+        { label: 'Shipping pipeline', detail: 'The team was pushing untested code to main, so the fix was plumbing: per-branch staging deploys, auto-opened draft PRs, prod deploys on merge. It now supports 200+ staging deploys a week across 10+ data analysts and demand planners.' },
       ],
     },
     {
@@ -43,28 +53,18 @@ export const WORKLOG: WorklogDoc = {
       ],
     },
     {
-      id: 'planning-app',
-      title: 'Planning app',
+      id: 'data-pipelines',
+      title: 'Slideshow generation',
       entries: [
-        { label: 'Shared layers', detail: 'The app grew a shared component library and route modules behind a thin entry point, with a data-client facade over the domain modules so screens stop talking to storage directly. Lint guards enforce the layers: a screen that reaches past the facade fails review, not production.' },
-        { label: 'Visual regression', detail: 'A screenshot harness walks 165 routes on every change and diffs them against the last accepted state, so a layout break is caught in the change that caused it rather than by a planner on Monday morning.' },
+        { label: 'Executive reporting', detail: 'Weekly demand data reached the 77-slide executive deck without a hand-assembled run. The hours saved per cycle were not timed, so this is not measured.' },
       ],
     },
     {
       id: 'evals-ci',
-      title: 'Evals and CI',
+      title: 'Modular architecture',
       entries: [
-        { label: 'Golden set', detail: 'A golden set of graded questions gates routing, metric and grounding changes in CI. Its negative control is a fabricated number: a change that lets an invented figure through must fail the run — that is the point of the control.' },
-        { label: 'The bar', detail: 'The grounding grade holds at 0.854 against a 0.80 threshold; tool routing grades at 35/35 and metric intents at 17/17. A change that drops a grade is a revert, not a debate.' },
-        { label: 'Shipping pipeline', detail: 'The team was pushing untested code to main, so the fix was plumbing: per-branch staging deploys, auto-opened draft PRs, prod deploys on merge. It now supports 200+ staging deploys a week across 10+ data analysts and demand planners.' },
-      ],
-    },
-    {
-      id: 'data-pipelines',
-      title: 'Data pipelines',
-      entries: [
-        { label: 'Executive reporting', detail: 'Weekly demand data flows into the 77-slide executive deck on its own, a run that used to be assembled by hand. The reporting burden it removes is worth 20+ hours per run.' },
-        { label: 'Freshness', detail: 'A freshness job rebuilds the analytics tables on a schedule, verifies each build before it is used, swaps it in atomically, and polls every 10 minutes so a stale table is a non-event.' },
+        { label: 'Shared layers', detail: 'The app grew a shared component library and route modules behind a thin entry point, with a data-client facade over the domain modules so screens stop talking to storage directly. Lint guards enforce the layers: a screen that reaches past the facade fails review, not production.' },
+        { label: 'Visual regression', detail: 'A screenshot harness walks 165 routes on every change and diffs them against the last accepted state, so a layout break is caught in the change that caused it rather than by a planner on Monday morning.' },
       ],
     },
     {

@@ -25,7 +25,7 @@ Every cold open rebuilt its data on the request path, against several backends, 
 
 - **Puts the planning tools in one app.** Overview, Part Summary and its deep dive, Ask, Forecast Lab, Campaigns, the KPI tabs, Home and Admin share one sign-in, one navigation and one data layer.
 - **Opens warm.** Data is built at startup, and a request gets the last good copy or an instant "warming up" response. No request waits on a build.
-- **Shares one build.** Workers share one warm build through disk snapshots, and concurrent requests for the same data wait on one build instead of starting their own.
+- **Shares one build.** Workers share one warm build through disk snapshots, and concurrent requests for the same data share one build instead of starting their own.
 - **Keeps pages instant on the way back.** The frontend serves its cached copy first and refreshes it in the background.
 - **Keeps the data fresh and says when it isn't.** The weekly ETL and the loaders fail loudly, builds are verified and swapped in atomically, and freshness is polled every 10 minutes.
 
@@ -101,7 +101,7 @@ I am confident in the direction of these results; the exact figures are a mix of
 
 ### About the demo
 
-The window above is a dashboard-style frame that runs in your browser on mock data. The Overview view is live, with stand-in KPIs, charts and filters; the other nav items scroll down to each project's own demo, and a small Work log view sits inside the frame. No real part, person or figure from the internal dashboard appears in it.
+The window above is a dashboard-style frame that runs in your browser on mock data. The Overview view is live, with stand-in KPIs, charts and filters; the other nav items scroll down to each project's own demo, and a small Work log view sits inside the frame. The work log is a mock whose figures come from the public resume; no part number, person or internal figure from the internal dashboard appears in it.
 
 ## Part Summary
 
@@ -439,7 +439,7 @@ These figures come from a snapshot taken 22 October on a development copy, not p
   - Spike investigations: 8 a week × 1.58 hours × 16 weeks is about 200 hours, about $20k (about 660 hours and $66k a year annualized).
   - Campaign review: 6 planners × 30 minutes × 12 weeks is about 36 hours, about $3.6k.
   - The 117-part failure workbook: 15 minutes per part is about 29 hours, about $2.9k.
-  - Total: roughly 300 to 350 hours, about $30k to $35k at the placeholder rate, mostly from spike investigations.
+  - Total: roughly 300 to 350 hours, about $30k to $35k at the placeholder rate, across the projects on this page (this includes Forecast Lab's 80-hour estimate), mostly from spike investigations.
 
 ### About the demo
 
@@ -588,7 +588,9 @@ The shell owns sign-in, navigation and discovery, and tabs plug into it through 
 
 ### Impact
 
-- **The refactor:** 445 files, 44 commits, 11 sessions, measured (local) from the repository.
+All figures below: measured (local) from the repository.
+
+- **The refactor:** 445 files, 44 commits, 11 sessions.
 - **Lines of code:** 242,563 to 217,514, 10.3% fewer.
 - **Raw buttons:** 405 to 2.
 - **Unwrapped fetches:** 46 to 8, all allowlisted.
