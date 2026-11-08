@@ -2,7 +2,7 @@ import '../../qa/qa.css';
 import './modular.css';
 import { useState } from 'react';
 import {
-  MANIFESTS, discover, tabsReport, toggleKill,
+  MANIFESTS, discover, mountable, tabsReport, toggleKill,
 } from './modular';
 
 // A mock of the shell's start-up step: read every tab manifest, import what
@@ -17,10 +17,10 @@ export default function ModularDemo() {
   const report = tabsReport(discovery);
 
   // Every tab the shell could mount: the ones it mounted now plus the ones the
-  // kill switch took down, so a killed tab can be brought back.
-  const switchable = MANIFESTS.filter(
-    (m) => m.id.trim() !== '' && m.title.trim() !== '' && m.entry !== null,
-  );
+  // kill switch took down, so a killed tab can be brought back. mountable() is
+  // the same predicate discover() uses, so a tab that can never mount never
+  // gets a kill switch.
+  const switchable = MANIFESTS.filter(mountable);
 
   return (
     <div className="qa mod" role="group" aria-label="Sample contributor tab discovery">
@@ -82,8 +82,10 @@ export default function ModularDemo() {
             A killed tab drops out of the nav; every other tab keeps running.
           </p>
           <h3 className="mod-h">Discovery log</h3>
+          {/* The brief names the class "mono"; there is no global .mono utility, so
+              .mod .mod-log in modular.css does all the styling. */}
           <pre className="mono mod-log" tabIndex={0} role="region" aria-label="Tab discovery report">{report.join('\n')}</pre>
-          <p className="mod-status" role="status" aria-live="polite">
+          <p className="mod-status" role="status">
             {discovery.mounted.length} mounted, {discovery.skipped.length} skipped.
             {discovery.skipped.length === 0
               ? ' Every tab imported cleanly.'

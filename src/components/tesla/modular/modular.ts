@@ -30,21 +30,42 @@ export interface Discovery {
 }
 
 /**
+ * Why the shell cannot import this tab, or null when it can.
+ *
+ * A tab with no id or no title has an incomplete manifest; a tab with no entry
+ * cannot be imported. The import failure is the root cause, so it is reported
+ * ahead of the kill switch.
+ */
+function importReason(m: Manifest): 'manifest incomplete' | 'failed to import' | null {
+  if (m.id.trim() === '' || m.title.trim() === '') return 'manifest incomplete';
+  if (m.entry === null) return 'failed to import';
+  return null;
+}
+
+/**
+ * Whether the shell could mount this tab at all, ignoring the kill switch.
+ *
+ * A tab that cannot be imported can never mount, so a kill switch for it would
+ * be a no-op.
+ */
+export function mountable(m: Manifest): boolean {
+  return importReason(m) === null;
+}
+
+/**
  * Work out which tabs the shell can mount.
  *
  * A manifest is skipped when it is malformed, when its entry cannot be
- * imported, or when the kill switch is on for it. The import failure is the
- * root cause, so it is reported ahead of the kill switch.
+ * imported, or when the kill switch is on for it.
  */
 export function discover(manifests: readonly Manifest[], killed: readonly string[]): Discovery {
   const mounted: Manifest[] = [];
   const skipped: { id: string; reason: string }[] = [];
 
   for (const m of manifests) {
-    if (m.id.trim() === '' || m.title.trim() === '') {
-      skipped.push({ id: m.id, reason: 'manifest incomplete' });
-    } else if (m.entry === null) {
-      skipped.push({ id: m.id, reason: 'failed to import' });
+    const reason = importReason(m);
+    if (reason !== null) {
+      skipped.push({ id: m.id, reason });
     } else if (killed.includes(m.id)) {
       skipped.push({ id: m.id, reason: 'kill switch' });
     } else {
@@ -61,8 +82,11 @@ export function toggleKill(killed: readonly string[], id: string): string[] {
 }
 
 /**
- * One line per manifest, in the order the shell read them: what it did with
- * each tab and, when it skipped one, why.
+ * One line per manifest: what the shell did with each tab and, when it
+ * skipped one, why.
+ *
+ * The mounted tabs come first, then the skipped ones, each group in manifest
+ * order.
  */
 export function tabsReport(d: Discovery): string[] {
   const lines: string[] = [];

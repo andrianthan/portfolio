@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MANIFESTS, discover, tabsReport, toggleKill } from './modular';
+import { MANIFESTS, discover, mountable, tabsReport, toggleKill } from './modular';
 
 describe('modular tab discovery', () => {
   it('mounts valid tabs and skips the broken one, reporting why', () => {
@@ -26,5 +26,22 @@ describe('modular tab discovery', () => {
   });
   it('credits the like-part tab to a teammate with no name', () => {
     expect(MANIFESTS.find((m) => m.id === 'like-part')!.owner).toBe('a teammate');
+  });
+  it('skips a malformed manifest as incomplete, ahead of the kill switch', () => {
+    expect(discover([{ id: '', title: 'x', entry: 'y', owner: 'o' }], []).skipped).toEqual([
+      { id: '', reason: 'manifest incomplete' },
+    ]);
+    expect(discover([{ id: '', title: 'x', entry: 'y', owner: 'o' }], ['']).skipped).toEqual([
+      { id: '', reason: 'manifest incomplete' },
+    ]);
+  });
+  it('knows which tabs could ever be mounted', () => {
+    expect(MANIFESTS.filter(mountable).map((m) => m.id)).toEqual([
+      'overview', 'part-summary', 'campaigns', 'like-part',
+    ]);
+    expect(mountable({ id: 'x', title: 'x', entry: null, owner: 'o' })).toBe(false);
+    expect(mountable({ id: '', title: 'x', entry: 'y', owner: 'o' })).toBe(false);
+    expect(mountable({ id: 'x', title: '', entry: 'y', owner: 'o' })).toBe(false);
+    expect(mountable({ id: 'x', title: 'x', entry: 'y', owner: 'o' })).toBe(true);
   });
 });

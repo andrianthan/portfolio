@@ -35,7 +35,7 @@ describe('ModularDemo', () => {
 
   it('offers a kill switch toggle per mountable tab and starts them all off', () => {
     for (const id of ['overview', 'part-summary', 'campaigns', 'like-part']) {
-      expect(html).toContain(`>${id}</button>`);
+      expect(html).toMatch(new RegExp(`<button[^>]*aria-pressed="false"[^>]*>${id}<`));
     }
     expect(count('aria-pressed="false"')).toBe(4);
   });
