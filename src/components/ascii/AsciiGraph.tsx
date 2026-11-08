@@ -16,6 +16,7 @@ export default function AsciiGraph() {
     if (!canvas || !ctx) return;
 
     const root = document.documentElement;
+    const scene = canvas.closest('.hero-scene');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)');
     let color = getComputedStyle(root).getPropertyValue('--color-num').trim() || '#a78bfa';
     let cellW = 8, cellH = 14;
@@ -62,6 +63,7 @@ export default function AsciiGraph() {
     };
     const start = () => { if (!raf && visible && !document.hidden && !reduce.matches) raf = requestAnimationFrame(loop); };
     const stop = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; } };
+    const setPaused = () => scene?.classList.toggle('is-paused', !visible || document.hidden);
 
     const onMove = (e: PointerEvent) => {
       if (e.pointerType === 'touch') return;
@@ -69,11 +71,12 @@ export default function AsciiGraph() {
       focus = { col: ((e.clientX - r.left) / r.width) * COLS, row: ((e.clientY - r.top) / r.height) * ROWS };
     };
     const onLeave = () => { focus = null; };
-    const onVisibility = () => (document.hidden ? stop() : start());
+    const onVisibility = () => { setPaused(); if (document.hidden) stop(); else start(); };
     const onMotion = () => { if (reduce.matches) { stop(); draw(performance.now()); } else start(); };
 
     const io = new IntersectionObserver((entries) => {
       visible = entries.some((e) => e.isIntersecting);
+      setPaused();
       if (visible) start(); else stop();
     });
     const themeWatch = new MutationObserver(() => {
@@ -91,10 +94,12 @@ export default function AsciiGraph() {
     document.addEventListener('pointerleave', onLeave);
     document.addEventListener('visibilitychange', onVisibility);
     reduce.addEventListener('change', onMotion);
+    setPaused();
     start();
 
     return () => {
       stop();
+      scene?.classList.remove('is-paused');
       io.disconnect(); ro.disconnect(); themeWatch.disconnect();
       window.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerleave', onLeave);

@@ -65,6 +65,7 @@
 .planet { position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 10px 2px var(--color-glow); }
 .r2 .planet { width: 6px; height: 6px; top: -3px; margin-left: -3px; }
 .r4 .planet { width: 10px; height: 10px; top: -5px; margin-left: -5px; }
+.hero-scene.is-paused .ring { animation-play-state: paused; }
 @keyframes orbit { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {

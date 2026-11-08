@@ -40,6 +40,9 @@ describe('vapor scene', () => {
     const rm = vapor.split('@media (prefers-reduced-motion: reduce)').slice(1).join('\n');
     expect(rm).toMatch(/\.ring\s*\{[^}]*animation:\s*none/);
   });
+  it('pauses the orbit rings while the hero is off-screen or hidden', () => {
+    expect(vapor).toMatch(/\.hero-scene\.is-paused \.ring\s*\{[^}]*animation-play-state:\s*paused/);
+  });
   it('shows the text fallback only without JavaScript', () => {
     expect(vapor).toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
   });
