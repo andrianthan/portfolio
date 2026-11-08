@@ -1,0 +1,40 @@
+---
+import TravelMap from './TravelMap';
+import { countries, states, trails, headline, photosFor, hikePhotos, yearsLabel } from '../data/outside';
+import './outside.css';
+---
+<div class="travel reveal">
+  <header class="out-head"><p class="eyebrow">Travel</p><h3>{headline}</h3></header>
+  <div class="travel-mapwrap"><TravelMap client:visible selected={null} /></div>
+  <div class="travel-list">
+    {countries.map((c) => {
+      const pics = photosFor(c.name);
+      return (
+        <details class="country" data-c={c.code}>
+          <summary><span>{c.name}</span>{c.years.length > 0 && <span class="country-years">{yearsLabel(c.years)}</span>}</summary>
+          <div class="country-body">
+            {c.areas.length > 0 && <ul class="chips">{c.areas.map((a) => <li>{a}</li>)}</ul>}
+            {pics.length > 0 && (
+              <ul class="photos">
+                {pics.map((p) => (
+                  <li style={`aspect-ratio:${p.width}/${p.height}`}><img src={`/outside/${p.id}.webp`} alt={p.alt} width={p.width} height={p.height} loading="lazy" decoding="async" /></li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </details>
+      );
+    })}
+  </div>
+  <h4 class="out-sub">United States</h4>
+  <ul class="chips">{states.map((s) => <li>{s}</li>)}</ul>
+  <h4 class="out-sub">Trails</h4>
+  <ul class="trails">
+    {trails.map((t) => <li><b>{t.name}</b><span>{t.place}{t.year ? ` · ${t.year}` : ''}</span></li>)}
+  </ul>
+  <ul class="photos">
+    {hikePhotos.map((p) => (
+      <li style={`aspect-ratio:${p.width}/${p.height}`}><img src={`/outside/${p.id}.webp`} alt={p.alt} width={p.width} height={p.height} loading="lazy" decoding="async" /></li>
+    ))}
+  </ul>
+</div>

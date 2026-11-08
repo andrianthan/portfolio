@@ -1,0 +1,15 @@
+---
+import { foodPhotos } from '../data/outside';
+import './outside.css';
+---
+<div class="food reveal">
+  <header class="out-head"><p class="eyebrow">Food</p><h3>Things I ate</h3></header>
+  <div class="food-grid">
+    {foodPhotos.map((p) => (
+      <figure style={`aspect-ratio:${p.width}/${p.height}`}>
+        <img src={`/outside/${p.id}.webp`} alt={p.alt} width={p.width} height={p.height} loading="lazy" decoding="async" />
+        <figcaption>{p.caption}</figcaption>
+      </figure>
+    ))}
+  </div>
+</div>

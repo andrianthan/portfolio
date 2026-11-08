@@ -1,7 +1,5 @@
 ---
 import { profile } from '../data/profile';
-import Lifting from './Lifting.astro';
-import Swimming from './Swimming.astro';
 ---
 <section class="s" id="about">
   <header class="sh"><p class="eyebrow">Get to know me</p><h2>About</h2></header>
@@ -11,6 +9,4 @@ import Swimming from './Swimming.astro';
       {profile.about.map((paragraph) => <p>{paragraph}</p>)}
     </div>
   </div>
-  <Lifting />
-  <Swimming />
 </section>
