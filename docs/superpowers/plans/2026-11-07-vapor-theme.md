@@ -1588,3 +1588,138 @@ import { stats, statsNote } from '../data/stats';
 - [ ] **Step 6: Verify.** `npx vitest run src/data/stats.test.ts` PASS; `npm test` green (if the agent or any other test pinned the old stats, update the expectation, do not delete it); `npm run build` ends `check-build: ok`; `npm run typecheck | tail -3` still 7. Then open `dist/index.html` and confirm the four values appear in order, the note appears once, and none of `1st of 9`, `32%`, `$30k+`, `200+` appears in the stats block. If the build's number check (`scripts/lib/checks.mjs`) rejects the new numbers, report exactly which check and stop with NEEDS_CONTEXT rather than editing the check.
 
 - [ ] **Step 7: Commit** `feat: new home stats strip (tokens, cache rate, hours, people)`.
+
+---
+
+### Task 11: A moving backdrop (added after Andrian's review: "the background is still static ... like streaming")
+
+Andrian approved this design on 2026-11-08: the three star layers drift continuously at different speeds, and now and then a shooting star crosses the sky. The cursor parallax stays on top. Everything is `transform` and `opacity` only, and everything stops under `prefers-reduced-motion`.
+
+**Files:**
+- Modify: `src/styles/vapor.css` (replace the three star-layer rules; append drift, streak and reduced-motion rules), `src/layouts/Base.astro` (two streak elements), `src/styles/vapor.test.ts` (append tests)
+
+**Interfaces:**
+- Consumes: `.vb` and its `i` layers from Task 4 (parent `i` carries the cursor parallax transform; the star pattern moves to the parent's `::before`, which carries the drift animation, so the two transforms never fight).
+- Produces: CSS custom properties `--tw`, `--th`, `--dur` per star layer; `@keyframes vb-drift` and `@keyframes vb-streak`; markup `<i class="vb-streak vb-streak-1">` and `-2`.
+
+**Drift design.** Each star layer's pattern lives on a `::before` that is one tile wider and taller than its parent. The animation translates that `::before` by exactly one tile (`-tw`, `-th`), so the loop is seamless and the parent area stays covered. Speeds: far 140s, mid 100s, near 70s per tile (about 1.7, 3.4 and 6.7 px/s along the diagonal).
+
+- [ ] **Step 1: Write the failing tests** (append to `src/styles/vapor.test.ts`; `vapor` is the comment-stripped stylesheet already defined there, and `fs`/`path` are imported):
+
+```ts
+describe('vapor backdrop motion', () => {
+  const base = fs.readFileSync(path.join(process.cwd(), 'src/layouts/Base.astro'), 'utf8');
+
+  it('drifts each star layer on its ::before, transform only, one tile per loop', () => {
+    for (const layer of ['far', 'mid', 'near']) {
+      const m = vapor.match(new RegExp(`\\.vb-${layer}::before\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      expect(m, layer).toContain('background-image');
+      expect(m, layer).toMatch(/animation:\s*vb-drift\s+var\(--dur\)\s+linear\s+infinite/);
+      expect(m, layer).toContain('calc(100% + var(--tw))');
+      const own = vapor.match(new RegExp(`\\.vb-${layer}\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      expect(own, layer).toMatch(/--tw:\s*\d+px/);
+      expect(own, layer).toMatch(/--th:\s*\d+px/);
+      expect(own, layer).toMatch(/--dur:\s*\d+s/);
+      expect(own, layer).not.toContain('background-image');
+    }
+    const kf = vapor.match(/@keyframes vb-drift\s*\{[^}]*\{[^}]*\}[^}]*\}/)?.[0] ?? '';
+    expect(kf).toContain('transform: translate3d(calc(var(--tw) * -1), calc(var(--th) * -1), 0)');
+    expect(kf).not.toMatch(/\b(top|left|margin|background-position)\b/);
+  });
+
+  it('keeps the star tile sizes and the --tw/--th values identical (a seamless loop)', () => {
+    for (const [layer, w, h] of [['far', 173, 157], ['mid', 241, 223], ['near', 331, 307]] as const) {
+      const own = vapor.match(new RegExp(`\\.vb-${layer}\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      const before = vapor.match(new RegExp(`\\.vb-${layer}::before\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      expect(own).toContain(`--tw: ${w}px`);
+      expect(own).toContain(`--th: ${h}px`);
+      expect(before).toContain(`background-size: ${w}px ${h}px`);
+    }
+  });
+
+  it('adds two shooting stars that animate transform and opacity only', () => {
+    expect(base.match(/class="vb-streak vb-streak-[12]"/g)?.length).toBe(2);
+    const kf = vapor.match(/@keyframes vb-streak\s*\{[\s\S]*?\n\}/)?.[0] ?? '';
+    expect(kf).toContain('opacity');
+    expect(kf).toContain('transform');
+    expect(kf).not.toMatch(/\b(top|left|right|bottom|margin|width|height)\s*:/);
+  });
+
+  it('stops all backdrop motion under reduced motion', () => {
+    const rm = vapor.split('@media (prefers-reduced-motion: reduce)').slice(1).join('\n');
+    expect(rm).toMatch(/\.vb i::before\s*\{[^}]*animation:\s*none/);
+    expect(rm).toMatch(/\.vb i\.vb-streak\s*\{[^}]*display:\s*none/);
+  });
+});
+```
+
+- [ ] **Step 2: Run, expect FAIL** (`npx vitest run src/styles/vapor.test.ts`).
+
+- [ ] **Step 3: Replace the three star-layer rules in `src/styles/vapor.css`** (`.vb-far`, `.vb-mid`, `.vb-near`; leave `.vb-neb`, `.vb i`, `.vb::before/::after` as they are) with:
+
+```css
+.vb-far  { --tw: 173px; --th: 157px; --dur: 140s; opacity: .55; transform: translate3d(calc(var(--nx, 0) * -8px), calc(var(--ny, 0) * -6px), 0); }
+.vb-mid  { --tw: 241px; --th: 223px; --dur: 100s; opacity: .8;  transform: translate3d(calc(var(--nx, 0) * -16px), calc(var(--ny, 0) * -12px), 0); }
+.vb-near { --tw: 331px; --th: 307px; --dur: 70s;                transform: translate3d(calc(var(--nx, 0) * -30px), calc(var(--ny, 0) * -22px), 0); }
+
+/* the star pattern lives on a pseudo-element one tile wider and taller than its layer, and
+   drifts by exactly one tile per loop, so the loop is seamless and the layer stays covered.
+   the layer itself keeps the cursor parallax, so the two transforms never fight */
+.vb-far::before, .vb-mid::before, .vb-near::before {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: calc(100% + var(--tw)); height: calc(100% + var(--th));
+  animation: vb-drift var(--dur) linear infinite; will-change: transform;
+}
+.vb-far::before {
+  background-image:
+    radial-gradient(1px 1px at 14px 22px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 96px 71px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 151px 133px, var(--color-star), transparent);
+  background-size: 173px 157px;
+}
+.vb-mid::before {
+  background-image:
+    radial-gradient(1px 1px at 40px 60px, var(--color-star), transparent),
+    radial-gradient(1.2px 1.2px at 180px 150px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 120px 20px, var(--color-star), transparent);
+  background-size: 241px 223px;
+}
+.vb-near::before {
+  background-image:
+    radial-gradient(1.6px 1.6px at 70px 90px, var(--color-star), transparent),
+    radial-gradient(1.4px 1.4px at 260px 200px, var(--color-star), transparent);
+  background-size: 331px 307px;
+}
+@keyframes vb-drift {
+  to { transform: translate3d(calc(var(--tw) * -1), calc(var(--th) * -1), 0); }
+}
+
+/* a shooting star now and then: down and to the left, head first. most of each loop is idle */
+.vb i.vb-streak {
+  inset: auto; width: 160px; height: 1px; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--color-star));
+  transform: translate3d(0, 0, 0) rotate(152deg);
+  animation: vb-streak var(--sdur) linear infinite; animation-delay: var(--sdelay);
+}
+.vb-streak-1 { top: 14%; left: 78%; --sdur: 13s; --sdelay: 3s; }
+.vb-streak-2 { top: 38%; left: 94%; --sdur: 19s; --sdelay: 9s; }
+@keyframes vb-streak {
+  0%   { opacity: 0;  transform: translate3d(0, 0, 0) rotate(152deg); }
+  1.5% { opacity: .9; }
+  7%   { opacity: 0;  transform: translate3d(-520px, 276px, 0) rotate(152deg); }
+  100% { opacity: 0;  transform: translate3d(-520px, 276px, 0) rotate(152deg); }
+}
+```
+
+Then, inside the EXISTING reduced-motion block that holds `.vb i { will-change: auto; transform: none; }` (or a new reduced-motion block appended after the rules above), add:
+
+```css
+  .vb i::before { animation: none; will-change: auto; }
+  .vb i.vb-streak { display: none; }
+```
+
+- [ ] **Step 4: Markup in `src/layouts/Base.astro`:** inside the `.vb` div, after `<i class="vb-near"></i>`, add `<i class="vb-streak vb-streak-1"></i><i class="vb-streak vb-streak-2"></i>`.
+
+- [ ] **Step 5: Verify.** `npx vitest run src/styles/vapor.test.ts` PASS (the existing four-layer regex test must still pass; it matches `.vb-far {` etc., not the `::before` rules). `npm test` green, `npm run build` ends `check-build: ok`, `npm run typecheck | tail -3` still 7. Open `dist/index.html` and confirm two `vb-streak` elements exist inside `.vb`. Report the final text of the three layer rules and the `::before` rules in the report.
+
+- [ ] **Step 6: Commit** `feat: the star layers drift and shooting stars cross the sky`.
