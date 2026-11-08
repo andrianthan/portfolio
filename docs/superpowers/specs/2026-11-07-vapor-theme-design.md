@@ -44,8 +44,8 @@ by anchor links, not by switching views.
 - **Ask bar:** stands on the horizon. Three suggestion chips and a refresh
   button above an input. It drives the existing agent (`src/agent`) and the
   existing `IntroTerminal` logic; this spec changes presentation, not the
-  agent. The mic button and "Conversation mode" toggle are shown disabled with
-  honest labels until voice exists; no fake controls.
+  agent. No mic button and no "Conversation mode" toggle: that is the
+  reference's voice feature, which this site does not have.
 - The "Open the full terminal" link and the stat strip stay.
 
 ## ASCII agent graph
@@ -124,12 +124,10 @@ layout until it has been opened in a browser.
 
 ## Out of scope
 
-A face or portrait, voice input, a backend for conversation mode, three.js,
+A face or portrait, voice input or a conversation mode, three.js,
 rewriting demo islands, content changes, merging or pushing to main.
 
 ## Open items
 
 - Vapor as default-with-light-alternate versus a third theme option.
 - Exact font picks, after comparison against the screenshot.
-- Whether the disabled mic and conversation toggle stay visible or are
-  dropped until voice exists.
