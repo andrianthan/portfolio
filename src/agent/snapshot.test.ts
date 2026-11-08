@@ -191,6 +191,32 @@ describe('about:outside chunk', () => {
     expect(chunk.text).toContain('~1,105 lb');
     expect(chunk.text).toContain('50 Free');
   });
+  it('gives Point Lobos both of its visit years', () => {
+    // The spec lists "Point Lobos (2025, 2026)" and the manifest holds a photo
+    // from each year.
+    expect(chunk.text).toContain('Point Lobos (California, 2025, 2026)');
+  });
+  it('carries both spellings of the word it is retrieved by', () => {
+    // The retriever is BM25 over raw tokens with no stemming, so the chunk has
+    // to carry the American spelling as well as the British one or an American
+    // visitor's question retrieves nothing.
+    expect(chunk.text).toContain('travelled');
+    expect(chunk.text).toContain('traveled');
+  });
+  it('publishes its swim times so the verifier sees clean numbers', () => {
+    // The verifier's number pattern captures a trailing comma, so the compact
+    // "50 Free :24," form was published as the token "24," and "1:53" as a bare
+    // "1" and a "53,". The chunk spells the times out instead.
+    expect(chunk.text).toContain('50 Free in 24 seconds');
+    expect(chunk.text).toContain('200 Free in 1 minute 53 seconds');
+    // The only facts that still carry a comma are the year lists the spec fixes
+    // ("Japan (2023, 2024, 2026)") and the lifting total's thousands separator.
+    const commaFacts = chunk.facts.filter((fact) => fact.includes(','));
+    expect(commaFacts.every((fact) => /^\d{4},$/.test(fact) || fact === '1,105')).toBe(true);
+    // No other fact ends in a stray comma, and no fact is a bare "1" left over
+    // from a "1:53" split.
+    expect(chunk.facts.some((fact) => fact === '1' && !chunk.text.includes('1 minute'))).toBe(false);
+  });
   it('shows no year for any of the ten protected places', () => {
     // These ten never carry a year: Indonesia, Florida, Washington and Oregon
     // among the countries and states, and the six trails that have no year of

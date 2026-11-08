@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   photos, countries, states, trails, headline, photosFor, foodPhotos, hikePhotos, yearsLabel,
@@ -41,6 +41,37 @@ describe('photos', () => {
     }
     expect(total).toBeLessThanOrEqual(3_000_000);
     expect(statSync(join(root, 'public', 'outside')).isDirectory()).toBe(true);
+  });
+  it('accounts for every file in the photo directory', () => {
+    // The manifest lists the approved photos; the directory is what actually
+    // ships. A file in one and not the other is either an unapproved photo or
+    // a missing one, and it must never reach the page.
+    const onDisk = readdirSync(join(root, 'public', 'outside')).filter((name) => name.endsWith('.webp'));
+    const listed = photos.map((p) => `${p.id}.webp`);
+    const strays = onDisk.filter((name) => !listed.includes(name));
+    const missing = listed.filter((name) => !onDisk.includes(name));
+    expect(strays, 'files in public/outside that the manifest does not list').toEqual([]);
+    expect(missing, 'manifest photos with no file in public/outside').toEqual([]);
+    expect(onDisk.length).toBe(photos.length);
+  });
+  it('keeps every file in the directory, strays included, within budget and free of metadata', () => {
+    // The budget and the metadata scan cover the whole directory, not just the
+    // files the manifest lists: a stray file dropped into public/outside would
+    // otherwise ship without counting against the cap and without being
+    // scanned for EXIF or XMP.
+    const dir = join(root, 'public', 'outside');
+    const names = readdirSync(dir);
+    const webps = names.filter((name) => name.endsWith('.webp'));
+    expect(webps.length).toBeGreaterThan(0);
+    let total = 0;
+    for (const name of webps) {
+      const buf = readFileSync(join(dir, name));
+      total += buf.length;
+      const s = buf.toString('latin1');
+      expect(s.includes('EXIF'), `${name} EXIF`).toBe(false);
+      expect(s.includes('XMP'), `${name} XMP`).toBe(false);
+    }
+    expect(total).toBeLessThanOrEqual(3_000_000);
   });
   it('has alt, caption and dimensions', () => {
     for (const p of photos) {
@@ -106,10 +137,23 @@ describe('trails', () => {
     for (const n of noYear) {
       const t = trails.find((x) => x.name === n)!;
       expect(t, n).toBeDefined();
-      expect(t.year).toBeUndefined();
+      expect(t.years, n).toBeUndefined();
     }
-    expect(trails.find((t) => t.name === 'Hwangnyeongsan')!.year).toBe(2024);
-    expect(trails.filter((t) => t.name.includes('Yosemite')).every((t) => t.year === undefined)).toBe(true);
+    expect(trails.find((t) => t.name === 'Hwangnyeongsan')!.years).toEqual([2024]);
+    expect(trails.filter((t) => t.name.includes('Yosemite')).every((t) => t.years === undefined)).toBe(true);
+  });
+  it('keeps every trail year sorted', () => {
+    for (const t of trails) {
+      if (!t.years) continue;
+      expect(t.years, t.name).toEqual([...t.years].sort((a, b) => a - b));
+    }
+  });
+  it('gives Point Lobos both of its visit years', () => {
+    // The spec lists "Point Lobos (2025, 2026)" and the manifest holds a photo
+    // from each year, so the trail carries both.
+    const t = trails.find((x) => x.name === 'Point Lobos')!;
+    expect(t.years).toEqual([2025, 2026]);
+    expect(yearsLabel(t.years!)).toBe('2025, 2026');
   });
 });
 

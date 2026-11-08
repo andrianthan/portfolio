@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "test": "vitest run",
     "typecheck": "astro check",
+    "browser-check": "node scripts/browser-check.mjs",
     "eval": "vitest run src/agent/golden.test.ts"
   },
   "dependencies": {

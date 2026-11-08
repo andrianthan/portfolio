@@ -39,16 +39,17 @@ export const states: string[] = ['California', 'Colorado', 'Florida', 'New York'
 export interface Trail {
   name: string;
   place: string;
-  year?: number;
+  /** One or more years the trail was visited. Absent for the places that show none. */
+  years?: number[];
 }
 
 export const trails: Trail[] = [
-  { name: 'Hwangnyeongsan', place: 'Busan', year: 2024 },
-  { name: 'Jeju Island trail', place: 'Jeju', year: 2024 },
-  { name: 'Ha Long Bay', place: 'Vietnam', year: 2024 },
-  { name: 'Rocky Mountains', place: 'Colorado', year: 2025 },
-  { name: 'Point Lobos', place: 'California', year: 2025 },
-  { name: 'Hawk Hill', place: 'Marin Headlands', year: 2024 },
+  { name: 'Hwangnyeongsan', place: 'Busan', years: [2024] },
+  { name: 'Jeju Island trail', place: 'Jeju', years: [2024] },
+  { name: 'Ha Long Bay', place: 'Vietnam', years: [2024] },
+  { name: 'Rocky Mountains', place: 'Colorado', years: [2025] },
+  { name: 'Point Lobos', place: 'California', years: [2025, 2026] },
+  { name: 'Hawk Hill', place: 'Marin Headlands', years: [2024] },
   { name: 'Mount Tamalpais', place: 'California' },
   { name: 'Point Reyes', place: 'California' },
   { name: 'Mission Peak', place: 'California' },

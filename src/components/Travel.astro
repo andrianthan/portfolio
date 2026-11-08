@@ -30,7 +30,7 @@ import './outside.css';
   <ul class="chips">{states.map((s) => <li>{s}</li>)}</ul>
   <h4 class="out-sub">Trails</h4>
   <ul class="trails">
-    {trails.map((t) => <li><b>{t.name}</b><span>{t.place}{t.year ? ` · ${t.year}` : ''}</span></li>)}
+    {trails.map((t) => <li><b>{t.name}</b><span>{t.place}{t.years?.length ? ` · ${yearsLabel(t.years)}` : ''}</span></li>)}
   </ul>
   <ul class="photos">
     {hikePhotos.map((p) => (

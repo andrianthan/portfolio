@@ -7,6 +7,7 @@ const { problems, pages, entries } = runChecks({
   distDir: path.join(root, 'dist'),
   contentDir: path.join(root, 'src', 'content'),
   dataFile: path.join(root, 'src', 'data', 'outside.ts'),
+  manifestFile: path.join(root, 'src', 'data', 'outside-photos.json'),
 });
 
 if (problems.length) {

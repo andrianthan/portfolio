@@ -6,6 +6,22 @@ const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8')
 const vapor = read('src/styles/vapor.css');
 const global = read('src/styles/global.css');
 
+/**
+ * The nav's labels, taken from the nav itself rather than from a list written
+ * out in a test: a renamed or added link has to change the fit model, or the
+ * model measures a nav that is not the one the site ships.
+ */
+function navLabels(): string[] {
+  const bar = fs.readFileSync(path.join(process.cwd(), 'src/components/TopBar.astro'), 'utf8');
+  const nav = bar.match(/<nav class="vnav"[\s\S]*?<\/nav>/)?.[0] ?? '';
+  const labels: string[] = [];
+  for (const link of nav.matchAll(/<a\b[^>]*>([^<]*)<\/a>/g)) {
+    const text = link[1].trim();
+    if (text) labels.push(text.toUpperCase());
+  }
+  return labels;
+}
+
 describe('vapor backdrop', () => {
   it('layers do not follow the cursor and never move by top, left or margin', () => {
     const layers = vapor.match(/\.vb-(neb|far|mid|near)\s*\{[^}]*\}/g) ?? [];
@@ -182,12 +198,12 @@ describe('mobile nav layout', () => {
     expect(link).toContain('white-space: nowrap');
   });
 
-  it('lays the six nav links out as exactly two rows of three, at 320, 375 and 414 px', () => {
+  it('lays the nav links out as exactly two rows of three, at 320, 375 and 414 px', () => {
     const bar = fs.readFileSync(path.join(process.cwd(), 'src/components/TopBar.astro'), 'utf8');
     const nav = bar.match(/<nav class="vnav"[\s\S]*?<\/nav>/)?.[0] ?? '';
     // The links are the only children of the nav, so nothing else takes a cell.
     const cells = nav.match(/<a /g) ?? [];
-    expect(cells).toHaveLength(6);
+    expect(cells).toHaveLength(navLabels().length);
 
     // The small-screen block is the one that applies at 320, 375 and 414 px.
     const block = mediaBlock('@media (max-width: 639px)');
@@ -195,8 +211,9 @@ describe('mobile nav layout', () => {
     const columns = Number(rule.match(/grid-template-columns:\s*repeat\((\d+),[^)]*\)/)?.[1]);
     expect(columns).toBe(3);
 
-    // A fixed column count is what makes the row count fixed: six cells in three
-    // columns are two rows at every width, and a late font swap cannot change it.
+    // A fixed column count is what makes the row count fixed: the cells in
+    // three columns are two rows at every width, and a late font swap cannot
+    // change it.
     expect(cells.length % columns).toBe(0);
     expect(cells.length / columns).toBe(2);
   });
@@ -229,7 +246,7 @@ describe('header nav row count', () => {
     const nav = block.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
     expect(nav).toContain('display: flex');
     expect(nav).toContain('flex-wrap: nowrap');
-    expect(navCells()).toBe(6);
+    expect(navCells()).toBe(navLabels().length);
   });
 
   it('gives the nav its own full-width row below 900 px, so it is never more than two rows', () => {
@@ -288,9 +305,10 @@ describe('header nav row count', () => {
     const tracking = Number(desktopLink.match(/letter-spacing:\s*([\d.]+)em/)?.[1] ?? 0);
 
     // Every label is uppercase pixel text: a monospace advance plus the
-    // tracking. Silkscreen's advance is measured from the built header, so the
-    // per-character width is derived from the longest label rather than guessed.
-    const labels = ['HOME', 'EXPERIENCE', 'PROJECTS', 'ABOUT', 'OUTSIDE', 'RESUME'];
+    // tracking. The labels come from the nav itself, not from a list written
+    // out here, so a renamed or added link is measured too.
+    const labels = navLabels();
+    expect(labels.length).toBeGreaterThan(0);
     const chars = labels.reduce((n, l) => n + l.length, 0);
     // 406px of text at .14em tracking was measured on the built site for these
     // forty characters; the advance alone is that minus the tracking.

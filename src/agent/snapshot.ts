@@ -102,11 +102,30 @@ export function buildSnapshot(input: SnapshotInput): Snapshot {
 
   // The chunk carries the same facts as the section, in sentences, so the agent
   // answers "where have you travelled" and "do you hike" from the page itself.
+  // The retriever is BM25 over raw tokens with no stemming and no spelling
+  // normalisation, so a word it only ever sees in one spelling retrieves
+  // nothing for the other. "Traveled" is the American spelling and this is a
+  // US-based site's audience, so the chunk says both, in prose that still reads
+  // naturally to whoever sees the answer. The chunk is agent data and is never
+  // rendered on the page.
+  // The swim times are written out in the chunk rather than in the compact
+  // "1:53" form the page uses. The verifier extracts numbers with a pattern
+  // that captures a trailing comma, so "50 Free :24," is published as the
+  // token "24," and "1:53" as a bare "1" and a "53,". Spelling the time out
+  // gives the verifier clean tokens to check the answer against.
+  const swimTime = (time: string): string => {
+    const [minutes, seconds] = time.replace(/^:/, '0:').split(':');
+    const parts: string[] = [];
+    if (minutes !== '0') parts.push(`${minutes} minute${minutes === '1' ? '' : 's'}`);
+    parts.push(`${Number(seconds)} second${Number(seconds) === 1 ? '' : 's'}`);
+    return parts.join(' ');
+  };
+
   const outsideText = [
-    `Travel: Andrian has travelled to ${countries.length} countries — ${countries.map((c) => (c.years.length ? `${c.name} (${yearsLabel(c.years)})` : c.name)).join(', ')} — and to ${states.length} US states: ${states.join(', ')}.`,
-    `He hikes: his hike trails are ${trails.map((t) => `${t.name} (${t.place}${t.year ? `, ${t.year}` : ''})`).join(', ')}.`,
+    `Travel: Andrian has travelled to ${countries.length} countries — ${countries.map((c) => (c.years.length ? `${c.name} (${yearsLabel(c.years)})` : c.name)).join(', ')} — and to ${states.length} US states: ${states.join(', ')}. Every trip has been about food and trails, so everywhere he has traveled, he has eaten well and walked a lot.`,
+    `He hikes: his hike trails are ${trails.map((t) => `${t.name} (${t.place}${t.years?.length ? `, ${yearsLabel(t.years)}` : ''})`).join(', ')}.`,
     `Lifting: ${lifts.map((l) => `${l.name} ${l.pounds}`).join(', ')}, ${liftTotal} total, ${percentileLine}, ${hoursLabel} in the gym.`,
-    `Swimming: ${swimEvents.map((e) => `${e.name} ${e.time}`).join(', ')}, ${swimPercentileLine}, ${swimContextLine}.`,
+    `Swimming: ${swimEvents.map((e) => `${e.name} in ${swimTime(e.time)}`).join(', ')}, ${swimPercentileLine}, ${swimContextLine}.`,
   ].join('\n');
   add({ id: 'about:outside', kind: 'about', title: 'Outside of work', text: outsideText, url: '/#outside', facts: extractNumbers(outsideText) });
 

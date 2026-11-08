@@ -74,33 +74,75 @@ export function readCountries(dataFile) {
   return countries;
 }
 
+/**
+ * The approved photos, read out of the manifest so the gate and the page cannot
+ * drift. The manifest is JSON, so this one is parsed rather than read as text.
+ */
+export function readPhotoManifest(manifestFile) {
+  if (!fs.existsSync(manifestFile)) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(read(manifestFile));
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+  return parsed.map((photo) => ({ id: String(photo?.id ?? ''), alt: String(photo?.alt ?? '') }));
+}
+
+/**
+ * The trails, read out of the data module so the check and the page cannot
+ * drift. The module is TypeScript and this is plain node, so the array is
+ * parsed as text.
+ */
+export function readTrails(dataFile) {
+  const source = read(dataFile);
+  const block = source.match(/export const trails: Trail\[\] = \[([\s\S]*?)\n\];/);
+  if (!block) return [];
+  const trails = [];
+  for (const entry of block[1].match(/\{[^}]*\}/g) ?? []) {
+    const name = entry.match(/\bname:\s*'([^']+)'/);
+    const place = entry.match(/\bplace:\s*'([^']+)'/);
+    if (!name || !place) continue;
+    const years = entry.match(/\byears:\s*\[([^\]]*)\]/);
+    const parsed = years ? years[1].split(',').map((y) => Number(y.trim())).filter((y) => Number.isFinite(y)) : [];
+    trails.push({ name: name[1], place: place[1], years: parsed });
+  }
+  return trails;
+}
+
 // The markup of the "#outside" section: from its opening tag to the matching close.
+// The gate fails closed: a section it cannot identify exactly, or one whose
+// closing tag is missing, is a problem and never a partial section.
+const OUTSIDE_OPEN = '<section class="s" id="outside">';
+
 function outsideSection(html) {
-  const start = html.indexOf('<section class="s" id="outside">');
-  if (start === -1) return null;
+  const start = html.indexOf(OUTSIDE_OPEN);
+  if (start === -1) return { html: null, problem: `the Outside of work section (id="outside") is missing from the built home page` };
   let depth = 0;
   const re = /<section\b|<\/section>/g;
   re.lastIndex = start;
   for (let m = re.exec(html); m; m = re.exec(html)) {
     if (m[0] === '</section>') {
       depth -= 1;
-      if (depth === 0) return html.slice(start, m.index + m[0].length);
+      if (depth === 0) return { html: html.slice(start, m.index + m[0].length), problem: null };
     } else depth += 1;
   }
-  return html.slice(start);
+  return { html: null, problem: 'the Outside of work section is never closed in the built home page' };
 }
 
 /**
  * The Outside of work section is the home page's second half, so its shape is worth a gate:
  * the block order, the nine countries, and the lazy-loaded images that carry it.
  */
-export function findOutsideProblems(distDir, dataFile) {
+export function findOutsideProblems(distDir, dataFile, manifestFile) {
   const indexFile = path.join(distDir, 'index.html');
   if (!fs.existsSync(indexFile)) return [`the Outside of work section has no built home page at ${indexFile}`];
   const html = read(indexFile);
   const problems = [];
-  const section = outsideSection(html);
-  if (!section) return [`the Outside of work section (id="outside") is missing from ${indexFile}`];
+  const found = outsideSection(html);
+  if (!found.html) return [`${found.problem} in ${indexFile}`];
+  const section = found.html;
 
   const header = section.match(/<header class="sh">([\s\S]*?)<\/header>/);
   if (!header) problems.push(`the Outside of work section has no header in ${indexFile}`);
@@ -151,11 +193,78 @@ export function findOutsideProblems(distDir, dataFile) {
     problems.push(`the Outside of work country list repeats a country name in ${indexFile}`);
   }
 
-  for (const img of section.match(/<img\b[^>]*>/g) ?? []) {
-    if (!/\balt="/.test(img)) problems.push(`an <img> in the Outside of work section has no alt in ${indexFile}`);
-    if (!/\bwidth="\d+"/.test(img)) problems.push(`an <img> in the Outside of work section has no width in ${indexFile}`);
-    if (!/\bheight="\d+"/.test(img)) problems.push(`an <img> in the Outside of work section has no height in ${indexFile}`);
-    if (!/\bloading="lazy"/.test(img)) problems.push(`an <img> in the Outside of work section is not lazily loaded in ${indexFile}`);
+  // The trails list: every trail, with the years the data module gives it and
+  // no others. A trail that must show no year may not grow one.
+  const trails = readTrails(dataFile);
+  if (trails.length === 0) {
+    problems.push(`the trails list could not be read from ${dataFile}`);
+  } else {
+    const list = section.match(/<ul class="trails">([\s\S]*?)<\/ul>/);
+    if (!list) {
+      problems.push(`the Outside of work section has no trails list in ${indexFile}`);
+    } else {
+      for (const trail of trails) {
+        const row = list[1].match(new RegExp(`<b>${trail.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</b>([\\s\\S]*?)</li>`));
+        if (!row) {
+          problems.push(`the Outside of work trails list has no entry for ${trail.name} in ${indexFile}`);
+          continue;
+        }
+        const shown = [...row[1].matchAll(/\d{4}/g)].map((m) => Number(m[0]));
+        const expected = trail.years;
+        if (shown.join(',') !== expected.join(',')) {
+          problems.push(`the Outside of work trail ${trail.name} shows the years [${shown.join(', ')}], expected [${expected.join(', ')}] in ${indexFile}`);
+        }
+      }
+    }
+  }
+
+  // The images: the section must carry every approved photo and nothing else,
+  // each one with the manifest's alt and the loading attributes that keep the
+  // page from shifting or blocking on them.
+  const manifest = manifestFile ? readPhotoManifest(manifestFile) : null;
+  if (!manifest) {
+    problems.push(`the approved photo manifest could not be read from ${manifestFile ?? '(no manifest given)'}`);
+  } else {
+    const images = section.match(/<img\b[^>]*>/g) ?? [];
+    const built = new Map();
+    for (const img of images) {
+      const src = img.match(/\bsrc="\/outside\/([^".]+)\.webp"/)?.[1];
+      const alt = img.match(/\balt="([^"]*)"/)?.[1];
+      if (!src) {
+        problems.push(`an <img> in the Outside of work section does not point at an approved photo in ${indexFile}`);
+        continue;
+      }
+      if (built.has(src)) {
+        problems.push(`the Outside of work section shows ${src} more than once in ${indexFile}`);
+        continue;
+      }
+      built.set(src, { img, alt });
+    }
+    const approved = manifest.map((photo) => photo.id);
+    for (const photo of manifest) {
+      const entry = built.get(photo.id);
+      if (!entry) {
+        problems.push(`the Outside of work section is missing the approved photo ${photo.id} in ${indexFile}`);
+        continue;
+      }
+      if (entry.alt !== photo.alt) {
+        problems.push(`the Outside of work photo ${photo.id} has alt "${entry.alt ?? ''}", expected the manifest's "${photo.alt}" in ${indexFile}`);
+      }
+    }
+    for (const id of built.keys()) {
+      if (!approved.includes(id)) {
+        problems.push(`the Outside of work section shows ${id}, which is not an approved photo, in ${indexFile}`);
+      }
+    }
+    if (approved.length > 0 && built.size === 0) {
+      problems.push(`the Outside of work section has no photos at all in ${indexFile}`);
+    }
+    for (const [id, entry] of built) {
+      if (!/\bwidth="\d+"/.test(entry.img)) problems.push(`the Outside of work photo ${id} has no width in ${indexFile}`);
+      if (!/\bheight="\d+"/.test(entry.img)) problems.push(`the Outside of work photo ${id} has no height in ${indexFile}`);
+      if (!/\bloading="lazy"/.test(entry.img)) problems.push(`the Outside of work photo ${id} is not lazily loaded in ${indexFile}`);
+      if (!/\bdecoding="async"/.test(entry.img)) problems.push(`the Outside of work photo ${id} is not decoded asynchronously in ${indexFile}`);
+    }
   }
 
   return problems;

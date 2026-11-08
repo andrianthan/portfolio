@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { listHtml, listText, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, readEntries, findRequiredLinks, findOutsideProblems, findMissingRoutes, findSnapshotProblems } from './checks.mjs';
 
-export function runChecks({ distDir, contentDir, dataFile }) {
+export function runChecks({ distDir, contentDir, dataFile, manifestFile }) {
   if (!fs.existsSync(distDir)) return { problems: [`dist not found: ${distDir}; run astro build first`], pages: 0, entries: 0 };
   const html = listHtml(distDir);
   const text = listText(distDir);
@@ -18,6 +18,6 @@ export function runChecks({ distDir, contentDir, dataFile }) {
     ...findMissingRoutes(distDir, ['/terminal']),
     ...findSnapshotProblems(distDir, entries),
   );
-  if (dataFile) problems.push(...findOutsideProblems(distDir, dataFile));
+  if (dataFile) problems.push(...findOutsideProblems(distDir, dataFile, manifestFile));
   return { problems, pages: html.length, entries: entries.length };
 }
