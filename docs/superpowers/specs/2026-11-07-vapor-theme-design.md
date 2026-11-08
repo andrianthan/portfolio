@@ -1,0 +1,132 @@
+# Vapor theme — design
+
+Status: draft for Andrian's review (2026-11-07). Branch `feat/vapor-theme`, cut
+from `main` at `f30294e`. Experimental: Andrian has not decided whether to
+switch the live site to this theme. Nothing here merges or pushes without his
+explicit instruction.
+
+## Goal
+
+Give the portfolio a more three-dimensional, higher-personality look modeled on
+a reference site's hero (glowing title, perspective grid floor, scanlines,
+chip-plus-input Ask bar), and carry that look through the whole page. The page
+stays one scroll: Projects, Experience and About are reached by scrolling or
+by anchor links, not by switching views.
+
+## Decisions (from the brainstorm)
+
+1. **Scope.** The whole page goes vapor: tokens, fixed background layer,
+   headings, nav, cards, and the demo windows on the work pages.
+2. **Center piece.** An ASCII agent-network graph, not a face. No portrait.
+3. **Rendering (approach A).** CSS perspective grid floor, CSS scanlines and
+   glow, one small canvas for the ASCII graph. No three.js, no full-page
+   canvas.
+4. **Navigation.** Scroll anchors. Active tab follows scroll position.
+5. **Fidelity.** Aesthetic and layout are matched; the reference's portrait,
+   copy and code are not copied. Fonts are the closest public matches, laid
+   against the reference screenshot and tuned (see Fonts).
+6. **Branch.** All work on `feat/vapor-theme`. Reversible by not merging.
+
+## Hero
+
+- **Nav** (pixel font, spaced caps): HOME, PROJECTS, EXPERIENCE, ABOUT, RESUME.
+  Anchors with scroll-spy. Active item has a pink outline pill. The theme
+  control sits at the right.
+- **Title:** "ANDRIAN THAN", wide techno face, pink-white fill, soft pink glow,
+  offset magenta shadow, horizontal scanline cut-outs.
+- **Tagline:** "AI engineer · building agents that ship", pink pixel type.
+- **Floor:** perspective grid rising from a horizon line, faint radial
+  vanishing lines above it, sparse stars. The grid scrolls toward the viewer
+  slowly and tilts with the cursor via the existing `--mx`/`--my` variables.
+- **Ask bar:** stands on the horizon. Three suggestion chips and a refresh
+  button above an input. It drives the existing agent (`src/agent`) and the
+  existing `IntroTerminal` logic; this spec changes presentation, not the
+  agent. The mic button and "Conversation mode" toggle are shown disabled with
+  honest labels until voice exists; no fake controls.
+- The "Open the full terminal" link and the stat strip stay.
+
+## ASCII agent graph
+
+A canvas, drawn with `@ # % * + .` by brightness, showing a small network:
+nodes, edges, pulses travelling along edges. The cursor leans the whole graph
+(parallax) and brightens nearby nodes. Rules:
+
+- Static single frame under `prefers-reduced-motion`.
+- Paused when off-screen (IntersectionObserver) and when the tab is hidden.
+- Fixed small grid (character cells), so cost does not scale with viewport.
+- No-JS fallback: a static `<pre>`.
+- Decorative: `aria-hidden`, not focusable.
+
+## Whole-page treatment
+
+- `tokens.css` gains a vapor palette (deep plum background, pink and violet
+  accents) and font tokens. A fixed background layer replaces the current
+  dot field: floor grid, stars, scanlines, vignette.
+- Section headings use the pixel face. Body text and long paragraphs keep the
+  existing readable sans, because pixel type hurts paragraph legibility.
+- Cards, timeline, skills globe, project cards, footer: restyled with the new
+  tokens (borders, glow, mono labels). Layout unchanged.
+- Work pages (Tesla, Hanna, Blue Dome): the `.qa` demo-window chrome and the
+  side rail pick up the tokens. The demo islands are not rewritten; their CSS
+  already uses variables where possible, and any hard-coded colors get
+  tokenized.
+- Existing tests that pin colors, tokens or layout are updated, not deleted.
+
+## Theme control
+
+Vapor becomes the default look. The existing light theme stays as the
+alternate, since a vapor look has no real light form. The control reads
+"vapor / light". A prefers-color-scheme: light visitor with no saved choice
+gets light. Open item: Andrian may instead keep the current dark theme and add
+vapor as a third option; decide at review.
+
+## Fonts
+
+Candidates, compared against the reference screenshot before committing:
+title: Orbitron or Audiowide; pixel nav, tagline and headings: Silkscreen,
+VT323 or Pixelify Sans; mono labels: JetBrains Mono (already used). Fonts are
+self-hosted, subset to the glyphs used, `font-display: swap`, with metric
+fallbacks to avoid layout shift. The final picks are recorded in the plan once
+tested.
+
+## Constraints kept
+
+- Lighthouse 95 or higher on mobile (home and `/work/tesla`).
+- No horizontal scroll from 320 px up.
+- AA contrast on body text and controls in both themes.
+- All motion respects `prefers-reduced-motion`; nothing animates off-screen.
+- All current tests pass; build ends `check-build: ok`.
+- No change to content, the cleared/listed gate, or the agent's answers.
+
+## Testing
+
+Unit tests for the graph layout and pulse logic (pure functions), scroll-spy,
+and theme resolution. Render tests for the hero and Ask bar. Existing suite
+stays green at each step. Manual checklist: Lighthouse, 320 to 768 px, both
+themes, reduced motion, keyboard focus order, and a visual comparison with the
+reference screenshot. As with the Tesla page, nothing counts as verified for
+layout until it has been opened in a browser.
+
+## Risks
+
+- Perspective grid and scanline layers cost paint time on low-end phones.
+  Mitigation: transform and opacity only, `will-change` kept narrow, layers
+  disabled under reduced motion and on small low-power viewports if profiling
+  shows a problem.
+- Pixel and techno fonts add weight. Mitigation: subsetting, two files at most.
+- Whole-page restyle touches many files. Mitigation: token-first, so most of it
+  is one file; the branch is isolated.
+- Legibility of small pixel text. Mitigation: pixel face only for labels and
+  headings above a minimum size.
+
+## Out of scope
+
+A face or portrait, voice input, a backend for conversation mode, three.js,
+rewriting demo islands, content changes, merging or pushing to main.
+
+## Open items
+
+- Vapor as default-with-light-alternate versus a third theme option.
+- Exact font picks, after comparison against the screenshot.
+- Whether the disabled mic and conversation toggle stay visible or are
+  dropped until voice exists.
