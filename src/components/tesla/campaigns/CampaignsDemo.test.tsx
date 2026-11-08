@@ -22,12 +22,13 @@ describe('CampaignsDemo', () => {
     expect(campaigns).not.toMatch(/role="status"[^>]*aria-live=/);
   });
 
-  it('nests the demo heading under a parent heading', () => {
-    // The notice heading is an h3, so the demo needs a heading above it.
-    const parent = alerts.match(/<h2[^>]*>[\s\S]*?<\/h2>/);
-    expect(parent).not.toBeNull();
-    expect(alerts).toContain('class="camp-h"');
-    expect(alerts.indexOf(parent![0])).toBeLessThan(alerts.indexOf('class="camp-h"'));
+  it('leaves the window title as text, so it adds no heading level', () => {
+    // The page's own project heading is the h2 above this demo, so the demo
+    // must not put a second h2 inside it. The only heading in the widget is
+    // the h3, which nests under the page's heading correctly.
+    expect(alerts).toContain('<span class="qa-title">Campaigns</span>');
+    expect(alerts).not.toContain('<h2');
+    expect(alerts).toContain('<h3 class="camp-h">');
   });
 
   it('describes the pace share it actually shows', () => {

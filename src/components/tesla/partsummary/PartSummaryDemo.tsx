@@ -91,7 +91,7 @@ export default function PartSummaryDemo({ partId, tab }: { partId?: string; tab?
             <button key={p.id} type="button" onClick={() => run(p.id)}>{p.id}</button>
           ))}
         </div>
-        <p className="ps-msg" role="status" aria-live="polite">{state.message}</p>
+        <p className="ps-msg" role="status">{state.message}</p>
 
         {part && data && (
           <section className="ps-result" aria-label={`Summary for ${part.id}`}>

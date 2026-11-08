@@ -27,7 +27,7 @@ export default function CampaignsDemo({ initialView = 'alerts' }: { initialView?
     <div className="qa camp" role="group" aria-label="Sample Campaigns tab">
       <div className="qa-top">
         <span className="qa-dots" aria-hidden="true"><i /><i /><i /></span>
-        <h2 className="qa-title">Campaigns</h2>
+        <span className="qa-title">Campaigns</span>
         <span className="qa-sample">sample data</span>
       </div>
       <div className="camp-body">

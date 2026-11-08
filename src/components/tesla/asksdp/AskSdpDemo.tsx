@@ -37,8 +37,10 @@ export default function AskSdpDemo() {
         ref={logRef} className="ask-log" role="log" aria-live="polite" aria-label="Conversation" tabIndex={0}
       >
         {log.length === 0 && <p className="ask-empty">No questions yet. Pick a sample question or type your own.</p>}
-        {log.map((a, i) => (
-          <div key={i} className="ask-turn">
+        {log.map((a) => (
+          // The turn's own number is the key, so the key stays with the turn
+          // when the capped log slides and the older turns fall away.
+          <div key={a.turn} className="ask-turn">
             <p className="ask-q"><span className="ask-who">You</span>{a.question}</p>
             <div className="ask-a">
               <span className="ask-who">Ask SDP</span>

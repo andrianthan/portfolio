@@ -1,9 +1,6 @@
 /* Campaigns demo. Frame chrome comes from qa.css. Tokens only. */
 .camp { max-width: 100%; }
 .camp .qa-top { flex-wrap: wrap; }
-/* The window title is a heading here, so the demo's own h3 nests under it.
-   qa.css sets the font; the heading's own margin has to go. */
-.camp .qa-title { margin: 0; }
 .camp .camp-body { padding: 12px; min-width: 0; color: var(--color-fg); font-size: 13px; }
 .camp .camp-views { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .camp .camp-views button {

@@ -2,7 +2,15 @@ import { MOCK_PARTS, series } from '../fixtures';
 
 export type Verdict = 'firm' | 'hold' | 'no-action';
 export interface ToolCall { tool: string; result: string }
-export interface Answer { question: string; text: string; verdict: Verdict | null; tools: ToolCall[]; refused: boolean }
+export interface Answer {
+  question: string
+  text: string
+  verdict: Verdict | null
+  tools: ToolCall[]
+  refused: boolean
+  /** The turn's own number, set when it is logged. It is the React key. */
+  turn?: number
+}
 
 export const PRESETS: readonly string[] = [
   'How is consumption trending for the rear door latch?',
@@ -16,7 +24,18 @@ const NUMBER = /\d+(?:,\d{3})*(?:\.\d+)?%?/g;
 /** The log keeps the most recent turns only, so a long session stays bounded. */
 export const MAX_TURNS = 20;
 
-const nums = (s: string): string[] => s.match(NUMBER) ?? [];
+/**
+ * The figure a number token stands for.
+ *
+ * A trailing unit or full stop is punctuation, not part of the figure, so
+ * "45%" and "45" are the same number. The comma inside a number is a
+ * thousands separator and stays, so "1,000" is one figure and not "1".
+ */
+function figure(token: string): string {
+  return token.replace(/[%.]+$/, '').replace(/,$/, '');
+}
+
+const nums = (s: string): string[] => (s.match(NUMBER) ?? []).map(figure);
 const fmt = (n: number): string => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const partName = (id: string): string => MOCK_PARTS.find((p) => p.id === id)?.name ?? id;
 const idNum = (id: string): number => parseInt(id.replace(/\D/g, ''), 10) || 0;
@@ -116,9 +135,9 @@ export function ask(question: string): Answer {
   return { question, text: REFUSAL, verdict: null, tools: [], refused: true };
 }
 
-export interface AskState { log: Answer[]; draft: string }
+export interface AskState { log: Answer[]; draft: string; nextTurn: number }
 
-export const initialAsk: AskState = { log: [], draft: '' };
+export const initialAsk: AskState = { log: [], draft: '', nextTurn: 1 };
 
 /** The answer for a question, or null when there is nothing to ask. */
 export function askTurn(question: string): Answer | null {
@@ -137,11 +156,15 @@ export function appendTurn(log: readonly Answer[], answer: Answer): Answer[] {
  *
  * A preset click and the send button both come through here, so a preset
  * always leaves the demo in the same state a typed question would.
+ *
+ * Each turn carries its own number, so the key React uses for it stays with
+ * its content when the capped log slides and the older turns fall away.
  */
 export function sendQuestion(s: AskState, question: string): AskState {
   const answer = askTurn(question);
   if (!answer) return s;
-  return { log: appendTurn(s.log, answer), draft: '' };
+  const turn = { ...answer, turn: s.nextTurn };
+  return { log: appendTurn(s.log, turn), draft: '', nextTurn: s.nextTurn + 1 };
 }
 
 /** Scroll a log region so the newest answer is visible, even a tall one. */
