@@ -61,6 +61,45 @@ describe('photos', () => {
   });
 });
 
+describe('food captions', () => {
+  // The spec asks for "dish, place and year", so a caption that loses its year
+  // or its place is wrong even though it is still a non-empty string.
+  it('gives every food photo a caption of dish, area, country and year', () => {
+    for (const p of foodPhotos) {
+      expect(p.caption, p.id).toContain(`, ${p.area}, `);
+      expect(p.caption, p.id).toContain(`, ${p.country}, `);
+      expect(p.caption, p.id).toMatch(new RegExp(`, ${p.year}$`));
+    }
+  });
+});
+
+describe('country photo joins', () => {
+  // Travel.astro joins photos to a country by name, so renaming a country in
+  // outside.ts empties that country's photo grid without breaking anything
+  // else. The United States are listed as states rather than as one of the
+  // nine countries, so they are expected to have no country entry.
+  const listed = new Set(countries.map((c) => c.name));
+  // The countries the photos themselves name, taken from the manifest rather
+  // than from a second hand-written list.
+  const manifestCountries = [...new Set(photos.map((p) => p.country))];
+  // The United States is deliberately not one of the nine countries.
+  const withoutUs = manifestCountries.filter((c) => c !== 'United States');
+  it('has a country entry for every country in the manifest but the United States', () => {
+    for (const c of withoutUs) expect(listed.has(c), c).toBe(true);
+    for (const p of photos) {
+      if (p.country === 'United States') continue;
+      expect(listed.has(p.country), p.id).toBe(true);
+    }
+  });
+  it('finds photos for every country in the manifest but the United States', () => {
+    for (const c of withoutUs) {
+      const found = photosFor(c);
+      expect(found.length, c).toBeGreaterThan(0);
+      expect(found.every((p) => p.country === c), c).toBe(true);
+    }
+  });
+});
+
 describe('trails', () => {
   const noYear = ['Mount Tamalpais', 'Point Reyes', 'Mission Peak', 'Castle Rock State Park', 'Pinnacles National Park', 'Yosemite'];
   it('omits years where required', () => {
