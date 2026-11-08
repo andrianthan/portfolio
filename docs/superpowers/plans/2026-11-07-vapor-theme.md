@@ -2381,3 +2381,61 @@ In `src/components/About.astro` add `import Lifting from './Lifting.astro';` and
 - [ ] **Step 13: Verify.** Run, in order: `npx vitest run src/data src/components/gym` (all PASS); `npm test` (green); `npm run build` (ends `check-build: ok`; if a build check rejects the new content, stop with NEEDS_CONTEXT naming the check, do not edit it); `npm run typecheck | tail -3` (still 7, add none). Open `dist/index.html` and report: the Lifting block is inside `#about`, the four stat tiles read `~245 lb`, `~385 lb`, `~475 lb`, `~1,105 lb`, the percentile line and `1.6k hours` appear once each, the calendar renders `November 2026` with `5 of 8 days so far`, and the words `synced`, `connected`, `estimated`, `reconstructed` do not appear anywhere in the About section's HTML.
 
 - [ ] **Step 14: Commit** `feat: the Lifting block in About, with a gym check-in calendar`. Include the generated `src/data/gym-checkins.json` and the script. The CSV itself is NOT committed (it stays in Downloads).
+
+---
+
+### Task 13: Mobile nav as a fixed grid (carried over from the Task 9 verification run that hit its step limit)
+
+The earlier browser verification (already on this branch as commits 220de42, 5bc128c, 8ff009a) found that the CLS fix (font preload) only holds if the font lands before first paint. With fonts delayed 2.5 s, CLS returns to 0.171. Cause: the mono fallback fits the five nav links on one row, Silkscreen needs two, so the bar grows 33 px and pushes the page down. That run tested four fixes and found a clean one that it did not get to apply: make the mobile nav a fixed 3-column grid, so the row count never depends on which font is loaded (measured: CLS 0.171 to 0.007, bar height unchanged at 117 px, one CSS rule). It also left a doc claim to soften.
+
+**Files:**
+- Modify: `src/styles/vapor.css` (the `@media (max-width: 639px)` block, about line 126), `src/styles/vapor.test.ts` (append one test), `docs/superpowers/specs/2026-11-07-vapor-theme-design.md` (the Fonts paragraph, about line 102)
+
+- [ ] **Step 1: Failing test.** Append to `src/styles/vapor.test.ts` (`vapor` is the comment-stripped stylesheet defined there):
+
+```ts
+describe('mobile nav layout', () => {
+  function mediaBlock(header: string): string {
+    const start = vapor.indexOf(header);
+    expect(start, header).toBeGreaterThan(-1);
+    const open = vapor.indexOf('{', start);
+    let depth = 0;
+    for (let i = open; i < vapor.length; i++) {
+      if (vapor[i] === '{') depth++;
+      else if (vapor[i] === '}' && --depth === 0) return vapor.slice(open + 1, i);
+    }
+    throw new Error('unterminated block');
+  }
+
+  it('is a fixed three-column grid on small screens, so a late font swap cannot change the row count', () => {
+    const block = mediaBlock('@media (max-width: 639px)');
+    const nav = block.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(nav).toContain('display: grid');
+    expect(nav).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
+    expect(nav).toContain('justify-items: center');
+    const link = block.match(/\.vnav a\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(link).toContain('white-space: nowrap');
+  });
+});
+```
+
+Run it, expect FAIL.
+
+- [ ] **Step 2: The CSS.** In `src/styles/vapor.css`, inside the existing `@media (max-width: 639px)` block, replace the two `.vnav` lines with:
+
+```css
+  .vnav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; grid-column: 1 / -1; grid-row: 2; gap: 4px 2px; }
+  .vnav a { padding: 6px 8px; letter-spacing: .08em; font-size: 11px; white-space: nowrap; }
+```
+
+Run the test: PASS. Keep everything else in that block unchanged.
+
+- [ ] **Step 3: Soften the spec.** In the spec's Fonts paragraph, replace the clause "with metric fallbacks to avoid layout shift" with: "preloaded so the first paint uses them, and the mobile nav is a fixed three-column grid so a late font swap cannot reflow the bar". Do not claim metric overrides; none are implemented.
+
+- [ ] **Step 4: Verify in a real browser (report the numbers).** `npm run build`, then serve the build (`npm run preview -- --port 4325`; the 4323 server may belong to someone else, do not kill it). Reuse an existing throwaway harness if one exists (earlier runs left traces in /private/tmp: `cdp-cls-*` profile dirs, `lh-clsfix*.json`; `ls /private/tmp` and `ls ~/.cache/ms-playwright`), or write a small one OUTSIDE the repo (use the scratchpad directory). Measure:
+  1. Late-font CLS: block the two woff2 requests for 2.5 s (route interception with a delay), load `/`, and read the layout-shift total at widths 320, 375, 412, 768 and 1440. Expect near 0 at every width (the report predicted about 0.007 at mobile widths). Report each number.
+  2. A mobile screenshot at 320 px and 390 px: the nav should read as three links on the first row and two on the second, nothing clipped (check that "EXPERIENCE" fits its column at 320 px: its text width must be below the column width; report both).
+  3. Lighthouse mobile on `/` measured with nothing else running: performance must stay at 0.99 or above (the baseline is 0.99), CLS 0. Report the scores.
+  If no browser tooling is available and cannot be found, stop with NEEDS_CONTEXT instead of installing browsers.
+
+- [ ] **Step 5: Suite and commit.** `npm test` green, `npm run build` ends `check-build: ok`, `npm run typecheck | tail -3` still 7. Commit `fix: mobile nav is a fixed three-column grid so a late font swap cannot shift the page`.
