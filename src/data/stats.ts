@@ -1,6 +1,8 @@
 export const stats = [
-  { value: '32%', caption: 'better than baseline, Forecast Lab backtest' },
-  { value: '$30k+', caption: 'vendor cost avoided, grant-research agent' },
-  { value: '200+', caption: 'staging deploys a week supported' },
-  { value: '1st of 9', caption: 'teams at the IBM hackathon, 700+ applicants' },
+  { value: '90B+', caption: 'tokens used across my work and personal AI use' },
+  { value: '95%+', caption: 'prompt cache hit rate' },
+  { value: '450+', caption: 'hours saved across Tesla, Hanna Center and Blue Dome projects' },
+  { value: '150+', caption: 'people use what I\'ve built, across Tesla, Hanna Center, Blue Dome and Micron' },
 ];
+
+export const statsNote = 'Figures are my estimates.';

@@ -151,3 +151,6 @@ footer { border-top-color: var(--color-rule); }
 @media (prefers-reduced-motion: reduce) {
   .sh h2 { text-shadow: none; }
 }
+
+/* ---- stats note ---- */
+.stats-note { grid-column: 1 / -1; margin: 0; text-align: center; font: 400 12px/1.4 var(--font-mono); letter-spacing: .04em; color: var(--color-muted); }
