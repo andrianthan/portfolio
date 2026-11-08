@@ -7,11 +7,11 @@ const vapor = read('src/styles/vapor.css');
 const global = read('src/styles/global.css');
 
 describe('vapor backdrop', () => {
-  it('moves layers with transform only', () => {
+  it('layers do not follow the cursor and never move by top, left or margin', () => {
     const layers = vapor.match(/\.vb-(neb|far|mid|near)\s*\{[^}]*\}/g) ?? [];
     expect(layers.length).toBe(4);
     for (const rule of layers) {
-      expect(rule).toContain('transform:');
+      expect(rule).not.toMatch(/--nx|--ny|--mx|--my/);
       expect(rule).not.toMatch(/\b(top|left|margin)\s*:/);
     }
   });
