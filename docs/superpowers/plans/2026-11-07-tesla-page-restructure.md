@@ -871,7 +871,8 @@ describe('admin usage', () => {
     expect(u.visits30).toBe(4);
   });
   it('counts active days inside the 30-day window only', () => {
-    expect(usageFor('u1', reqs, now).activeDays).toBe(4);
+    // The 35-day-old request sits outside the window, so u1 is active on 3 distinct days.
+    expect(usageFor('u1', reqs, now).activeDays).toBe(3);
   });
   it('finds the top tab, ask count and spend', () => {
     const u = usageFor('u1', reqs, now);
