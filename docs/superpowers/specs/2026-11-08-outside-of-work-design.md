@@ -61,7 +61,7 @@ listed without a year.
 **Hiking** sits in the same block as a "Trails" list, each trail with its place
 and a year only where known: Hwangnyeongsan (Busan, 2024), Jeju Island trail
 (2024), Ha Long Bay (2024), Rocky Mountains (Colorado, 2025), Point Lobos
-(2025, 2026), the Marin Headlands area (2024), Point Reyes, Mission Peak,
+(2025, 2026), Hawk Hill (Marin Headlands, 2024), Mount Tamalpais (no year), Point Reyes, Mission Peak,
 Castle Rock State Park, Pinnacles National Park, Yosemite. No distances or
 elevation.
 
@@ -146,9 +146,8 @@ pushing.
 
 - **Food captions.** Drafted from tags; the sushi photo is tagged Seoul. Confirm
   or correct each.
-- **Marin hike name.** Tags point to Hawk Hill or Mount Tamalpais; until he
-  says, the page reads "Marin Headlands area".
 - **State list.** California and Colorado come from his photos, the others from
   his own list; Nevada (Lake Tahoe) is left off.
-- **Years** for Indonesia, Florida, Washington, Oregon, Point Reyes, Mission
-  Peak, Castle Rock, Pinnacles and Yosemite.
+- **Years** are deliberately left off for Indonesia, Florida, Washington, Oregon,
+  Point Reyes, Mission Peak, Castle Rock, Pinnacles, Yosemite and Mount
+  Tamalpais, by his decision; they can be added later in `outside.ts`.

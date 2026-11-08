@@ -31,7 +31,7 @@ Confirmed, may appear on the page:
   efficiency.**
 - **Opportunity bot.** It scrapes job and internship listings from many
   sources, including individual company career sites and GitHub, and posts them
-  to a Discord channel for members. **50+ members** use it to apply.
+  to a Discord channel for members. It runs daily and filters listings by role. **50+ members** use it to apply.
 - **Mentoring:** he has mentored **5+ individuals** into internships.
 
 Not allowed, never on the page or in a demo:
@@ -39,8 +39,9 @@ Not allowed, never on the page or in a demo:
 - Real applicant or member names, emails, files, or anything about an
   individual. Demos use "Applicant A" style placeholders and fictional
   companies.
-- Claims about how often the bot runs, how listings are filtered, or any figure
-  beyond the four above: Andrian did not give them.
+- Any figure beyond the four above, and any claim about the bot's stack or
+  hosting: Andrian did not give them. Its schedule (daily) and role filtering
+  are confirmed and may appear.
 
 ## Page shape
 
@@ -129,8 +130,7 @@ change to the other work pages, the stats strip, merging or pushing.
 
 ## Open items
 
-- **Bot cadence and filters.** Not said; the page makes no claim. One line from
-  him would let the page say it.
 - **Stack.** Language, model and hosting are unconfirmed and omitted.
-- **Resume.** Whether to list the role as software experience there too.
+- **Resume.** His resume lists the role under leadership only because of space;
+  the work is real. Whether to add it there is his call.
 - **Logo.** A placeholder tile until he supplies one.
