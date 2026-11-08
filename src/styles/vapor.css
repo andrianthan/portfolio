@@ -17,6 +17,7 @@
 /* the star pattern lives on a pseudo-element one tile wider and taller than its layer, and
    drifts by exactly one tile per loop, so the loop is seamless and the layer stays covered.
    the layer itself keeps the cursor parallax, so the two transforms never fight */
+/* the three ::before rules below must stay in sync: the tests need each one self-contained */
 .vb-far::before {
   content: ""; position: absolute; left: 0; top: 0;
   width: calc(100% + var(--tw)); height: calc(100% + var(--th));
@@ -57,8 +58,8 @@
   transform: translate3d(0, 0, 0) rotate(152deg);
   animation: vb-streak var(--sdur) linear infinite; animation-delay: var(--sdelay);
 }
-.vb-streak-1 { top: 14%; left: 78%; --sdur: 13s; --sdelay: 3s; }
-.vb-streak-2 { top: 38%; left: 94%; --sdur: 19s; --sdelay: 9s; }
+.vb i.vb-streak-1 { top: 14%; left: 78%; --sdur: 13s; --sdelay: 3s; }
+.vb i.vb-streak-2 { top: 38%; left: 94%; --sdur: 19s; --sdelay: 9s; }
 @keyframes vb-streak {
   0%   { opacity: 0;  transform: translate3d(0, 0, 0) rotate(152deg); }
   1.5% { opacity: .9; }

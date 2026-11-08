@@ -130,6 +130,13 @@ describe('vapor backdrop motion', () => {
     expect(kf).not.toMatch(/\b(top|left|right|bottom|margin|width|height)\s*:/);
   });
 
+  it('positions the shooting stars with a selector that outranks .vb i.vb-streak and .vb i', () => {
+    for (const n of [1, 2]) {
+      expect(vapor).toMatch(new RegExp('\\.vb i\\.vb-streak-' + n + '\\s*\\{[^}]*top:\\s*\\d+%[^}]*left:\\s*\\d+%'));
+    }
+    expect(vapor).not.toMatch(/(^|[\s}])\.vb-streak-[12]\s*\{/);
+  });
+
   it('stops all backdrop motion under reduced motion', () => {
     const rm = vapor.split('@media (prefers-reduced-motion: reduce)').slice(1).join('\n');
     expect(rm).toMatch(/\.vb i::before\s*\{[^}]*animation:\s*none/);
