@@ -99,13 +99,16 @@ vapor as a third option; decide at review.
 Candidates, compared against the reference screenshot before committing:
 title: Orbitron or Audiowide; pixel nav, tagline and headings: Silkscreen,
 VT323 or Pixelify Sans; mono labels: JetBrains Mono (already used). Fonts are
-self-hosted, subset to the glyphs used, `font-display: swap`, with metric
-fallbacks to avoid layout shift. The final picks are recorded in the plan once
+self-hosted, subset to the glyphs used, `font-display: swap`, preloaded so
+the first paint uses them, and the mobile nav is a fixed three-column grid so a
+late font swap cannot reflow the bar. The final picks are recorded in the plan once
 tested.
 
 **Picked (Task 9, 2026-11-08): Orbitron Variable for the title, Silkscreen for
 the pixel face.** Both are self-hosted through fontsource and preloaded, so the
-first paint already uses them and the swap causes no layout shift. The picks
+first paint already uses them, and the nav layout does not depend on which font
+is showing (the mobile nav is a fixed three-column grid). The swap itself can
+still cause small shifts elsewhere. The picks
 match the reference as this document describes it — a wide techno title with
 lavender-white fill, soft violet glow, offset deep-indigo shadow and
 horizontal scanline cut-outs, and a light-violet pixel tagline. The original

@@ -125,8 +125,8 @@
 #theme-toggle { font-family: var(--font-pixel); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 @media (max-width: 639px) {
   .vbar-in { grid-template-columns: 1fr auto; padding: 10px var(--space-md); row-gap: 6px; }
-  .vnav { grid-column: 1 / -1; grid-row: 2; gap: 4px 2px; }
-  .vnav a { padding: 6px 8px; letter-spacing: .08em; font-size: 11px; }
+  .vnav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; grid-column: 1 / -1; grid-row: 2; gap: 4px 2px; }
+  .vnav a { padding: 6px 8px; letter-spacing: .08em; font-size: 11px; white-space: nowrap; }
 }
 
 /* ---- hero ---- */

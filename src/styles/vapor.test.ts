@@ -143,3 +143,27 @@ describe('vapor backdrop motion', () => {
     expect(rm).toMatch(/\.vb i\.vb-streak\s*\{[^}]*display:\s*none/);
   });
 });
+
+describe('mobile nav layout', () => {
+  function mediaBlock(header: string): string {
+    const start = vapor.indexOf(header);
+    expect(start, header).toBeGreaterThan(-1);
+    const open = vapor.indexOf('{', start);
+    let depth = 0;
+    for (let i = open; i < vapor.length; i++) {
+      if (vapor[i] === '{') depth++;
+      else if (vapor[i] === '}' && --depth === 0) return vapor.slice(open + 1, i);
+    }
+    throw new Error('unterminated block');
+  }
+
+  it('is a fixed three-column grid on small screens, so a late font swap cannot change the row count', () => {
+    const block = mediaBlock('@media (max-width: 639px)');
+    const nav = block.match(/\.vnav\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(nav).toContain('display: grid');
+    expect(nav).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
+    expect(nav).toContain('justify-items: center');
+    const link = block.match(/\.vnav a\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(link).toContain('white-space: nowrap');
+  });
+});
