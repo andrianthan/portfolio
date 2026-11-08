@@ -2603,3 +2603,121 @@ Run `clip.test.ts`: PASS.
 - [ ] **Step 6: Verify.** `npx vitest run src/components/terminal src/styles` PASS; `npm test` green (update, never delete, any test the change invalidates); `npm run build` ends `check-build: ok`; `npm run typecheck | tail -3` still 7. Then, in a real browser if browser tooling is available (preview on port 4326; do not touch ports 4322 or 4323; write any harness outside the repo; stop the server when done): load `/`, confirm the box is about one third of its old height with nothing but chips and the input (report the measured height of `.chat` before typing), click the first chip, wait 3 s, confirm no `orchestrator:`/`verifier:` text appears, that the answer shows a "Show more" button when clipped, and that clicking it expands and the button then reads "Show less". Report the numbers; if no browser tooling is available, say so.
 
 - [ ] **Step 7: Commit** `feat: a simpler home chat box (chips and input, clipped answers, no trace lines)`.
+
+---
+
+### Task 15: The "Personal automation" section (added after Andrian's yes on 2026-11-08)
+
+A new section after Projects and before Skills: two cards about his Grok-powered bots. The title is his pick ("Personal automation"; he dropped "How I use AI"). Only what he has told us is claimed: the budgeting bot automates his personal finance budgeting; the digest bot sends him a daily update on AI (the latest GitHub repos and news). No specifics (where they run, where the output lands, schedules other than "daily" for the digest, numbers) and nothing about accounts. No demo (nothing public to run), no nav link, no chat-agent changes. claude-token-saver and ai-swing-trader stay in Projects only; the 90B tokens / 95% cache figures stay in the stats strip only.
+
+Confirmed copy (use verbatim):
+- Label above the heading: `AI outside the day job`
+- Heading: `Personal automation`
+- Card 1: name `Budgeting bot`, tag `Grok`, text `A Grok-powered bot that automates my personal finance budgeting.`
+- Card 2: name `Daily AI digest`, tag `Grok · daily`, text `A Grok-powered bot that sends me a daily update on AI: the latest GitHub repos and news worth a look.`
+
+**Files:**
+- Create: `src/data/automation.ts`, `src/data/automation.test.ts`, `src/components/Automation.astro`
+- Modify: `src/pages/index.astro`, `src/styles/vapor.css` (append), `src/styles/vapor.test.ts` (append)
+
+- [ ] **Step 1: Failing tests.** `src/data/automation.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+import { automation } from './automation';
+
+describe('personal automation copy', () => {
+  it('uses Andrian\'s confirmed label, heading and two cards, verbatim', () => {
+    expect(automation.eyebrow).toBe('AI outside the day job');
+    expect(automation.heading).toBe('Personal automation');
+    expect(automation.cards).toEqual([
+      { name: 'Budgeting bot', tag: 'Grok', text: 'A Grok-powered bot that automates my personal finance budgeting.' },
+      { name: 'Daily AI digest', tag: 'Grok · daily', text: 'A Grok-powered bot that sends me a daily update on AI: the latest GitHub repos and news worth a look.' },
+    ]);
+  });
+  it('claims no numbers, accounts or institutions (only what was confirmed)', () => {
+    const all = automation.cards.map((c) => `${c.name} ${c.tag} ${c.text}`).join(' ');
+    expect(all).not.toMatch(/\d/);
+    expect(all.toLowerCase()).not.toMatch(/bank|account|plaid|card|balance|\$/);
+  });
+  it('sits between Projects and Skills on the home page', () => {
+    const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/index.astro'), 'utf8');
+    const a = page.indexOf('<ProjectCards />');
+    const b = page.indexOf('<Automation />');
+    const c = page.indexOf('<Skills />');
+    expect(a).toBeGreaterThan(-1);
+    expect(b).toBeGreaterThan(a);
+    expect(c).toBeGreaterThan(b);
+  });
+});
+```
+
+Append to `src/styles/vapor.test.ts` (`vapor` is the comment-stripped stylesheet):
+
+```ts
+describe('personal automation cards', () => {
+  it('is two columns on wide screens and one column below 640px', () => {
+    expect(vapor).toMatch(/\.auto-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    const small = vapor.slice(vapor.indexOf('/* ---- personal automation'));
+    expect(small).toMatch(/@media \(max-width: 639px\)\s*\{[^}]*\.auto-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  });
+});
+```
+
+Run both, expect FAIL.
+
+- [ ] **Step 2: `src/data/automation.ts`:**
+
+```ts
+export const automation = {
+  eyebrow: 'AI outside the day job',
+  heading: 'Personal automation',
+  cards: [
+    { name: 'Budgeting bot', tag: 'Grok', text: 'A Grok-powered bot that automates my personal finance budgeting.' },
+    { name: 'Daily AI digest', tag: 'Grok · daily', text: 'A Grok-powered bot that sends me a daily update on AI: the latest GitHub repos and news worth a look.' },
+  ],
+};
+```
+
+- [ ] **Step 3: `src/components/Automation.astro`:**
+
+```astro
+---
+import { automation } from '../data/automation';
+---
+<section class="s" id="automation">
+  <header class="sh"><p class="eyebrow">{automation.eyebrow}</p><h2>{automation.heading}</h2></header>
+  <div class="auto-grid reveal">
+    {automation.cards.map((c) => (
+      <article class="auto-card">
+        <div class="auto-head"><b>{c.name}</b><span class="m">{c.tag}</span></div>
+        <p>{c.text}</p>
+      </article>
+    ))}
+  </div>
+</section>
+```
+
+- [ ] **Step 4: Wire into `src/pages/index.astro`:** `import Automation from '../components/Automation.astro';` and render `<Automation />` between `<ProjectCards />` and `<Skills />`.
+
+- [ ] **Step 5: Append to `src/styles/vapor.css`:**
+
+```css
+/* ---- personal automation ---- */
+.auto-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); max-width: 46rem; margin: 0 auto; }
+.auto-card { padding: 20px; border: 1px solid var(--color-rule); border-radius: 12px; background: var(--color-card); box-shadow: 0 0 28px -16px var(--color-glow); }
+.auto-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+.auto-head b { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--color-fg); }
+.auto-head .m { font: 400 12px var(--font-mono); color: var(--color-muted); }
+.auto-card p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--color-muted); }
+#automation .auto-grid { --reveal-step: 5; }
+@media (max-width: 639px) {
+  .auto-grid { grid-template-columns: minmax(0, 1fr); }
+}
+```
+
+- [ ] **Step 6: Verify.** `npx vitest run src/data src/styles` PASS; `npm test` green; `npm run build` ends `check-build: ok`; `npm run typecheck | tail -3` still 7. Open `dist/index.html` and report: the `#automation` section exists after `#projects` and before `#skills`, with the exact label, heading and both cards, and no digits appear in its text. If browser tooling is available (preview on port 4327; do not use ports 4322, 4323, 4325 or 4326; write any harness outside the repo; stop the server afterwards), screenshot `/` at 1440 and 390 px and describe the section; if not, say so.
+
+- [ ] **Step 7: Commit** `feat: a Personal automation section with the two Grok bots`.
