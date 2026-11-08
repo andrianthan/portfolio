@@ -15,7 +15,7 @@ describe('lifting facts', () => {
     expect(liftTotal).toBe('~1,105 lb');
   });
   it('uses the confirmed percentile line, hours label and caption', () => {
-    expect(percentileLine).toBe('90th percentile (per Strength Level, 145 lb)');
+    expect(percentileLine).toBe('90th percentile (per Strength Level)');
     expect(hoursLabel).toBe('~1.6k hours');
     expect(calendarCaption).toBe('Gym check-ins');
   });
