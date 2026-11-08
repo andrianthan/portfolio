@@ -49,3 +49,10 @@ describe('IntroTerminal suggestions', () => {
     expect(html).toContain('aria-label="Show other questions"');
   });
 });
+
+describe('IntroTerminal chip focus', () => {
+  it('does not natively disable the chips', () => {
+    expect(html).not.toMatch(/class="intro-chip"[^>]*disabled/);
+    expect(html).not.toMatch(/<button[^>]*disabled[^>]*class="intro-chip"/);
+  });
+});

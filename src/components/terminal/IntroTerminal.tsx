@@ -57,7 +57,7 @@ export default function IntroTerminal() {
           ↻
         </button>
         {chips.map((question) => (
-          <button key={question} type="button" className="intro-chip" disabled={term.busy} onClick={() => void term.submit(question)}>
+          <button key={question} type="button" className="intro-chip" aria-disabled={term.busy ? true : undefined} onClick={() => { if (!term.busy) void term.submit(question); }}>
             <span aria-hidden="true">↳ </span>{question}
           </button>
         ))}

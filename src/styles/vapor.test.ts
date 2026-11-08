@@ -51,4 +51,21 @@ describe('vapor scene', () => {
     expect(global).not.toContain('h1 .w');
     expect(global).not.toContain('@keyframes bi');
   });
+  it('is sticky, with matching scroll padding, only where the bar is one row tall', () => {
+    const start = vapor.indexOf('@media (min-width: 860px)');
+    expect(start).toBeGreaterThanOrEqual(0);
+    let depth = 0, end = vapor.indexOf('{', start);
+    for (let k = end; k < vapor.length; k++) {
+      if (vapor[k] === '{') depth++;
+      else if (vapor[k] === '}' && --depth === 0) { end = k; break; }
+    }
+    const block = vapor.slice(start, end + 1);
+    expect(block).toMatch(/\.vbar\s*\{[^}]*position:\s*sticky/);
+    expect(block).toContain('scroll-padding-top');
+    expect(global).not.toContain('scroll-padding-top');
+  });
+  it('keeps chip focus while thinking: aria-disabled, never :disabled', () => {
+    expect(vapor).toContain('.intro-chip[aria-disabled="true"]');
+    expect(vapor).not.toContain('.intro-chip:disabled');
+  });
 });
