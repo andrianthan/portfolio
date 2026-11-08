@@ -22,19 +22,22 @@ by anchor links, not by switching views.
    glow, one small canvas for the ASCII graph. No three.js, no full-page
    canvas.
 4. **Navigation.** Scroll anchors. Active tab follows scroll position.
-5. **Fidelity.** Aesthetic and layout are matched; the reference's portrait,
+5. **Color.** Purple, not the reference's pink: violet and lavender on an
+   indigo-black ground, extending the site's current `#a78bfa` accent. Final
+   hex values are set in the plan and checked for AA contrast.
+6. **Fidelity.** Aesthetic and layout are matched; the reference's portrait,
    copy and code are not copied. Fonts are the closest public matches, laid
    against the reference screenshot and tuned (see Fonts).
-6. **Branch.** All work on `feat/vapor-theme`. Reversible by not merging.
+7. **Branch.** All work on `feat/vapor-theme`. Reversible by not merging.
 
 ## Hero
 
 - **Nav** (pixel font, spaced caps): HOME, PROJECTS, EXPERIENCE, ABOUT, RESUME.
-  Anchors with scroll-spy. Active item has a pink outline pill. The theme
+  Anchors with scroll-spy. Active item has a violet outline pill. The theme
   control sits at the right.
-- **Title:** "ANDRIAN THAN", wide techno face, pink-white fill, soft pink glow,
-  offset magenta shadow, horizontal scanline cut-outs.
-- **Tagline:** "AI engineer · building agents that ship", pink pixel type.
+- **Title:** "ANDRIAN THAN", wide techno face, lavender-white fill, soft violet glow,
+  offset deep-indigo shadow, horizontal scanline cut-outs.
+- **Tagline:** "AI engineer · building agents that ship", light-violet pixel type.
 - **Floor:** perspective grid rising from a horizon line, faint radial
   vanishing lines above it, sparse stars. The grid scrolls toward the viewer
   slowly and tilts with the cursor via the existing `--mx`/`--my` variables.
@@ -59,7 +62,7 @@ nodes, edges, pulses travelling along edges. The cursor leans the whole graph
 
 ## Whole-page treatment
 
-- `tokens.css` gains a vapor palette (deep plum background, pink and violet
+- `tokens.css` gains a vapor palette (deep indigo-black background, violet and lavender
   accents) and font tokens. A fixed background layer replaces the current
   dot field: floor grid, stars, scanlines, vignette.
 - Section headings use the pixel face. Body text and long paragraphs keep the
