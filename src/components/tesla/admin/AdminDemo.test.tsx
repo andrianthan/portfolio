@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import AdminDemo from './AdminDemo';
-import { MOCK_TABS, USAGE_WINDOW_DAYS, VISIT_GAP_MIN } from './admin';
+import { MOCK_TABS, USAGE_WINDOW_DAYS, VISIT_GAP_MIN, VISIT_WINDOW_DAYS, auditKey, grant, revoke, type AuditEntry, type Grants } from './admin';
 import { MOCK_USERS } from '../fixtures';
 
 const usage = renderToStaticMarkup(<AdminDemo />);
@@ -30,9 +30,12 @@ describe('AdminDemo', () => {
     for (const name of ['User 1', 'User 2', 'User 3', 'User 4', 'User 5', 'User 6']) {
       expect(usage).toContain(name);
     }
-    for (const head of ['Active days', 'Visits 7d', 'Visits 30d', 'Top tab', 'Ask count', 'LLM spend']) {
+    for (const head of ['Active days', 'Top tab', 'Ask count', 'LLM spend']) {
       expect(usage).toContain(head);
     }
+    // The two visit columns name their own windows.
+    expect(usage).toContain(`Visits ${VISIT_WINDOW_DAYS}d`);
+    expect(usage).toContain(`Visits ${USAGE_WINDOW_DAYS}d`);
   });
 
   it('says that usage comes from the request log, not sign-ins', () => {
@@ -49,9 +52,17 @@ describe('AdminDemo', () => {
     expect(usage).toContain('tabindex="0"');
   });
 
-  it('states the window and the visit gap from the same constants the table uses', () => {
-    expect(usage).toContain(`over the last ${USAGE_WINDOW_DAYS} days`);
+  it('states each window from the same constants the table uses', () => {
+    // Active days run over the long window; visits over both windows.
+    expect(usage).toContain(`Active days are counted over the last ${USAGE_WINDOW_DAYS} days`);
+    expect(usage).toContain(`Visits are counted over the last ${VISIT_WINDOW_DAYS} and ${USAGE_WINDOW_DAYS} days`);
     expect(usage).toContain(`gap of ${VISIT_GAP_MIN} minutes or more`);
+  });
+
+  it('does not claim the visits column uses only the long window', () => {
+    // The caption used to say "active days and visits ... over the last 30
+    // days", which contradicted the 7-day visits column.
+    expect(usage).not.toContain('Active days and visits are counted');
   });
 });
 
@@ -107,5 +118,22 @@ describe('AdminDemo audit view', () => {
 
   it('says every change is recorded', () => {
     expect(audit).toContain('Every grant and revoke is recorded here.');
+  });
+
+  it('keys each entry so a repeated grant still has a unique key', () => {
+    // Granting, revoking and granting again logs the same target twice, so a
+    // key built from the action and the target alone would repeat.
+    let grants: Grants = {};
+    let log: AuditEntry[] = [];
+    let next = grant(grants, 'u4', 'admin', log); grants = next.grants; log = next.log;
+    next = revoke(grants, 'u4', 'admin', log); grants = next.grants; log = next.log;
+    next = grant(grants, 'u4', 'admin', log); log = next.log;
+
+    // The action and the target alone do repeat.
+    expect(new Set(log.map((e) => `${e.action}-${e.target}`)).size).toBe(2);
+    // The key the component renders with does not.
+    const keys = log.map((e, i) => auditKey(e, i));
+    expect(keys).toHaveLength(3);
+    expect(new Set(keys).size).toBe(3);
   });
 });

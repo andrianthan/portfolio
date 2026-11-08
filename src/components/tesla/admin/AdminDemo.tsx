@@ -3,8 +3,8 @@ import './admin.css';
 import { useState } from 'react';
 import { MOCK_USERS } from '../fixtures';
 import {
-  MOCK_NOW, MOCK_TABS, USAGE_WINDOW_DAYS, VISIT_GAP_MIN, canOpen, grant, mockRequests,
-  revoke, usageFor, type AuditEntry, type Grants,
+  MOCK_NOW, MOCK_TABS, USAGE_WINDOW_DAYS, VISIT_GAP_MIN, VISIT_WINDOW_DAYS, auditKey, canOpen,
+  grant, mockRequests, revoke, usageFor, type AuditEntry, type Grants,
 } from './admin';
 
 // A mock of the admin surface: per-user usage read from the request log,
@@ -81,7 +81,9 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
               <table>
                 <thead>
                   <tr>
-                    <th>User</th><th>Active days</th><th>Visits 7d</th><th>Visits 30d</th>
+                    <th>User</th><th>Active days</th>
+                    <th>Visits {VISIT_WINDOW_DAYS}d</th>
+                    <th>Visits {USAGE_WINDOW_DAYS}d</th>
                     <th>Top tab</th><th>Ask count</th><th>LLM spend</th>
                   </tr>
                 </thead>
@@ -104,9 +106,10 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
               </table>
             </div>
             <p className="adm-cap">
-              Active days and visits are counted over the last {USAGE_WINDOW_DAYS} days of the
-              mock request log. Visits break when a gap of {VISIT_GAP_MIN} minutes or more
-              separates two requests.
+              Active days are counted over the last {USAGE_WINDOW_DAYS} days of the mock
+              request log. Visits are counted over the last {VISIT_WINDOW_DAYS} and{' '}
+              {USAGE_WINDOW_DAYS} days. A visit breaks when a gap of {VISIT_GAP_MIN}{' '}
+              minutes or more separates two requests.
             </p>
           </section>
         )}
@@ -176,8 +179,8 @@ export default function AdminDemo({ view: initialView = 'usage' }: { view?: View
               <p className="adm-empty">No changes yet. Grant or revoke a tab in Access to record one.</p>
             ) : (
               <ul className="adm-log">
-                {log.map((e) => (
-                  <li key={`${e.action}-${e.target}`}>
+                {log.map((e, i) => (
+                  <li key={auditKey(e, i)}>
                     <span className="adm-who">{e.who}</span>
                     <span>{e.action}</span>
                     <span className="adm-target">{e.target}</span>

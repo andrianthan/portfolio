@@ -154,6 +154,17 @@ export function canOpen(userId: string, tab: string, grants: Grants, defaultDeny
 
 export type AuditEntry = { who: string; action: string; target: string };
 
+/**
+ * The React key for one audit-log entry.
+ *
+ * The index is part of the key because the log is append-only: entries are
+ * never reordered or removed, so the index stays stable, and it keeps the key
+ * unique when the same grant is recorded twice.
+ */
+export function auditKey(entry: AuditEntry, index: number): string {
+  return `${entry.action}-${entry.target}-${index}`;
+}
+
 /** Grant a tab to a user and record it. Neither input is mutated. */
 export function grant(
   grants: Grants,
