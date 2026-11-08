@@ -13,8 +13,12 @@ const UNLISTED = [
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 const partName = (id: string) => MOCK_PARTS.find((p) => p.id === id)?.name ?? id;
 
-export default function CampaignsDemo() {
-  const [view, setView] = useState<View>('alerts');
+/**
+ * The campaigns demo. `initialView` sets the section shown first; it exists
+ * so the render test can check every view, and defaults to Alerts.
+ */
+export default function CampaignsDemo({ initialView = 'alerts' }: { initialView?: View } = {}) {
+  const [view, setView] = useState<View>(initialView);
   const [p, setP] = useState<Pct>('P50');
   const list = alerts(MOCK_CAMPAIGNS);
   const planners = Array.from(new Set(list.map(assignPlanner))).sort();
@@ -23,7 +27,7 @@ export default function CampaignsDemo() {
     <div className="qa camp" role="group" aria-label="Sample Campaigns tab">
       <div className="qa-top">
         <span className="qa-dots" aria-hidden="true"><i /><i /><i /></span>
-        <span className="qa-title">Campaigns</span>
+        <h2 className="qa-title">Campaigns</h2>
         <span className="qa-sample">sample data</span>
       </div>
       <div className="camp-body">
@@ -42,7 +46,7 @@ export default function CampaignsDemo() {
         {view === 'alerts' && (
           <section aria-label="Wind-down alerts">
             <p className="camp-meta">
-              Wind-down: best pace share across the 8, 13 and 26 week windows is under {pct(THRESHOLD)} of service units, and no other campaign on the part is on pace.
+              Wind-down: the pace share is under {pct(THRESHOLD)} of service units, and no other campaign on the part is on pace.
             </p>
             <div className="camp-scroll" tabIndex={0} role="region" aria-label="Wind-down alerts table, scrolls horizontally">
               <table>
@@ -112,7 +116,7 @@ export default function CampaignsDemo() {
                 </tbody>
               </table>
             </div>
-            <p className="camp-meta" role="status" aria-live="polite">
+            <p className="camp-meta" role="status">
               Showing the {p} case: {MOCK_CAMPAIGNS.length} campaigns, longest {Math.max(...MOCK_CAMPAIGNS.map((c) => weeksToFinish(c, p)))} weeks.
             </p>
           </section>
