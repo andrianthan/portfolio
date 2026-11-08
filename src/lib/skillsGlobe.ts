@@ -58,3 +58,39 @@ export function project(p: Vec3, opts: { radius: number; fov: number; cx: number
 export function depthOpacity(z: number): number {
   return 0.22 + (0.78 * (z + 1)) / 2;
 }
+
+/* ---- grab-and-go rotation ---- */
+
+export const PITCH_MIN = -0.2;
+export const PITCH_MAX = 0.9;
+export const HOLD_EASE_MS = 250;
+export const RELEASE_EASE_MS = 1000;
+
+/** Clamp the pitch (the x-axis tilt) into the designed band. */
+export function clampPitch(rx: number): number {
+  return Math.min(PITCH_MAX, Math.max(PITCH_MIN, rx));
+}
+
+/**
+ * Map a pointer drag in pixels to yaw/pitch deltas in radians. A drag across
+ * the full radius of the globe is a quarter turn of the sphere.
+ */
+export function dragToAngle(dxPx: number, dyPx: number, radiusPx: number): { dRy: number; dRx: number } {
+  return { dRy: dxPx / radiusPx, dRx: dyPx / radiusPx };
+}
+
+const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
+/**
+ * Multiplier for the idle auto-spin.
+ * While the globe is held (`releasedForMs === null`) the spin eases out, 1 → 0
+ * over HOLD_EASE_MS. After the release it eases back in, 0 → 1 over
+ * RELEASE_EASE_MS. The time held is only read while holding.
+ */
+export function spinEase(msHeld: number, releasedForMs: number | null): number {
+  if (releasedForMs === null) {
+    return 1 - smoothstep(clamp01(msHeld / HOLD_EASE_MS));
+  }
+  return smoothstep(clamp01(releasedForMs / RELEASE_EASE_MS));
+}

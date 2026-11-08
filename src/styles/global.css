@@ -330,7 +330,8 @@ header.ph { padding: 48px 0 var(--space-lg); }
 
 /* ---- skills globe ---- */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.globe { position: relative; width: min(560px, 92vw); aspect-ratio: 1; margin-inline: auto; }
+.globe { position: relative; width: min(560px, 92vw); aspect-ratio: 1; margin-inline: auto; touch-action: pan-y; cursor: grab; }
+.globe:active { cursor: grabbing; }
 .globe-wire { position: absolute; inset: 0; width: 100%; height: 100%; }
 .globe-nodes { position: absolute; inset: 0; }
 .globe-node { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; will-change: transform, opacity; }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { depthOpacity, fibonacciSphere, project, rotate } from '../lib/skillsGlobe';
+import { RELEASE_EASE_MS, clampPitch, depthOpacity, dragToAngle, fibonacciSphere, project, rotate, spinEase } from '../lib/skillsGlobe';
 import { iconForSkill } from '../lib/skillIcons';
 
 export interface GlobeItem {
@@ -141,16 +141,29 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     }
 
     let ry = 0;
+    let rx = TILT;
     let inView = true;
     let raf: number | null = null;
     let last = 0;
 
+    // Grab state. `releaseStart` is null while the globe is held; otherwise it
+    // is when the pointer was let go. It starts in the past so the idle spin
+    // runs at full speed before the first grab.
+    let pointerId: number | null = null;
+    let lastX = 0;
+    let lastY = 0;
+    let holdStart = 0;
+    let releaseStart: number | null = -RELEASE_EASE_MS;
+
     const tick = (now: number) => {
       raf = null;
       if (!last) last = now;
-      ry += SPIN_PER_MS * (now - last);
+      // The auto-spin eases out while the globe is held and eases back in once
+      // it is released.
+      const ease = spinEase(now - holdStart, releaseStart === null ? null : now - releaseStart);
+      ry += SPIN_PER_MS * (now - last) * ease;
       last = now;
-      frame(ry, TILT);
+      frame(ry, rx);
       if (inView && !document.hidden) raf = requestAnimationFrame(tick);
       else last = 0;
     };
@@ -182,12 +195,12 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     document.addEventListener('visibilitychange', onVis);
     const ro = new ResizeObserver(() => {
       measure();
-      if (raf === null) frame(ry, TILT);
+      if (raf === null) frame(ry, rx);
     });
     ro.observe(root);
     const themeObs = new MutationObserver(() => {
       measure();
-      frame(ry, TILT);
+      frame(ry, rx);
     });
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
@@ -203,7 +216,52 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
     };
     reduced.addEventListener('change', onMotion);
 
-    frame(0, TILT); // first paint before the loop's first tick
+    // Grab and rotate. The pointer is captured on the root so a drag that
+    // leaves the globe still rotates it.
+    const onPointerDown = (e: PointerEvent) => {
+      if (reduced.matches) return; // reduced motion: the globe stays a still frame
+      if (pointerId !== null) return; // one drag at a time
+      if (e.pointerType === 'mouse' && e.button !== 0) return; // left button only
+      pointerId = e.pointerId;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      holdStart = performance.now();
+      releaseStart = null; // held: the idle spin eases out
+      root.setPointerCapture(e.pointerId);
+      if (e.pointerType === 'mouse') e.preventDefault(); // no text selection while rotating
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (reduced.matches) return; // reduced motion: leave the still frame alone
+      if (radius <= 0) return;
+      const { dRy, dRx } = dragToAngle(dx, dy, radius);
+      ry += dRy;
+      rx = clampPitch(rx + dRx);
+      frame(ry, rx);
+    };
+    const onPointerUp = (e: PointerEvent) => {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      pointerId = null;
+      releaseStart = performance.now(); // released: the idle spin eases back in
+    };
+    // If the capture is lost without a pointerup, end the drag anyway so a
+    // later press is not ignored as "already dragging".
+    const onLostCapture = (e: PointerEvent) => {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      pointerId = null;
+      releaseStart = performance.now();
+    };
+    root.addEventListener('pointerdown', onPointerDown);
+    root.addEventListener('pointermove', onPointerMove);
+    root.addEventListener('pointerup', onPointerUp);
+    root.addEventListener('pointercancel', onPointerUp);
+    root.addEventListener('lostpointercapture', onLostCapture);
+
+    frame(0, rx); // first paint before the loop's first tick
     start();
     return () => {
       stop();
@@ -212,6 +270,11 @@ export default function SkillsGlobe({ items }: { items: GlobeItem[] }) {
       themeObs.disconnect();
       reduced.removeEventListener('change', onMotion);
       document.removeEventListener('visibilitychange', onVis);
+      root.removeEventListener('pointerdown', onPointerDown);
+      root.removeEventListener('pointermove', onPointerMove);
+      root.removeEventListener('pointerup', onPointerUp);
+      root.removeEventListener('pointercancel', onPointerUp);
+      root.removeEventListener('lostpointercapture', onLostCapture);
     };
   }, [items]);
 

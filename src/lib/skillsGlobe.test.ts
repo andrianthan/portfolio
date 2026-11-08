@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SKILL_COUNT, depthOpacity, fibonacciSphere, project, rotate } from './skillsGlobe';
+import { HOLD_EASE_MS, PITCH_MAX, PITCH_MIN, RELEASE_EASE_MS, SKILL_COUNT, clampPitch, depthOpacity, dragToAngle, fibonacciSphere, project, rotate, spinEase } from './skillsGlobe';
 
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) < eps;
 
@@ -50,5 +50,24 @@ describe('project', () => {
     expect(depthOpacity(1)).toBeCloseTo(1);
     expect(depthOpacity(-1)).toBeCloseTo(0.22);
     expect(depthOpacity(0.5)).toBeGreaterThan(depthOpacity(-0.5));
+  });
+});
+
+describe('globe drag', () => {
+  it('clamps pitch to the designed band', () => {
+    expect(clampPitch(-1)).toBe(PITCH_MIN);
+    expect(clampPitch(2)).toBe(PITCH_MAX);
+    expect(clampPitch(0.5)).toBe(0.5);
+  });
+  it('maps drag pixels to radians by radius', () => {
+    expect(dragToAngle(100, 50, 300)).toEqual({ dRy: 100 / 300, dRx: 50 / 300 });
+  });
+  it('eases the auto-spin out while held and back in after release', () => {
+    expect(spinEase(0, null)).toBe(1);
+    expect(spinEase(HOLD_EASE_MS, null)).toBe(0);
+    expect(spinEase(Math.floor(HOLD_EASE_MS / 2), null)).toBeCloseTo(0.5);
+    expect(spinEase(0, 0)).toBe(0);
+    expect(spinEase(RELEASE_EASE_MS, RELEASE_EASE_MS)).toBe(1);
+    expect(spinEase(Math.floor(RELEASE_EASE_MS / 2), Math.floor(RELEASE_EASE_MS / 2))).toBeCloseTo(0.5);
   });
 });
