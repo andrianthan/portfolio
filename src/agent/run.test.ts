@@ -121,7 +121,7 @@ describe('runAgent', () => {
     expect(result.steps).toEqual([
       { actor: 'orchestrator', text: 'routed to experience (matched "Tesla")', status: 'ok' },
       { actor: 'experience', text: '9 chunks (role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#modular-architecture, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
-      { actor: 'verifier', text: '204 numbers checked against sources ✓', status: 'ok' },
+      { actor: 'verifier', text: '205 numbers checked against sources ✓', status: 'ok' },
     ]);
   });
 
