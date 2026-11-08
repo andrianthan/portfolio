@@ -69,3 +69,25 @@ describe('vapor scene', () => {
     expect(vapor).not.toContain('.intro-chip:disabled');
   });
 });
+
+describe('vapor typography', () => {
+  it('section headings use the pixel face and no gradient clip', () => {
+    const m = vapor.match(/\.sh h2\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(m).toContain('var(--font-pixel)');
+    expect(m).not.toContain('background-clip: text');
+  });
+  it('never sets the pixel face below 11px', () => {
+    for (const m of vapor.matchAll(/font:\s*\d+\s+(\d+)px[^;]*var\(--font-pixel\)/g)) expect(Number(m[1])).toBeGreaterThanOrEqual(11);
+  });
+  it('keeps paragraphs on the readable sans', () => {
+    expect(vapor).not.toMatch(/(^|\n)\s*(p|\.prose)\s*\{[^}]*var\(--font-pixel\)/);
+  });
+});
+
+describe('vapor backdrop-filter prefix', () => {
+  it('keeps -webkit-backdrop-filter only inside @supports (the minifier merges prefixed pairs)', () => {
+    const outside = vapor.replace(/@supports[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
+    expect(outside).not.toContain('-webkit-backdrop-filter');
+    expect(vapor).toMatch(/@supports\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)/);
+  });
+});
