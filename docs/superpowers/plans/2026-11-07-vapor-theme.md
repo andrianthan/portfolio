@@ -1514,7 +1514,7 @@ Expected: tests green (baseline plus the new files), `check-build: ok`, typechec
 
 ### Task 10: Stats strip (added after Andrian's review of the running branch)
 
-Andrian replaced the four home-page stats. Values and captions are his, confirmed in chat on 2026-11-08; all four are his own estimates, so a single quiet line under the strip says so (the per-tile "estimated" captions were removed at his request). Removed tiles: "32% better than baseline", "$30k+", "200+ staging deploys a week", "1st of 9". Those figures stay on the work pages and in the chat agent. Micron and the vehicle-accessories forecasting are not counted anywhere yet; the people and hours totals are floors that hold without them.
+Andrian replaced the four home-page stats. Values and captions are his, confirmed in chat on 2026-11-08; all four are his own estimates, so a single quiet line under the strip says so (the per-tile "estimated" captions were removed at his request). Removed tiles: "32% better than baseline", "$30k+", "200+ staging deploys a week", "1st of 9". Those figures stay on the work pages and in the chat agent. The vehicle-accessories forecasting and Micron's hours are not counted in the hours total yet. The people total includes Micron at Andrian's estimate (about 50), on top of Tesla ~60, Blue Dome ~20 and Hanna ~20.
 
 **Files:**
 - Modify: `src/data/stats.ts`, `src/components/StatStrip.astro`, `src/styles/vapor.css` (append)
@@ -1532,13 +1532,13 @@ import { stats, statsNote } from './stats';
 
 describe('home stats', () => {
   it('has Andrian\'s four stats, in order', () => {
-    expect(stats.map((s) => s.value)).toEqual(['90B+', '95%+', '450+', '100+']);
+    expect(stats.map((s) => s.value)).toEqual(['90B+', '95%+', '450+', '150+']);
   });
   it('captions say what each number measures', () => {
     expect(stats[0].caption).toBe('tokens used across my work and personal AI use');
     expect(stats[1].caption).toBe('prompt cache hit rate');
     expect(stats[2].caption).toBe('hours saved across Tesla, Hanna Center and Blue Dome projects');
-    expect(stats[3].caption).toBe('people use what I\'ve built, across Tesla, Hanna Center and Blue Dome');
+    expect(stats[3].caption).toBe('people use what I\'ve built, across Tesla, Hanna Center, Blue Dome and Micron');
   });
   it('carries no per-tile "estimated" caption; one note under the strip says so', () => {
     for (const s of stats) expect(s.caption.toLowerCase()).not.toContain('estimated');
@@ -1560,7 +1560,7 @@ export const stats = [
   { value: '90B+', caption: 'tokens used across my work and personal AI use' },
   { value: '95%+', caption: 'prompt cache hit rate' },
   { value: '450+', caption: 'hours saved across Tesla, Hanna Center and Blue Dome projects' },
-  { value: '100+', caption: 'people use what I\'ve built, across Tesla, Hanna Center and Blue Dome' },
+  { value: '150+', caption: 'people use what I\'ve built, across Tesla, Hanna Center, Blue Dome and Micron' },
 ];
 
 export const statsNote = 'Figures are my estimates.';
