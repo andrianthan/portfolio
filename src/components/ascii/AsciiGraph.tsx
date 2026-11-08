@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { buildGraph, pointerFocus, renderFrame, toText } from './graph';
+import { buildGraph, canReveal, pointerFocus, renderFrame, toText } from './graph';
 
 const COLS = 72;
 const ROWS = 30;
@@ -25,7 +25,11 @@ export default function AsciiGraph() {
     let visible = true;
     let raf = 0;
     let last = 0;
+    let revealed = false;
     const t0 = performance.now();
+
+    // The canvas box, as last measured. Zero until the canvas has a real size.
+    let box = { width: 0, height: 0 };
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -38,6 +42,7 @@ export default function AsciiGraph() {
       ctx.font = `${Math.max(8, cellH * 0.9)}px "JetBrains Mono", ui-monospace, monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      box = { width: rect.width, height: rect.height };
     };
 
     const draw = (now: number) => {
@@ -54,6 +59,14 @@ export default function AsciiGraph() {
         ctx.fillText(c.ch, c.col * cellW + cellW / 2, c.row * cellH + cellH / 2);
       }
       ctx.globalAlpha = 1;
+      // The frame is on the canvas: step the text fallback aside. This only happens
+      // once the canvas has been measured to a real box -- a canvas that has no box
+      // to measure (one that is still `display: none`) would be sized from a zero
+      // measurement, leaving a one-pixel backing store stretched over the whole box.
+      if (!revealed && canReveal(box.width, box.height)) {
+        revealed = true;
+        setDrawn(true);
+      }
     };
 
     const loop = (now: number) => {
@@ -90,8 +103,9 @@ export default function AsciiGraph() {
 
     resize();
     draw(performance.now());
-    // the first frame is on the canvas: now the text fallback can step aside
-    setDrawn(true);
+    // draw() steps the text fallback aside once the canvas has a real box and a
+    // frame on it. If the canvas could not be measured yet, the ResizeObserver's
+    // first callback measures it and the reveal happens there instead.
     io.observe(canvas);
     ro.observe(canvas);
     themeWatch.observe(root, { attributes: true, attributeFilter: ['data-theme'] });

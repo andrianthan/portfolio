@@ -125,6 +125,17 @@ export function toText(cells: Cell[], cols: number, rows: number): string {
 }
 
 /**
+ * Whether the canvas may be revealed over the text fallback.
+ *
+ * The canvas is only revealed once it has been measured: a canvas that is still
+ * `display: none` measures 0 x 0, and sizing it from that would leave a one-pixel
+ * backing store stretched over the whole box. So the graph waits for a real box.
+ */
+export function canReveal(width: number, height: number): boolean {
+  return width > 0 && height > 0;
+}
+
+/**
  * The character cell under the pointer, or null when there is nothing to brighten.
  * A graph that is off-screen is not drawn, so it does no layout work per mouse move.
  */

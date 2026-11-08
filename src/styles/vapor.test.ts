@@ -47,8 +47,19 @@ describe('vapor scene', () => {
     // the .js class is set in <head>, before the island hydrates, so it cannot be the
     // switch: the fallback holds the centre until the canvas has a frame on it
     expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-fallback\s*\{\s*display:\s*none/);
-    expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-canvas\s*\{\s*display:\s*block/);
+    expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-canvas\s*\{\s*visibility:\s*visible/);
     expect(vapor).not.toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
+  });
+  it('keeps the canvas measurable while it is hidden, so it is never sized from a zero box', () => {
+    // a `display: none` canvas has no box to measure: sizing the backing store from
+    // that would leave one pixel stretched over the whole graph. the canvas is hidden
+    // with `visibility` and taken out of the flow instead.
+    const rule = vapor.match(/\.ascii-canvas\s*\{([^}]*)\}/)?.[1] ?? '';
+    expect(rule).not.toMatch(/display:\s*none/);
+    expect(rule).toMatch(/visibility:\s*hidden/);
+    expect(rule).toMatch(/position:\s*absolute/);
+    // and it is out of the flow, so the text fallback is not pushed around by it
+    expect(rule).toMatch(/inset:\s*0/);
   });
   it('no longer carries the old hero rules', () => {
     expect(global).not.toContain('.avatar');

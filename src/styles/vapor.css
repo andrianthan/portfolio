@@ -83,10 +83,16 @@
 /* the text fallback holds the centre until the graph has drawn a frame: the canvas is
    painted only after the island hydrates, and on a slow first load that is seconds after
    the first paint. the .ascii box has a fixed aspect ratio, so swapping one child for the
-   other moves nothing. without JavaScript the fallback simply stays. */
-.ascii-canvas { display: none; width: 100%; height: 100%; }
+   other moves nothing. without JavaScript the fallback simply stays.
+
+   the canvas is hidden with `visibility`, not `display`, and it is taken out of the flow:
+   a `display: none` canvas has no box to measure, so sizing it from that would leave a
+   one-pixel backing store stretched over the whole box. out of the flow it does not
+   disturb the fallback, and `visibility: hidden` keeps it out of sight and out of the
+   accessibility tree until the graph has really been painted. */
+.ascii-canvas { position: absolute; inset: 0; width: 100%; height: 100%; visibility: hidden; }
 .ascii-fallback { display: block; margin: 0; font: 400 clamp(5px, 1.2vw, 9px)/1 var(--font-mono); color: var(--color-num); text-align: center; overflow: hidden; white-space: pre; }
-.ascii.is-drawn .ascii-canvas { display: block; }
+.ascii.is-drawn .ascii-canvas { visibility: visible; }
 .ascii.is-drawn .ascii-fallback { display: none; }
 
 .orbits { position: absolute; inset: 0; perspective: 900px; perspective-origin: 50% 40%; pointer-events: none; }

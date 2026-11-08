@@ -28,7 +28,7 @@ describe('AsciiGraph', () => {
 
 describe('the ASCII fallback', () => {
   it('holds the centre until the graph has drawn, then swaps: the canvas is not blank on a slow load', () => {
-    expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-canvas\s*\{[^}]*display:\s*block/);
+    expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-canvas\s*\{[^}]*visibility:\s*visible/);
     expect(vapor).toMatch(/\.ascii\.is-drawn \.ascii-fallback\s*\{[^}]*display:\s*none/);
   });
   it('does not hide the fallback on the .js class alone, which is set before the island hydrates', () => {
@@ -39,6 +39,36 @@ describe('the ASCII fallback', () => {
     const rule = vapor.match(/\.ascii\s*\{([^}]*)\}/)?.[1] ?? '';
     expect(rule).toContain('position: absolute');
     expect(rule).toMatch(/aspect-ratio:\s*576\s*\/\s*420/);
+  });
+  it('keeps the canvas measurable while it is hidden, so it is never sized from a zero box', () => {
+    // a `display: none` canvas has no box to measure: sizing the backing store from
+    // that would leave one pixel stretched over the whole graph. the canvas is hidden
+    // with `visibility` and taken out of the flow instead.
+    const rule = vapor.match(/\.ascii-canvas\s*\{([^}]*)\}/)?.[1] ?? '';
+    expect(rule).not.toMatch(/display:\s*none/);
+    expect(rule).toMatch(/visibility:\s*hidden/);
+    expect(rule).toMatch(/position:\s*absolute/);
+    expect(rule).toMatch(/inset:\s*0/);
+  });
+});
+
+describe('the reveal', () => {
+  it('waits for the canvas to have a real box before it steps the fallback aside', () => {
+    // the reveal is guarded on the measured box being non-zero: a canvas that is
+    // still `display: none` measures 0 x 0 and would be sized from that
+    expect(source).toContain('canReveal(box.width, box.height)');
+    // and it happens inside draw(), after the frame is on the canvas
+    const draw = source.match(/const draw = \(now: number\) => \{([\s\S]*?)\n    \};/)?.[1] ?? '';
+    expect(draw).toContain('canReveal(');
+    expect(draw.indexOf('fillText')).toBeGreaterThan(-1);
+    expect(draw.indexOf('fillText')).toBeLessThan(draw.indexOf('canReveal('));
+    expect(draw).toContain('setDrawn(true)');
+  });
+  it('does not reveal the canvas from a bare measurement, before anything is painted', () => {
+    // the old code called setDrawn(true) straight after the first draw, whatever the
+    // canvas measured; the reveal now lives inside draw(), behind the guard
+    const effect = source.match(/useEffect\(\(\) => \{([\s\S]*?)\n  \}, \[\]\);/)?.[1] ?? '';
+    expect(effect).not.toMatch(/setDrawn\(true\);\s*\n\s*io\.observe/);
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildGraph, rotate, project, renderFrame, toText, pointerFocus, RAMP } from './graph';
+import { buildGraph, rotate, project, renderFrame, toText, canReveal, pointerFocus, RAMP } from './graph';
 
 const COLS = 72, ROWS = 30;
 const base = { t: 0, yaw: 0.4, pitch: 0.2, cols: COLS, rows: ROWS };
@@ -89,6 +89,21 @@ describe('toText', () => {
     expect(lines.length).toBe(ROWS);
     for (const l of lines) expect(l.length).toBe(COLS);
     expect(text).toContain('@'); // the hub
+  });
+});
+
+describe('canReveal', () => {
+  it('refuses a canvas that has no box: sizing it from that would leave one pixel', () => {
+    // a canvas that is still `display: none` measures 0 x 0
+    expect(canReveal(0, 0)).toBe(false);
+    expect(canReveal(0, 452)).toBe(false);
+    expect(canReveal(620, 0)).toBe(false);
+    expect(canReveal(-1, 452)).toBe(false);
+  });
+  it('accepts a canvas that has been measured to a real box', () => {
+    expect(canReveal(620, 452)).toBe(true);
+    expect(canReveal(1, 1)).toBe(true);
+    expect(canReveal(320.5, 233.2)).toBe(true);
   });
 });
 
