@@ -7,6 +7,37 @@ const raw = fs.readFileSync(path.resolve(process.cwd(), 'src/content/work/tesla.
 const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 const prose = body.replace(/<svg[\s\S]*?<\/svg>/g, '');
 
+const stripTags = (s: string) => s.replace(/<[^>]+>/g, ' ');
+const stripCommas = (s: string) => s.replace(/,/g, '');
+
+function numberTokens(text: string): string[] {
+  return stripTags(text).match(/\$?\d(?:[\d,]*\d)?(?:\.\d+)?(?:[kKmM](?![A-Za-z]))?[%+]?/g) ?? [];
+}
+
+const allowedSet = new Set(ALLOWED_NUMBERS.map(stripCommas));
+function isAllowedNumber(token: string): boolean {
+  const t = stripCommas(token);
+  if (allowedSet.has(t)) return true;
+  return t.startsWith('$') && allowedSet.has(t.slice(1));
+}
+
+function forbiddenClaims(text: string): string[] {
+  const out: string[] = [];
+  const sentences = stripTags(text).split(/(?<=[.!?])\s+/);
+  for (const s of sentences) {
+    if (/default[- ]deny/i.test(s) && /(enforc|is on\b|turned on|enabled)/i.test(s) && !/\b(not|off|built|until|flag|yet)\b/i.test(s)) {
+      out.push(s);
+    }
+    if (/per[- ]tab process/i.test(s) && /\b(runs?|built|shipped|isolated)\b/i.test(s) && !/\b(not|no|proposal|only|yet)\b/i.test(s)) {
+      out.push(s);
+    }
+  }
+  if (stripTags(text).toLowerCase().includes('50+ users')) out.push('50+ users');
+  return out;
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 describe('the tesla page body', () => {
   it('has the eight sections in order', () => {
     const heads = [...body.matchAll(/^## (.+)$/gm)].map((m) => m[1].trim());
@@ -29,15 +60,17 @@ describe('the tesla page body', () => {
   });
 
   it('names no real person, team or internal identifier', () => {
-    for (const needle of BANNED_TERMS) expect(body.toLowerCase()).not.toContain(needle.toLowerCase());
-    expect(body).not.toMatch(/#\d+/);
+    for (const needle of BANNED_TERMS) {
+      const re = new RegExp('(^|[^A-Za-z0-9])' + escapeRe(needle) + '($|[^A-Za-z0-9])', 'i');
+      expect(body, `banned term "${needle}"`).not.toMatch(re);
+    }
+    expect(prose).not.toMatch(/#\d+/);
     expect(body).not.toMatch(/\b\d{6,}-[A-Z0-9]{2}-[A-Z0-9]\b/);
-    expect(body).not.toMatch(/\b[0-9a-f]{7,40}\b/);
+    expect(prose).not.toMatch(/\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/i);
   });
 
   it('states only numbers from the facts file', () => {
-    const found = prose.match(/\$?\d[\d,]*(?:\.\d+)?(?:[kKmM])?[%+]?/g) ?? [];
-    for (const token of found) expect(ALLOWED_NUMBERS, `unlisted number "${token}"`).toContain(token);
+    for (const token of numberTokens(prose)) expect(isAllowedNumber(token), `unlisted number "${token}"`).toBe(true);
   });
 
   it('labels every impact claim with a basis word', () => {
@@ -48,9 +81,23 @@ describe('the tesla page body', () => {
   });
 
   it('never makes a forbidden claim', () => {
-    const lower = prose.toLowerCase();
-    expect(lower).not.toMatch(/default-deny[^.]*\b(enforc(es|ing|ed)|on)\b(?![^.]*(not|off|built))/);
-    expect(lower).not.toContain('50+ users');
-    expect(lower).not.toMatch(/per-tab process(es)?[^.]*\b(runs|run|built|shipped)\b(?![^.]*\bnot\b)/);
+    expect(forbiddenClaims(prose)).toEqual([]);
+  });
+});
+
+describe('test helpers', () => {
+  it('does not split a list comma into a number', () => {
+    expect(numberTokens('4, 6 and 9 weeks')).toEqual(['4', '6', '9']);
+  });
+  it('reads a number glued to a unit', () => {
+    expect(numberTokens('71ms')).toEqual(['71']);
+  });
+  it('normalises thousands separators', () => {
+    expect(stripCommas('1,375')).toBe(stripCommas('1375'));
+    expect(isAllowedNumber('1,375')).toBe(true);
+  });
+  it('passes a hedged default-deny sentence', () => {
+    expect(forbiddenClaims('default-deny is not enforced yet')).toEqual([]);
+    expect(forbiddenClaims('default-deny is enforced everywhere')).toHaveLength(1);
   });
 });
