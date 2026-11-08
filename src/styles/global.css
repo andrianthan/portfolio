@@ -344,7 +344,7 @@ header.ph { padding: 48px 0 var(--space-lg); }
 @media (prefers-reduced-motion: reduce) {
   .globe-node { will-change: auto; }
   /* drag does nothing under reduced motion, so do not offer the grab cursor */
-  .globe { cursor: default; }
+  .globe, .globe:active { cursor: default; }
 }
 
 /* a touch screen has no cursor to follow: the field falls back to the site's original
