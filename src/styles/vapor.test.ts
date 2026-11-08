@@ -91,3 +91,48 @@ describe('vapor backdrop-filter prefix', () => {
     expect(vapor).toMatch(/@supports\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)/);
   });
 });
+
+describe('vapor backdrop motion', () => {
+  const base = fs.readFileSync(path.join(process.cwd(), 'src/layouts/Base.astro'), 'utf8');
+
+  it('drifts each star layer on its ::before, transform only, one tile per loop', () => {
+    for (const layer of ['far', 'mid', 'near']) {
+      const m = vapor.match(new RegExp(`\\.vb-${layer}::before\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      expect(m, layer).toContain('background-image');
+      expect(m, layer).toMatch(/animation:\s*vb-drift\s+var\(--dur\)\s+linear\s+infinite/);
+      expect(m, layer).toContain('calc(100% + var(--tw))');
+      const own = vapor.match(new RegExp(`\\.vb-${layer}\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      expect(own, layer).toMatch(/--tw:\s*\d+px/);
+      expect(own, layer).toMatch(/--th:\s*\d+px/);
+      expect(own, layer).toMatch(/--dur:\s*\d+s/);
+      expect(own, layer).not.toContain('background-image');
+    }
+    const kf = vapor.match(/@keyframes vb-drift\s*\{[^}]*\{[^}]*\}[^}]*\}/)?.[0] ?? '';
+    expect(kf).toContain('transform: translate3d(calc(var(--tw) * -1), calc(var(--th) * -1), 0)');
+    expect(kf).not.toMatch(/\b(top|left|margin|background-position)\b/);
+  });
+
+  it('keeps the star tile sizes and the --tw/--th values identical (a seamless loop)', () => {
+    for (const [layer, w, h] of [['far', 173, 157], ['mid', 241, 223], ['near', 331, 307]] as const) {
+      const own = vapor.match(new RegExp(`\\.vb-${layer}\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      const before = vapor.match(new RegExp(`\\.vb-${layer}::before\\s*\\{[^}]*\\}`))?.[0] ?? '';
+      expect(own).toContain(`--tw: ${w}px`);
+      expect(own).toContain(`--th: ${h}px`);
+      expect(before).toContain(`background-size: ${w}px ${h}px`);
+    }
+  });
+
+  it('adds two shooting stars that animate transform and opacity only', () => {
+    expect(base.match(/class="vb-streak vb-streak-[12]"/g)?.length).toBe(2);
+    const kf = vapor.match(/@keyframes vb-streak\s*\{[\s\S]*?\n\}/)?.[0] ?? '';
+    expect(kf).toContain('opacity');
+    expect(kf).toContain('transform');
+    expect(kf).not.toMatch(/\b(top|left|right|bottom|margin|width|height)\s*:/);
+  });
+
+  it('stops all backdrop motion under reduced motion', () => {
+    const rm = vapor.split('@media (prefers-reduced-motion: reduce)').slice(1).join('\n');
+    expect(rm).toMatch(/\.vb i::before\s*\{[^}]*animation:\s*none/);
+    expect(rm).toMatch(/\.vb i\.vb-streak\s*\{[^}]*display:\s*none/);
+  });
+});

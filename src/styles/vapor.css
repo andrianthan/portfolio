@@ -7,35 +7,69 @@
     radial-gradient(ellipse 55% 45% at 85% 70%, var(--color-neb-b), transparent 72%);
   transform: translate3d(calc(var(--nx, 0) * -4px), calc(var(--ny, 0) * -3px), 0);
 }
-.vb-far {
-  background-image:
-    radial-gradient(1px 1px at 14px 22px, var(--color-star), transparent),
-    radial-gradient(1px 1px at 96px 71px, var(--color-star), transparent),
-    radial-gradient(1px 1px at 151px 133px, var(--color-star), transparent);
-  background-size: 173px 157px; opacity: .55;
-  transform: translate3d(calc(var(--nx, 0) * -8px), calc(var(--ny, 0) * -6px), 0);
-}
-.vb-mid {
-  background-image:
-    radial-gradient(1px 1px at 40px 60px, var(--color-star), transparent),
-    radial-gradient(1.2px 1.2px at 180px 150px, var(--color-star), transparent),
-    radial-gradient(1px 1px at 120px 20px, var(--color-star), transparent);
-  background-size: 241px 223px; opacity: .8;
-  transform: translate3d(calc(var(--nx, 0) * -16px), calc(var(--ny, 0) * -12px), 0);
-}
-.vb-near {
-  background-image:
-    radial-gradient(1.6px 1.6px at 70px 90px, var(--color-star), transparent),
-    radial-gradient(1.4px 1.4px at 260px 200px, var(--color-star), transparent);
-  background-size: 331px 307px;
-  transform: translate3d(calc(var(--nx, 0) * -30px), calc(var(--ny, 0) * -22px), 0);
-}
+.vb-far  { --tw: 173px; --th: 157px; --dur: 140s; opacity: .55; transform: translate3d(calc(var(--nx, 0) * -8px), calc(var(--ny, 0) * -6px), 0); }
+.vb-mid  { --tw: 241px; --th: 223px; --dur: 100s; opacity: .8;  transform: translate3d(calc(var(--nx, 0) * -16px), calc(var(--ny, 0) * -12px), 0); }
+.vb-near { --tw: 331px; --th: 307px; --dur: 70s;                transform: translate3d(calc(var(--nx, 0) * -30px), calc(var(--ny, 0) * -22px), 0); }
 /* the scanlines (::after) sit over the stars; the vignette (::before) paints under the star layers; both stay under the content */
 .vb::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 65% at 50% 38%, transparent 55%, var(--color-vig)); }
 .vb::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--color-scan) 2px 3px); }
 
+/* the star pattern lives on a pseudo-element one tile wider and taller than its layer, and
+   drifts by exactly one tile per loop, so the loop is seamless and the layer stays covered.
+   the layer itself keeps the cursor parallax, so the two transforms never fight */
+.vb-far::before {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: calc(100% + var(--tw)); height: calc(100% + var(--th));
+  animation: vb-drift var(--dur) linear infinite; will-change: transform;
+  background-image:
+    radial-gradient(1px 1px at 14px 22px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 96px 71px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 151px 133px, var(--color-star), transparent);
+  background-size: 173px 157px;
+}
+.vb-mid::before {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: calc(100% + var(--tw)); height: calc(100% + var(--th));
+  animation: vb-drift var(--dur) linear infinite; will-change: transform;
+  background-image:
+    radial-gradient(1px 1px at 40px 60px, var(--color-star), transparent),
+    radial-gradient(1.2px 1.2px at 180px 150px, var(--color-star), transparent),
+    radial-gradient(1px 1px at 120px 20px, var(--color-star), transparent);
+  background-size: 241px 223px;
+}
+.vb-near::before {
+  content: ""; position: absolute; left: 0; top: 0;
+  width: calc(100% + var(--tw)); height: calc(100% + var(--th));
+  animation: vb-drift var(--dur) linear infinite; will-change: transform;
+  background-image:
+    radial-gradient(1.6px 1.6px at 70px 90px, var(--color-star), transparent),
+    radial-gradient(1.4px 1.4px at 260px 200px, var(--color-star), transparent);
+  background-size: 331px 307px;
+}
+@keyframes vb-drift {
+  to { transform: translate3d(calc(var(--tw) * -1), calc(var(--th) * -1), 0); }
+}
+
+/* a shooting star now and then: down and to the left, head first. most of each loop is idle */
+.vb i.vb-streak {
+  inset: auto; width: 160px; height: 1px; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--color-star));
+  transform: translate3d(0, 0, 0) rotate(152deg);
+  animation: vb-streak var(--sdur) linear infinite; animation-delay: var(--sdelay);
+}
+.vb-streak-1 { top: 14%; left: 78%; --sdur: 13s; --sdelay: 3s; }
+.vb-streak-2 { top: 38%; left: 94%; --sdur: 19s; --sdelay: 9s; }
+@keyframes vb-streak {
+  0%   { opacity: 0;  transform: translate3d(0, 0, 0) rotate(152deg); }
+  1.5% { opacity: .9; }
+  7%   { opacity: 0;  transform: translate3d(-520px, 276px, 0) rotate(152deg); }
+  100% { opacity: 0;  transform: translate3d(-520px, 276px, 0) rotate(152deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vb i { will-change: auto; transform: none; }
+  .vb i::before { animation: none; will-change: auto; }
+  .vb i.vb-streak { display: none; }
 }
 
 /* ---- hero scene: orbits and the ASCII graph ---- */
