@@ -42,7 +42,8 @@ h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.05; font-weight: 700; let
    card's own glow token, which carries the theme's tint, and the hairline is the
    accent token, which reads on both the light background and the dark one. the
    resting shadow stays in the list, so focusing adds a glow rather than trading
-   the card's depth away */
+   the card's depth away. vapor.css loads after this file and overrides the whole
+   declaration for every theme, so the halo here is the fallback, not what renders */
 .chat:focus-within { box-shadow: 0 0 0 1px var(--color-num), 0 0 28px -6px var(--color-glow), 0 24px 60px -30px var(--color-glow); }
 .intro-out { min-height: 120px; max-height: 34svh; overflow-y: auto; font: 400 14px/1.6 var(--font-mono); overflow-wrap: anywhere; }
 .intro-line-out { white-space: pre-wrap; margin: 0 0 4px; color: var(--color-fg); }

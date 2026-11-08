@@ -16,3 +16,13 @@ export function clipAnswer(text: string, max = 320): { text: string; clipped: bo
   }
   return { text: `${cut.trimEnd()}…`, clipped: true };
 }
+
+/**
+ * The render decision for one answer line: which text to show, and whether the
+ * "Show more" / "Show less" toggle appears next to it.
+ */
+export function renderAnswer(text: string, expanded: boolean): { text: string; showToggle: boolean; expanded: boolean } {
+  const clipped = clipAnswer(text);
+  if (!clipped.clipped) return { text, showToggle: false, expanded: false };
+  return { text: expanded ? text : clipped.text, showToggle: true, expanded };
+}

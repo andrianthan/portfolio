@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { scrollToSection } from './scrollTo';
 import { useTerminal } from './useTerminal';
 import { pickSuggestions } from './suggestions';
-import { visibleLines, clipAnswer } from './clip';
+import { visibleLines, renderAnswer } from './clip';
 
 // Real links: they work without JavaScript, and the prompt routes to the same places.
 const TOPICS = [
@@ -11,6 +11,22 @@ const TOPICS = [
   { label: 'About', href: '#about' },
   { label: 'Contact', href: '#contact' },
 ];
+
+type Source = { title: string; url: string };
+
+/**
+ * The agent returns one source per retrieved chunk, and the chunks of one page
+ * share a title and a url, so one answer can carry the same link many times over.
+ * Keep the first of each url: the home box shows one link per page.
+ */
+export function uniqueSources(sources: Source[]): Source[] {
+  const seen = new Set<string>();
+  return sources.filter((source) => {
+    if (seen.has(source.url)) return false;
+    seen.add(source.url);
+    return true;
+  });
+}
 
 /** The chat panel on the home page's first screen: type a route or a question, or pick a suggestion. */
 export default function IntroTerminal() {
@@ -35,8 +51,8 @@ export default function IntroTerminal() {
     <div className="intro-term">
       <div className="intro-out" role="log" aria-live="polite" ref={out} onClick={term.flush}>
         {shown.map((line) => {
-          const clipped = line.kind === 'answer' ? clipAnswer(line.text) : null;
           const expanded = open.has(line.id);
+          const answer = line.kind === 'answer' ? renderAnswer(line.text, expanded) : null;
           return (
           <div
             key={line.id}
@@ -44,12 +60,12 @@ export default function IntroTerminal() {
           >
             {line.kind === 'input' ? <span className="intro-mark">&gt;</span> : null}
             {line.kind === 'answer' ? <span className="intro-arrow" aria-hidden="true">↳</span> : null}
-            <span className="intro-text">{clipped && !expanded ? clipped.text : line.text}</span>
-            {clipped?.clipped ? (
+            <span className="intro-text">{answer ? answer.text : line.text}</span>
+            {answer?.showToggle ? (
               <button
                 type="button"
                 className="intro-more"
-                aria-expanded={expanded}
+                aria-expanded={answer.expanded}
                 onClick={() =>
                   setOpen((s) => {
                     const n = new Set(s);
@@ -59,13 +75,13 @@ export default function IntroTerminal() {
                   })
                 }
               >
-                {expanded ? 'Show less' : 'Show more'}
+                {answer.expanded ? 'Show less' : 'Show more'}
               </button>
             ) : null}
             {line.sources && line.sources.length > 0 ? (
               <span className="intro-sources">
-                {line.sources.map((source) => (
-                  <a key={`${source.title}-${source.url}`} href={source.url}>
+                {uniqueSources(line.sources).map((source, index) => (
+                  <a key={`${source.url}-${index}`} href={source.url}>
                     {source.title}
                   </a>
                 ))}

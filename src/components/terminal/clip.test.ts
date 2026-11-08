@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { visibleLines, clipAnswer } from './clip';
+import { visibleLines, clipAnswer, renderAnswer } from './clip';
 
 describe('visibleLines', () => {
   it('drops the agent trace lines and keeps the question and the answer, in order', () => {
@@ -44,5 +44,29 @@ describe('clipAnswer', () => {
   });
   it('honours a custom max', () => {
     expect(clipAnswer('a b c d e f g h i j', 9).text.length).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('renderAnswer', () => {
+  it('shows the whole answer and renders no toggle when the answer is short', () => {
+    expect(renderAnswer('Short answer.', false)).toEqual({ text: 'Short answer.', showToggle: false, expanded: false });
+  });
+
+  it('clips a long answer and renders a collapsed toggle', () => {
+    const answer = 'This is a sentence that runs for a while. '.repeat(20);
+    const out = renderAnswer(answer, false);
+    expect(out.showToggle).toBe(true);
+    expect(out.expanded).toBe(false);
+    expect(out.text).toBe(clipAnswer(answer).text);
+    expect(out.text.length).toBeLessThan(answer.length);
+    expect(out.text.endsWith('…')).toBe(true);
+  });
+
+  it('shows the whole answer and an expanded toggle when the answer is open', () => {
+    const answer = 'This is a sentence that runs for a while. '.repeat(20);
+    const out = renderAnswer(answer, true);
+    expect(out.showToggle).toBe(true);
+    expect(out.expanded).toBe(true);
+    expect(out.text).toBe(answer);
   });
 });

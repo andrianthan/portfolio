@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import IntroTerminal from './IntroTerminal';
+import fs from 'node:fs';
+import path from 'node:path';
+import IntroTerminal, { uniqueSources } from './IntroTerminal';
 
 const html = renderToStaticMarkup(<IntroTerminal />);
 
@@ -21,7 +23,7 @@ describe('IntroTerminal', () => {
   });
 
   it('renders the four topic links as real anchors', () => {
-    // the chips are the no-JS navigation path, so they must be links, not buttons
+    // the topics row is the no-JS navigation path, so its links must be anchors, not buttons
     const chips = [...html.matchAll(/<a href="(#[^"]+)">([^<]+)<\/a>/g)].map((m) => ({
       href: m[1],
       label: m[2],
@@ -58,11 +60,29 @@ describe('IntroTerminal chip focus', () => {
 });
 
 describe('IntroTerminal, simplified', () => {
-  it('has no greeting and no empty placeholder text in the markup', () => {
-    expect(html).not.toContain('Answers show up here');
-    expect(html).not.toContain('hey there');
+  it('has no greeting in the hero markup', () => {
+    const hero = fs.readFileSync(path.join(process.cwd(), 'src/components/Hero.astro'), 'utf8');
+    expect(hero).not.toContain('chat-hello');
+    expect(hero).not.toMatch(/hello|hey there|hi there|welcome/i);
   });
   it('keeps the log region in the DOM (a live region must exist before it is updated) but empty', () => {
     expect(html).toMatch(/<div class="intro-out"[^>]*role="log"[^>]*><\/div>/);
+  });
+});
+
+describe('IntroTerminal source links', () => {
+  it('shows one link per url, keeping the first of each', () => {
+    // the agent returns one source per retrieved chunk, and the chunks of one page
+    // share a title and a url, so one answer can carry the same link nine times over
+    const sources = [
+      { title: 'Tesla', url: '/work/tesla' },
+      { title: 'Tesla', url: '/work/tesla' },
+      { title: 'Other', url: '/work/other' },
+      { title: 'Tesla', url: '/work/tesla' },
+    ];
+    expect(uniqueSources(sources)).toEqual([
+      { title: 'Tesla', url: '/work/tesla' },
+      { title: 'Other', url: '/work/other' },
+    ]);
   });
 });

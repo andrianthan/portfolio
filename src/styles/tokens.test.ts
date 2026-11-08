@@ -28,6 +28,12 @@ function ratio(a: string, b: string): number {
   const [x, y] = [lum(a), lum(b)];
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
+/** The colour of `fg` painted at `alpha` over the opaque `bg`, in sRGB. */
+function over(fg: string, alpha: number, bg: string): string {
+  const channel = (i: number) =>
+    Math.round(parseInt(fg.slice(i, i + 2), 16) * alpha + parseInt(bg.slice(i, i + 2), 16) * (1 - alpha));
+  return `#${[1, 3, 5].map((i) => channel(i).toString(16).padStart(2, '0')).join('')}`;
+}
 
 const themes: [string, string][] = [
   ['vapor', ':root {'],
@@ -42,6 +48,11 @@ describe.each(themes)('%s palette', (_name, header) => {
       expect(ratio(token(body, `color-${fg}`), token(body, `color-${bg}`))).toBeGreaterThanOrEqual(4.5);
     },
   );
+  it('accent on the chat surface is AA', () => {
+    // the chat card is `color-mix(in srgb, var(--color-card) 70%, transparent)` over the page
+    const surface = over(token(body, 'color-card'), 0.7, token(body, 'color-bg'));
+    expect(ratio(token(body, 'color-accent'), surface)).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 describe('palette hue', () => {

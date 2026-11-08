@@ -179,10 +179,9 @@ describe('simpler chat box', () => {
     const rule = vapor.match(/\.js \.intro-suggest\s*\{[^}]*\}/)?.[0] ?? '';
     expect(rule).toContain('display: grid');
     expect(vapor).toMatch(/\.intro-suggest\s*\{[^}]*grid-template-columns:\s*auto repeat\(3, minmax\(0, 1fr\)\)/);
-    expect(vapor).not.toMatch(/\.intro-chip\s*\{[^}]*text-overflow:\s*ellipsis/);
+    expect(vapor).not.toMatch(/\.intro-chip[^{]*\{[^}]*text-overflow:\s*ellipsis/);
   });
   it('drops the old placeholder text rule from global.css', () => {
-    const globalCss = fs.readFileSync(path.join(process.cwd(), 'src/styles/global.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-    expect(globalCss).not.toContain('Answers show up here');
+    expect(global).not.toContain('Answers show up here');
   });
 });
