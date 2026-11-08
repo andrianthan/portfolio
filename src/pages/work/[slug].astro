@@ -16,6 +16,8 @@ import CampaignsDemo from '../../components/tesla/campaigns/CampaignsDemo';
 import SlidesDemo from '../../components/tesla/slides/SlidesDemo';
 import ModularDemo from '../../components/tesla/modular/ModularDemo';
 import AdminDemo from '../../components/tesla/admin/AdminDemo';
+import CopilotDemo from '../../components/micron/copilot/CopilotDemo';
+import RiskDemo from '../../components/micron/risk/RiskDemo';
 import '../../styles/projects.css';
 
 export async function getStaticPaths() {
@@ -29,9 +31,9 @@ export async function getStaticPaths() {
 // Pages that hold several projects: each `##` heading is a project, and its demo (if any)
 // renders right after the project's first paragraph.
 // Demos are matched by heading id prefix. Astro needs static component references to hydrate.
-const MULTI = new Set(['bluedome', 'hanna', 'tesla']);
+const MULTI = new Set(['bluedome', 'hanna', 'tesla', 'micron']);
 
-type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'dashboard' | 'part' | 'ask' | 'forecast' | 'campaigns' | 'slides' | 'modular' | 'admin';
+type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'dashboard' | 'part' | 'ask' | 'forecast' | 'campaigns' | 'slides' | 'modular' | 'admin' | 'wafer' | 'risk';
 
 // Which demo a project renders, if any. The page's mock-data note uses the same
 // lookup, so a page that shows a demo always carries the note.
@@ -50,6 +52,8 @@ function demoFor(id: string): Demo | null {
   if (id.startsWith('slideshow-generation')) return 'slides';
   if (id.startsWith('modular-architecture')) return 'modular';
   if (id.startsWith('admin')) return 'admin';
+  if (id.startsWith('wafer-analysis-copilot')) return 'wafer';
+  if (id.startsWith('wafer-risk-model')) return 'risk';
   return null;
 }
 
@@ -149,6 +153,8 @@ const hasDemos = projects.some((p) => p.demo !== null);
                     case 'slides': return <SlidesDemo client:visible />;
                     case 'modular': return <ModularDemo client:visible />;
                     case 'admin': return <AdminDemo client:visible />;
+                    case 'wafer': return <CopilotDemo client:visible />;
+                    case 'risk': return <RiskDemo client:visible />;
                     default: return unhandledDemo(demo);
                   }
                 })()}

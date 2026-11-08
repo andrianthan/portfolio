@@ -16,6 +16,8 @@
   { "query": "tell me about Tesla", "expectIntent": "experience", "expectTop": "role:tesla" },
   { "query": "what about Hanna Center", "expectIntent": "experience", "expectTop": "role:hanna" },
   { "query": "Micron Technology", "expectIntent": "experience", "expectTop": "role:micron" },
+  { "query": "wafer risk model", "expectIntent": "search", "expectTop": "role:micron" },
+  { "query": "wafer analysis copilot", "expectIntent": "search", "expectTop": "role:micron" },
   { "query": "Blue Dome Technologies", "expectIntent": "experience", "expectTop": "role:bluedome" },
   { "query": "AdvisorAI", "expectIntent": "projects", "expectTop": "project:advisorai" },
   { "query": "what is ai-swing-trader", "expectIntent": "projects", "expectTop": "project:ai-swing-trader" },

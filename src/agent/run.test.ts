@@ -165,7 +165,7 @@ describe('the refusal path', () => {
     const result = run('/experience');
     expect(result.steps).toEqual([
       { actor: 'orchestrator', text: 'routed to experience (/experience)', status: 'ok' },
-      { actor: 'experience', text: '18 chunks (role:bluedome, role:bluedome#guideline-chatbot, role:bluedome#image-search, role:bluedome#qa-analyst-web-app, role:hanna, role:hanna#case-note-coach, role:hanna#grants-agent, role:hanna#ir-updater-bot, role:micron, role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#modular-architecture, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
+      { actor: 'experience', text: '20 chunks (role:bluedome, role:bluedome#guideline-chatbot, role:bluedome#image-search, role:bluedome#qa-analyst-web-app, role:hanna, role:hanna#case-note-coach, role:hanna#grants-agent, role:hanna#ir-updater-bot, role:micron, role:micron#wafer-analysis-copilot, role:micron#wafer-risk-model, role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#modular-architecture, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
       { actor: 'verifier', text: 'ungrounded 99% ✗', status: 'fail' },
     ]);
   });
