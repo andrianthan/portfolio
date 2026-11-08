@@ -32,3 +32,15 @@ describe('vapor backdrop', () => {
     expect(global).not.toContain('(hover: none)');
   });
 });
+
+describe('vapor scene', () => {
+  it('moves the orbit rings with transform only and stills them under reduced motion', () => {
+    expect(vapor).toMatch(/@keyframes orbit\s*\{\s*to\s*\{\s*transform:/);
+    // later tasks append more reduced-motion blocks, so read all of them
+    const rm = vapor.split('@media (prefers-reduced-motion: reduce)').slice(1).join('\n');
+    expect(rm).toMatch(/\.ring\s*\{[^}]*animation:\s*none/);
+  });
+  it('shows the text fallback only without JavaScript', () => {
+    expect(vapor).toMatch(/\.js \.ascii-fallback\s*\{\s*display:\s*none/);
+  });
+});

@@ -1,6 +1,6 @@
 /* ---- backdrop: a space system behind everything ---- */
 .vb { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-.vb i { position: absolute; inset: -4%; display: block; will-change: transform; }
+.vb i { position: absolute; inset: -40px; will-change: transform; }
 .vb-neb {
   background:
     radial-gradient(ellipse 60% 50% at 18% 12%, var(--color-neb-a), transparent 70%),
@@ -30,10 +30,44 @@
   background-size: 331px 307px;
   transform: translate3d(calc(var(--nx, 0) * -30px), calc(var(--ny, 0) * -22px), 0);
 }
-/* the vignette and the scanlines sit over the stars and under the content */
+/* the scanlines (::after) sit over the stars; the vignette (::before) paints under the star layers; both stay under the content */
 .vb::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 65% at 50% 38%, transparent 55%, var(--color-vig)); }
 .vb::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--color-scan) 2px 3px); }
 
 @media (prefers-reduced-motion: reduce) {
   .vb i { will-change: auto; transform: none; }
+}
+
+/* ---- hero scene: orbits and the ASCII graph ---- */
+.hero-scene {
+  position: relative; width: 100%; height: clamp(300px, 52vw, 520px); overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 55%, transparent 100%);
+}
+.ascii { position: absolute; left: 50%; top: 50%; width: min(620px, 86%); aspect-ratio: 576 / 420; transform: translate(-50%, -50%); }
+.ascii-canvas { display: none; width: 100%; height: 100%; }
+.js .ascii-canvas { display: block; }
+.ascii-fallback { display: block; margin: 0; font: 400 clamp(5px, 1.2vw, 9px)/1 var(--font-mono); color: var(--color-num); text-align: center; overflow: hidden; white-space: pre; }
+.js .ascii-fallback { display: none; }
+
+.orbits { position: absolute; inset: 0; perspective: 900px; perspective-origin: 50% 40%; pointer-events: none; }
+.orbit-plane {
+  position: absolute; inset: 0; transform-style: preserve-3d;
+  transform: rotateX(calc(66deg + var(--ny, 0) * 4deg)) rotateZ(calc(var(--nx, 0) * 6deg));
+  transition: transform .25s ease-out;
+}
+.ring {
+  position: absolute; left: 50%; top: 50%; aspect-ratio: 1; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-num) 38%, transparent);
+  transform: translate(-50%, -50%); animation: orbit var(--dur) linear infinite; will-change: transform;
+}
+.r1 { width: 40%; --dur: 46s; } .r2 { width: 62%; --dur: 78s; } .r3 { width: 84%; --dur: 112s; } .r4 { width: 108%; --dur: 150s; }
+.planet { position: absolute; top: -4px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 10px 2px var(--color-glow); }
+.r2 .planet { width: 6px; height: 6px; top: -3px; margin-left: -3px; }
+.r4 .planet { width: 10px; height: 10px; top: -5px; margin-left: -5px; }
+@keyframes orbit { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ring { animation: none; will-change: auto; }
+  .orbit-plane { transition: none; transform: rotateX(66deg); }
 }

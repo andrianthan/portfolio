@@ -1,0 +1,8 @@
+---
+const rings = [1, 2, 3, 4];
+---
+<div class="orbits" aria-hidden="true">
+  <div class="orbit-plane">
+    {rings.map((n) => <span class={`ring r${n}`}><i class="planet"></i></span>)}
+  </div>
+</div>
