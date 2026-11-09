@@ -67,13 +67,37 @@ describe('ListingsDemo', () => {
     expect(html).not.toContain('class="listings-msgs"');
     expect(html).not.toContain('class="listings-msg"');
   });
-  it('shows a posted listing in the channel as a plain message', () => {
+  it('names the channel the bot posts to, before and after a post', () => {
+    expect(html).toContain('tech-data-internships');
+    expect(posted).toContain('tech-data-internships');
+  });
+  it('shows a posted listing as the bot message with one card per company', () => {
     expect(posted).toContain('class="listings-msgs"');
-    expect(posted).toContain('Backend Engineer Intern at Cedarworks Systems');
+    expect(posted).toContain('Opportunity Bot');
+    expect(posted).toContain('APP');
+    expect(posted).toContain('1 new role(s) across 1 company');
+    expect(posted).toContain('Cedarworks Systems — 1 new internship');
+    expect(posted).toContain('Backend Engineer Intern');
+    expect(posted).toContain('(Remote)');
     expect(posted).not.toContain('Nothing posted yet.');
   });
+  it('pings the area each posted role belongs to', () => {
+    expect(posted).toContain('Tech / SWE');
+    expect(posted).not.toContain('Data / Analytics');
+    const data = renderToStaticMarkup(<ListingsDemo posted={['L-05']} />);
+    expect(data).toContain('Data / Analytics');
+  });
+  it('counts roles and companies across several posts', () => {
+    const several = renderToStaticMarkup(<ListingsDemo posted={['L-01', 'L-03', 'L-05']} />);
+    expect(several).toContain('3 new role(s) across 3 companies');
+    expect(several).toContain('Northwind Labs — 1 new internship');
+    expect(several).toContain('Asterline Health — 1 new internship');
+  });
   it('holds no email address', () => {
-    expect(html).not.toContain('@');
+    // The role pings show an at-sign from the stylesheet, so the markup itself
+    // carries none; an address would still be caught here.
+    expect(html).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
+    expect(posted).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
   });
   it('makes no network call and schedules no timer in the markup', () => {
     expect(html).not.toContain('fetch(');

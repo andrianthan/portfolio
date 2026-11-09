@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { LISTINGS, SOURCES, ROLE_TYPES, type Listing } from '../fixtures';
-import { filterListings, postToChannel, toggleRoleType, toggleSource } from './listings';
+import { areaOf, channelSummary, filterListings, groupByCompany, postToChannel, toggleRoleType, toggleSource } from './listings';
 
 /** The ids of the listings a filter returns, in order. */
 function ids(listings: readonly Listing[]): string[] {
@@ -165,5 +165,45 @@ describe('the filter chips', () => {
     toggleSource(ALL, 'referral');
     toggleRoleType(ALL, 'co-op');
     expect(ALL).toEqual(before);
+  });
+});
+
+describe('the channel message', () => {
+  it('pings Data / Analytics for a data role and Tech / SWE for any other', () => {
+    expect(areaOf(LISTINGS[4])).toBe('Data / Analytics');
+    expect(areaOf(LISTINGS[6])).toBe('Data / Analytics');
+    expect(areaOf(LISTINGS[0])).toBe('Tech / SWE');
+    expect(areaOf(LISTINGS[7])).toBe('Tech / SWE');
+  });
+  it('groups the posted listings into one card per company, in posting order', () => {
+    const cards = groupByCompany([LISTINGS[2], LISTINGS[0]]);
+    expect(cards.map((c) => c.company)).toEqual(['Cedarworks Systems', 'Northwind Labs']);
+    expect(cards[0].heading).toBe('Cedarworks Systems — 1 new internship');
+  });
+  it('words a card heading by role type', () => {
+    expect(groupByCompany([LISTINGS[3]])[0].heading).toBe('Lumenworks — 1 new grad role');
+    expect(groupByCompany([LISTINGS[7]])[0].heading).toBe('Brightfold Labs — 1 new co-op');
+  });
+  it('counts several listings under one company', () => {
+    const two = [LISTINGS[0], { ...LISTINGS[1], company: LISTINGS[0].company }];
+    const [card] = groupByCompany(two);
+    expect(card.listings).toHaveLength(2);
+    expect(card.heading).toBe('Northwind Labs — 2 new internships');
+  });
+  it('words a mixed card as roles', () => {
+    const mixed = [LISTINGS[0], { ...LISTINGS[3], company: LISTINGS[0].company }];
+    expect(groupByCompany(mixed)[0].heading).toBe('Northwind Labs — 2 new roles');
+  });
+  it('summarises the roles, the companies and the areas pinged', () => {
+    const summary = channelSummary([LISTINGS[0], LISTINGS[4]]);
+    expect(summary.text).toBe('2 new role(s) across 2 companies');
+    expect(summary.areas).toEqual(['Data / Analytics', 'Tech / SWE']);
+  });
+  it('never mutates the channel it is given', () => {
+    const channel = [LISTINGS[0], LISTINGS[4]];
+    const before = JSON.parse(JSON.stringify(channel));
+    groupByCompany(channel);
+    channelSummary(channel);
+    expect(channel).toEqual(before);
   });
 });

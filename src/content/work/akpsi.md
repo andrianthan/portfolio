@@ -5,7 +5,7 @@ project: AI tools for internal operations
 dates: Dec 2025 – Present
 start: "2025-12"
 end: "present"
-summary: "Built two internal tools nobody asked for, after seeing the manual work: a membership intake pipeline that runs an application from the first email to a booked interview, and an opportunity bot that posts job listings to a Discord channel. The intake work saves 21+ hours of manual work, and 50+ members use the listings bot to apply."
+summary: "Built internal tooling: a membership intake pipeline that takes an application from the first email to a booked interview, saving 21+ hours of manual work, and an opportunity bot that posts job listings to Discord, used by 50+ members to apply."
 stack: [Gmail, Google Drive, Discord]
 logo: /logos/akpsi.svg
 current: true

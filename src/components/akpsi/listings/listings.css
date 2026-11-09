@@ -39,20 +39,54 @@
 .listings .listings-post:hover { border-color: var(--color-accent); }
 .listings .listings-empty { margin: 0; padding: 4px 0; font-size: 13px; color: var(--color-muted); }
 
-/* The channel: a plain message list, not a copy of Discord's UI. */
-.listings .listings-channel { margin: 14px 14px 0; padding: 10px 12px; border: 1px solid var(--color-rule); border-radius: 10px; min-width: 0; }
-.listings .listings-chead {
-  margin: 0 0 6px; font: 600 10px var(--font-mono); letter-spacing: .08em;
+/* The channel: a Discord-style pane. A sidebar of channel names, then the channel with the bot's message and one card per company. */
+.listings .listings-channel { margin: 14px 14px 0; border: 1px solid var(--color-rule); border-radius: 10px; min-width: 0; overflow: hidden; }
+.listings .listings-discord { display: grid; grid-template-columns: 168px minmax(0, 1fr); min-width: 0; }
+.listings .listings-side { padding: 10px 8px; border-right: 1px solid var(--color-rule); background: var(--color-chip); min-width: 0; }
+.listings .listings-side-cat {
+  margin: 0 0 6px 6px; font: 600 10px var(--font-mono); letter-spacing: .08em;
   text-transform: uppercase; color: var(--color-muted);
 }
-.listings .listings-cempty { margin: 0; font-size: 13px; color: var(--color-muted); }
-.listings .listings-msgs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.listings .listings-msg {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0;
-  padding-left: 10px; border-left: 2px solid var(--color-rule);
+.listings .listings-side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.listings .listings-side li { padding: 5px 8px; border-radius: 6px; font-size: 13px; color: var(--color-muted); overflow-wrap: anywhere; }
+.listings .listings-side .listings-side-on { background: var(--color-card); color: var(--color-fg); font-weight: 600; }
+.listings .listings-hash { margin-right: 4px; color: var(--color-muted); }
+.listings .listings-chan { padding: 10px 12px 12px; min-width: 0; }
+.listings .listings-chead {
+  margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--color-rule);
+  font: 600 13px var(--font-sans); color: var(--color-fg);
 }
-.listings .listings-msg-t { font-size: 14px; color: var(--color-fg); min-width: 0; overflow-wrap: anywhere; }
-.listings .listings-msg-m { font: 500 11px var(--font-mono); color: var(--color-muted); }
+.listings .listings-cempty { margin: 0; font-size: 13px; color: var(--color-muted); }
+.listings .listings-bot { display: flex; gap: 10px; min-width: 0; }
+.listings .listings-avatar {
+  flex: none; width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-chip); border: 2px solid var(--color-accent);
+  color: var(--color-fg); font: 700 11px var(--font-mono);
+}
+.listings .listings-body { flex: 1 1 auto; min-width: 0; }
+.listings .listings-who { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 14px; color: var(--color-fg); }
+.listings .listings-app {
+  font: 700 9px var(--font-mono); letter-spacing: .06em; padding: 1px 5px;
+  border-radius: 4px; border: 1px solid var(--color-accent); color: var(--color-fg);
+}
+.listings .listings-when { font: 500 11px var(--font-mono); color: var(--color-muted); }
+.listings .listings-sum { margin: 4px 0 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; color: var(--color-fg); }
+.listings .listings-new {
+  font: 700 9px var(--font-mono); letter-spacing: .06em; padding: 1px 5px;
+  border-radius: 4px; border: 1px solid var(--color-rule); color: var(--color-fg);
+}
+.listings .listings-ping { padding: 0 6px; border-radius: 4px; background: var(--color-chip); color: var(--color-fg); font-weight: 600; font-size: 13px; }
+.listings .listings-ping::before { content: '@'; }
+.listings .listings-msgs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.listings .listings-card { padding: 8px 12px; background: var(--color-chip); border-left: 3px solid var(--color-accent); border-radius: 6px; min-width: 0; }
+.listings .listings-card-h { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--color-fg); overflow-wrap: anywhere; }
+.listings .listings-bullets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.listings .listings-msg { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
+.listings .listings-msg::before { content: '•'; color: var(--color-muted); }
+.listings .listings-msg-t { font-size: 13px; font-weight: 600; color: var(--color-fg); min-width: 0; overflow-wrap: anywhere; }
+.listings .listings-msg-m { font: italic 500 12px var(--font-sans); color: var(--color-muted); }
+.listings .listings-msg .listings-id { margin-left: auto; }
 
 .listings .listings-cap { margin: 0; padding: 12px 14px 14px; font-size: 12px; color: var(--color-muted); }
 
@@ -61,5 +95,7 @@
   .listings .listings-chip { padding: 6px 10px; }
   .listings .listings-feed { margin: 10px 12px 0; }
   .listings .listings-channel { margin: 12px 12px 0; }
+  .listings .listings-discord { grid-template-columns: minmax(0, 1fr); }
+  .listings .listings-side { display: none; }
   .listings .listings-date { margin-left: 0; }
 }
