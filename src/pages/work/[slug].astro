@@ -31,7 +31,10 @@ export async function getStaticPaths() {
 // Demos are matched by heading id prefix. Astro needs static component references to hydrate.
 const MULTI = new Set(['bluedome', 'hanna', 'tesla']);
 
-type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'dashboard' | 'part' | 'ask' | 'forecast' | 'campaigns' | 'slides' | 'modular' | 'admin';
+// A marker in the Dashboard's Markdown where the Tabs demo renders, inside Architecture.
+const TABS_SLOT = '<div data-slot="dashboard-tabs"></div>';
+
+type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'dashboard' | 'part' | 'ask' | 'forecast' | 'campaigns' | 'slides' | 'admin';
 
 // Which demo a project renders, if any. The page's mock-data note uses the same
 // lookup, so a page that shows a demo always carries the note.
@@ -48,7 +51,6 @@ function demoFor(id: string): Demo | null {
   if (id.startsWith('forecast-lab')) return 'forecast';
   if (id.startsWith('campaigns')) return 'campaigns';
   if (id.startsWith('slideshow-generation')) return 'slides';
-  if (id.startsWith('modular-architecture')) return 'modular';
   if (id.startsWith('admin')) return 'admin';
   return null;
 }
@@ -106,7 +108,7 @@ const hasDemos = projects.some((p) => p.demo !== null);
     {hasDemos && (
       <div class="demo-note">
         <p class="eyebrow">Sample data</p>
-        <p class="demo-note-text">The demos on this page run on mock data, not real records. The tools they show are internal, so there is nothing to sign up for.</p>
+        <p class="demo-note-text">The demos on this page run on mock data, not real records.</p>
       </div>
     )}
     {multi && projects.length > 1 && (
@@ -147,7 +149,6 @@ const hasDemos = projects.some((p) => p.demo !== null);
                     case 'forecast': return <ForecastLabDemo client:visible />;
                     case 'campaigns': return <CampaignsDemo client:visible />;
                     case 'slides': return <SlidesDemo client:visible />;
-                    case 'modular': return <ModularDemo client:visible />;
                     case 'admin': return <AdminDemo client:visible />;
                     default: return unhandledDemo(demo);
                   }
@@ -155,7 +156,19 @@ const hasDemos = projects.some((p) => p.demo !== null);
                 <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
               </div>
             )}
-            <Fragment set:html={p.rest} />
+
+            {p.rest.includes(TABS_SLOT)
+              ? (
+                <Fragment>
+                  <Fragment set:html={p.rest.split(TABS_SLOT)[0]} />
+                  <div class="demo-slot" id="dashboard-tabs">
+                    <ModularDemo client:visible />
+                    <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
+                  </div>
+                  <Fragment set:html={p.rest.split(TABS_SLOT)[1]} />
+                </Fragment>
+              )
+              : <Fragment set:html={p.rest} />}
           </section>
         );
       })

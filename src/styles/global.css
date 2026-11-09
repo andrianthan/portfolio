@@ -245,6 +245,7 @@ header.ph { padding: 48px 0 var(--space-lg); }
 .prose > p { margin: 0 0 var(--space-md); }
 .prose > ul:not(.stack), .prose > ol { margin: 0 0 var(--space-md); padding-left: 1.4em; }
 .prose > ul:not(.stack) li, .prose > ol li { margin: 0 0 6px; }
+.prose li > ul { margin: 6px 0 8px; padding-left: 1.2em; }
 .prose a { text-decoration: underline; text-underline-offset: 3px; }
 .prose strong { font-weight: 600; }
 .prose code { font: 400 .9em var(--font-mono); background: var(--color-chip); padding: 1px 6px; border-radius: 5px; }

@@ -86,7 +86,7 @@ describe('the mock work log', () => {
     expect(titles).not.toContain('Evals and CI');
     expect(titles).not.toContain('Data pipelines');
     expect(titles).toContain('Dashboard');
-    expect(titles).toContain('Modular architecture');
+    expect(titles).toContain('Dashboard modules');
     expect(titles).toContain('Slideshow generation');
   });
 

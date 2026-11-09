@@ -4,12 +4,12 @@
 // Basis labels: (local) laptop, (stage) stage build, (PR) quoted, (estimate).
 export const SECTION_TITLES = [
   'Dashboard', 'Part Summary', 'Ask SDP', 'Forecast Lab',
-  'Campaigns', 'Slideshow generation', 'Modular architecture', 'Admin',
+  'Campaigns', 'Slideshow generation', 'Admin',
 ] as const;
 
 export const SECTION_IDS = [
   'dashboard', 'part-summary', 'ask-sdp', 'forecast-lab',
-  'campaigns', 'slideshow-generation', 'modular-architecture', 'admin',
+  'campaigns', 'slideshow-generation', 'admin',
 ] as const;
 
 export const ALLOWED_NUMBERS: readonly string[] = [
