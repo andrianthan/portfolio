@@ -1,6 +1,5 @@
 ---
 import ThemeToggle from './ThemeToggle.tsx';
-import { profile } from '../data/profile';
 ---
 <header class="vbar">
   <div class="vbar-in">
@@ -11,7 +10,6 @@ import { profile } from '../data/profile';
       <a href="#skills" data-spy="skills">Skills</a>
       <a href="#about" data-spy="about">About</a>
       <a href="#outside" data-spy="outside">Outside</a>
-      <a href={profile.contact.resume}>Resume</a>
     </nav>
     <span class="vbar-right"><ThemeToggle client:load /></span>
   </div>

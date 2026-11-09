@@ -198,7 +198,7 @@ describe('mobile nav layout', () => {
     expect(link).toContain('white-space: nowrap');
   });
 
-  it('lays the nav links out as exactly two rows of three, at 320, 375 and 414 px', () => {
+  it('lays the nav links out as two rows of at most three, at 320, 375 and 414 px', () => {
     const bar = fs.readFileSync(path.join(process.cwd(), 'src/components/TopBar.astro'), 'utf8');
     const nav = bar.match(/<nav class="vnav"[\s\S]*?<\/nav>/)?.[0] ?? '';
     // The links are the only children of the nav, so nothing else takes a cell.
@@ -214,8 +214,7 @@ describe('mobile nav layout', () => {
     // A fixed column count is what makes the row count fixed: the cells in
     // three columns are two rows at every width, and a late font swap cannot
     // change it.
-    expect(cells.length % columns).toBe(0);
-    expect(cells.length / columns).toBe(2);
+    expect(Math.ceil(cells.length / columns)).toBe(2);
   });
 });
 
@@ -238,7 +237,7 @@ describe('header nav row count', () => {
     return (nav.match(/<a /g) ?? []).length;
   };
 
-  it('keeps the six desktop links on one row by never wrapping them', () => {
+  it('keeps the desktop links on one row by never wrapping them', () => {
     // The desktop nav is a flex row. `nowrap` is what pins the row count: with
     // wrapping allowed, a seventh link silently pushes the last one onto a
     // second line of the sticky header.
@@ -259,8 +258,7 @@ describe('header nav row count', () => {
     expect(nav).toContain('grid-column: 1 / -1');
     const columns = Number(nav.match(/grid-template-columns:\s*repeat\((\d+),[^)]*\)/)?.[1]);
     expect(columns).toBe(3);
-    expect(navCells() % columns).toBe(0);
-    expect(navCells() / columns).toBe(2);
+    expect(Math.ceil(navCells() / columns)).toBe(2);
   });
 
   it('keeps the scroll padding tall enough for the two-row sticky bar below 900 px', () => {

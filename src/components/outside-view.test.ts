@@ -33,14 +33,15 @@ describe('Outside eyebrows', () => {
 });
 
 describe('Outside nav link', () => {
-  it('sits between About and Resume', () => {
+  it('comes after About and is the last nav link', () => {
     const bar = read('src/components/TopBar.astro');
     const a = bar.indexOf('data-spy="about"');
     const o = bar.indexOf('<a href="#outside" data-spy="outside">Outside</a>');
-    const r = bar.indexOf('profile.contact.resume');
+    const end = bar.indexOf('</nav>');
     expect(a).toBeGreaterThan(-1);
     expect(o).toBeGreaterThan(a);
-    expect(r).toBeGreaterThan(o);
+    expect(end).toBeGreaterThan(o);
+    expect(bar.slice(o, end).match(/<a /g)).toHaveLength(1);
   });
 });
 
