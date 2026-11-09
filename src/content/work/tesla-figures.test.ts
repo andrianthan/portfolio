@@ -6,7 +6,7 @@ const raw = fs.readFileSync(path.resolve(process.cwd(), 'src/content/work/tesla.
 const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 
 describe('the tesla architecture figures', () => {
-  it('draws one figure under every Architecture heading', () => {
+  it('draws a figure under every Architecture heading, and two under Dashboard', () => {
     expect(body.match(/<figure class="arch">/g) ?? []).toHaveLength(8);
     for (let i = 1; i <= 8; i++) expect(body).toContain(`marker id="at${i}"`);
     const sections = body.split(/^### Architecture$/m).slice(1);
@@ -50,9 +50,11 @@ describe('the tesla architecture figures', () => {
 
   it('uses each marker id only inside its own figure', () => {
     const figures = [...body.matchAll(/<figure class="arch">[\s\S]*?<\/figure>/g)].map((m) => m[0]);
+    const own = figures.map((fig) => fig.match(/marker id="at(\d)"/)?.[1]);
+    expect(new Set(own).size).toBe(figures.length);
     figures.forEach((fig, i) => {
       for (let n = 1; n <= 8; n++) {
-        if (n !== i + 1) expect(fig).not.toContain(`url(#at${n})`);
+        if (String(n) !== own[i]) expect(fig).not.toContain(`url(#at${n})`);
       }
     });
   });

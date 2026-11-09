@@ -7,7 +7,7 @@ export const NAV = [
   { id: 'forecast-lab', label: 'Forecast Lab', target: 'forecast-lab' },
   { id: 'campaigns', label: 'Campaigns', target: 'campaigns' },
   { id: 'slideshow-generation', label: 'Slides', target: 'slideshow-generation' },
-  { id: 'modular-architecture', label: 'Tabs', target: 'modular-architecture' },
+  { id: 'modular-architecture', label: 'Tabs', target: 'dashboard-tabs' },
   { id: 'admin', label: 'Admin', target: 'admin' },
   { id: 'worklog', label: 'Work log', target: null },
 ] as const;

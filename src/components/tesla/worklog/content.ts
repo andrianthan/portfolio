@@ -61,7 +61,7 @@ export const WORKLOG: WorklogDoc = {
     },
     {
       id: 'evals-ci',
-      title: 'Modular architecture',
+      title: 'Dashboard modules',
       entries: [
         { label: 'Shared layers', detail: 'The app grew a shared component library and route modules behind a thin entry point, with a data-client facade over the domain modules so screens stop talking to storage directly. Lint guards enforce the layers: a screen that reaches past the facade fails review, not production.' },
         { label: 'Visual regression', detail: 'A screenshot harness walks 165 routes on every change and diffs them against the last accepted state, so a layout break is caught in the change that caused it rather than by a planner on Monday morning.' },

@@ -58,17 +58,17 @@ function forbiddenClaims(text: string): string[] {
 }
 
 describe('the tesla page body', () => {
-  it('has the eight sections in order', () => {
+  it('has the seven sections in order', () => {
     const heads = [...body.matchAll(/^## (.+)$/gm)].map((m) => m[1].trim());
     expect(heads).toEqual([...SECTION_TITLES]);
   });
 
   it('gives every section its subsections in order', () => {
     const sections = body.split(/^## /m).slice(1);
-    expect(sections).toHaveLength(8);
+    expect(sections).toHaveLength(7);
     for (const s of sections) {
       const subs = [...s.matchAll(/^### (.+)$/gm)].map((m) => m[1].trim());
-      expect(subs).toEqual(['Problem', 'What it does', 'Architecture', 'Key decisions', 'Impact', 'About the demo']);
+      expect(subs).toEqual(['Problem', 'Architecture', 'Impact']);
     }
   });
 
@@ -95,7 +95,7 @@ describe('the tesla page body', () => {
 
   it('labels every impact claim with a basis word', () => {
     const impacts = body.split(/^### Impact$/m).slice(1).map((s) => s.split(/^### /m)[0]);
-    expect(impacts).toHaveLength(8);
+    expect(impacts).toHaveLength(7);
     const basis = /(measured \((local|stage)\)|planner-reported|estimate|not booked|not measured)/i;
     for (const imp of impacts) expect(imp, imp.slice(0, 80)).toMatch(basis);
   });
@@ -104,29 +104,12 @@ describe('the tesla page body', () => {
     expect(forbiddenClaims(prose)).toEqual([]);
   });
 
-  it('says the same thing about the work log as the work log says about itself', () => {
-    // The pane's note and the page's About-the-demo sentence both describe
-    // what the mock contains, so they cannot contradict each other.
-    const about = body.split(/^### About the demo$/m)[1] ?? '';
-    expect(about).toContain('public resume');
-    expect(about).toContain('no part number, person or internal figure');
-    expect(about).not.toMatch(/No real part, person or figure/);
-  });
-
   it('scopes the campaigns time-saved total to what it includes', () => {
     // The three bullets above it add up to less than the stated total, so the
     // total says what it covers.
     const campaigns = body.split(/^## Campaigns$/m)[1] ?? '';
     expect(campaigns).toContain('across the projects on this page');
     expect(campaigns).toContain("Forecast Lab's 80-hour estimate");
-  });
-
-  it('gives every modular-architecture figure one shared basis', () => {
-    const modular = body.split(/^## Modular architecture$/m)[1] ?? '';
-    const impact = modular.split(/^### Impact$/m)[1] ?? '';
-    expect(impact).toMatch(/All figures below: measured \(local\)/);
-    // The label is stated once, above the list, not on one bullet.
-    expect(impact.match(/measured \(local\)/g) ?? []).toHaveLength(1);
   });
 
   it('does not say a request waits on a build it never waits on', () => {

@@ -25,13 +25,14 @@ export const DEMO_BY_PREFIX = [
   { prefix: 'grants-agent', component: 'GrantsDemo' },
   { prefix: 'ir-updater', component: 'IrDemo' },
   { prefix: 'case-note-coach', component: 'NoteCoachDemo' },
-  { prefix: 'dashboard', component: 'DashboardDemo' },
+  // The Dashboard section also holds the Tabs demo, under its Architecture
+  // heading, because the modular architecture is part of the dashboard.
+  { prefix: 'dashboard', component: 'DashboardDemo', extra: ['ModularDemo'] },
   { prefix: 'part-summary', component: 'PartSummaryDemo' },
   { prefix: 'ask-sdp', component: 'AskSdpDemo' },
   { prefix: 'forecast-lab', component: 'ForecastLabDemo' },
   { prefix: 'campaigns', component: 'CampaignsDemo' },
   { prefix: 'slideshow-generation', component: 'SlidesDemo' },
-  { prefix: 'modular-architecture', component: 'ModularDemo' },
   { prefix: 'admin', component: 'AdminDemo' },
   { prefix: 'wafer-analysis-copilot', component: 'CopilotDemo' },
   { prefix: 'wafer-risk-model', component: 'RiskDemo' },
@@ -51,6 +52,19 @@ export function demoForPrefix(id) {
   return hit ? hit.component : null;
 }
 
+/** Every demo a project heading id owns: its own, and any it also holds. */
+export function demosOwnedBy(id) {
+  let hit = null;
+  for (const d of DEMO_BY_PREFIX) {
+    if (!id.startsWith(d.prefix)) continue;
+    if (!hit || d.prefix.length > hit.prefix.length) hit = d;
+  }
+  return hit ? [hit.component, ...(hit.extra ?? [])] : [];
+}
+
+/** Every demo component any project owns. */
+const ALL_DEMOS = DEMO_BY_PREFIX.flatMap((d) => [d.component, ...(d.extra ?? [])]);
+
 /**
  * The problems with the demos the project sections of a page hold.
  *
@@ -65,8 +79,8 @@ export function demoForPrefix(id) {
 export function findDemoProblems(path, projects) {
   const problems = [];
   for (const project of projects) {
-    const expected = demoForPrefix(project.id);
-    if (expected === null) {
+    const owned = demosOwnedBy(project.id);
+    if (owned.length === 0) {
       // A project with no demo of its own. The rule is that it holds none,
       // not that it holds one.
       if (project.demos.length > 0) {
@@ -76,26 +90,29 @@ export function findDemoProblems(path, projects) {
       }
       continue;
     }
+    const expected = owned[0];
     if (project.demos.length === 0) {
       problems.push(`${path}: the project "${project.id}" holds no demo, expected the "${expected}" demo`);
       continue;
     }
-    if (project.demos.length > 1) {
+    if (project.demos.length > owned.length) {
       problems.push(
-        `${path}: the project "${project.id}" holds ${project.demos.length} demos (${project.demos.join(', ')}), expected only the "${expected}" demo`,
+        `${path}: the project "${project.id}" holds ${project.demos.length} demos (${project.demos.join(', ')}), expected only ${owned.map((d) => `"${d}"`).join(' and ')}`,
       );
     }
-    // The section must hold its own demo, and it must not hold another
+    // The section must hold each demo it owns, and it must not hold another
     // project's demo either. Both are checked here rather than by the count
     // alone, so the failure names the demo that is in the wrong place.
-    if (!project.demos.includes(expected)) {
-      problems.push(`${path}: the project "${project.id}" does not hold the "${expected}" demo, expected it to`);
+    for (const want of owned) {
+      if (!project.demos.includes(want)) {
+        problems.push(`${path}: the project "${project.id}" does not hold the "${want}" demo, expected it to`);
+      }
     }
-    for (const other of DEMO_BY_PREFIX) {
-      if (other.component === expected) continue;
-      if (project.demos.includes(other.component)) {
+    for (const other of ALL_DEMOS) {
+      if (owned.includes(other)) continue;
+      if (project.demos.includes(other)) {
         problems.push(
-          `${path}: the project "${project.id}" holds the "${other.component}" demo, which belongs to another project`,
+          `${path}: the project "${project.id}" holds the "${other}" demo, which belongs to another project`,
         );
       }
     }

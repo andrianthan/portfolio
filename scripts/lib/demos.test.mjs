@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DEMO_BY_PREFIX, demoForPrefix, findDemoProblems } from './demos.mjs';
+import { DEMO_BY_PREFIX, demoForPrefix, demosOwnedBy, findDemoProblems } from './demos.mjs';
 
 describe('demoForPrefix', () => {
   it('maps each project heading id to the demo it owns', () => {
@@ -82,5 +82,21 @@ describe('findDemoProblems', () => {
     const problems = findDemoProblems(path, projects);
     expect(problems.length).toBeGreaterThan(0);
     expect(problems.join(' ')).toContain('holds 2 demos');
+  });
+
+  it('lets the Dashboard hold its own demo and the Tabs demo', () => {
+    const projects = [{ id: 'dashboard', demos: ['DashboardDemo', 'ModularDemo'] }];
+    expect(demosOwnedBy('dashboard')).toEqual(['DashboardDemo', 'ModularDemo']);
+    expect(findDemoProblems('/work/tesla/', projects)).toEqual([]);
+  });
+
+  it('fails the Dashboard without its Tabs demo', () => {
+    const problems = findDemoProblems('/work/tesla/', [{ id: 'dashboard', demos: ['DashboardDemo'] }]);
+    expect(problems.join(' ')).toContain('does not hold the "ModularDemo" demo');
+  });
+
+  it('fails a project other than the Dashboard that holds the Tabs demo', () => {
+    const problems = findDemoProblems('/work/tesla/', [{ id: 'part-summary', demos: ['PartSummaryDemo', 'ModularDemo'] }]);
+    expect(problems.join(' ')).toContain('belongs to another project');
   });
 });
