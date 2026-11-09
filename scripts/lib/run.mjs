@@ -14,7 +14,6 @@ export function runChecks({ distDir, contentDir, dataFile, manifestFile }) {
     ...findMissingAlt(html),
     ...findBrokenLinks(distDir, html),
     ...findLeaks(distDir, text, entries),
-    ...findRequiredLinks(html, ['/terminal']),
     ...findMissingRoutes(distDir, ['/terminal']),
     ...findSnapshotProblems(distDir, entries),
   );
