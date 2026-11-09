@@ -5,8 +5,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import ListingsDemo from './ListingsDemo';
 
 const html = renderToStaticMarkup(<ListingsDemo />);
-/** A channel that already holds one listing. */
-const posted = renderToStaticMarkup(<ListingsDemo posted={['L-03']} />);
 /** The feed narrowed to one source. */
 const filtered = renderToStaticMarkup(<ListingsDemo initial={{ source: 'referral', roleType: null }} />);
 
@@ -58,46 +56,37 @@ describe('ListingsDemo', () => {
     expect(filtered.match(/aria-pressed=/g) ?? []).toHaveLength(6);
     expect(filtered.match(/aria-pressed="false"/g) ?? []).toHaveLength(5);
   });
-  it('shows the Post to channel control on every listing', () => {
-    expect(html.match(/>Post to channel</g) ?? []).toHaveLength(10);
+  it('has no manual post control, since the bot posts on its own', () => {
+    expect(html).not.toContain('Post to channel');
+    expect(html).not.toContain('class="listings-post"');
+    expect(html.match(/Posted automatically/g) ?? []).toHaveLength(10);
   });
-  it('starts with an empty channel', () => {
-    expect(html).toContain('Nothing posted yet.');
-    // No message list is rendered while the channel is empty.
-    expect(html).not.toContain('class="listings-msgs"');
-    expect(html).not.toContain('class="listings-msg"');
-  });
-  it('names the channel the bot posts to, before and after a post', () => {
+  it('names the channel the bot posts to', () => {
     expect(html).toContain('tech-data-internships');
-    expect(posted).toContain('tech-data-internships');
   });
-  it('shows a posted listing as the bot message with one card per company', () => {
-    expect(posted).toContain('class="listings-msgs"');
-    expect(posted).toContain('Opportunity Bot');
-    expect(posted).toContain('APP');
-    expect(posted).toContain('1 new role(s) across 1 company');
-    expect(posted).toContain('Cedarworks Systems — 1 new internship');
-    expect(posted).toContain('Backend Engineer Intern');
-    expect(posted).toContain('(Remote)');
-    expect(posted).not.toContain('Nothing posted yet.');
+  it('posts every listing to the channel as the bot message, one card per company', () => {
+    expect(html).toContain('class="listings-msgs"');
+    expect(html).toContain('Opportunity Bot');
+    expect(html).toContain('APP');
+    expect(html).toContain('10 new role(s) across 10 companies');
+    expect(html).toContain('Cedarworks Systems — 1 new internship');
+    expect(html).toContain('Backend Engineer Intern');
+    expect(html).toContain('(Remote)');
+    expect(html).not.toContain('Nothing to post.');
   });
-  it('pings the area each posted role belongs to', () => {
-    expect(posted).toContain('Tech / SWE');
-    expect(posted).not.toContain('Data / Analytics');
-    const data = renderToStaticMarkup(<ListingsDemo posted={['L-05']} />);
-    expect(data).toContain('Data / Analytics');
+  it('pings the areas the posted roles belong to', () => {
+    expect(html).toContain('Tech / SWE');
+    expect(html).toContain('Data / Analytics');
   });
-  it('counts roles and companies across several posts', () => {
-    const several = renderToStaticMarkup(<ListingsDemo posted={['L-01', 'L-03', 'L-05']} />);
-    expect(several).toContain('3 new role(s) across 3 companies');
-    expect(several).toContain('Northwind Labs — 1 new internship');
-    expect(several).toContain('Asterline Health — 1 new internship');
+  it('posts only the listings that pass the filter', () => {
+    expect(filtered).toContain('2 new role(s) across 2 companies');
+    expect(filtered).toContain('Asterline Health — 1 new internship');
+    expect(filtered).not.toContain('Cedarworks Systems');
   });
   it('holds no email address', () => {
     // The role pings show an at-sign from the stylesheet, so the markup itself
     // carries none; an address would still be caught here.
     expect(html).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
-    expect(posted).not.toMatch(/[\w.+-]+@[\w-]+\.[\w.]+/);
   });
   it('makes no network call and schedules no timer in the markup', () => {
     expect(html).not.toContain('fetch(');

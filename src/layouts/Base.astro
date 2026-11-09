@@ -13,7 +13,7 @@ const canonical = new URL(path, Astro.site).toString();
 const og = new URL(ogImage, Astro.site).toString();
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="vapor">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,7 +33,7 @@ const og = new URL(ogImage, Astro.site).toString();
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <script is:inline>
-      try { var t = localStorage.getItem('theme'); if (t === 'dark') t = 'vapor'; if (t === 'light' || t === 'vapor') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+      document.documentElement.setAttribute('data-theme', 'vapor');
       document.documentElement.classList.add('js');
     </script>
   </head>

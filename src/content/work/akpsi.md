@@ -13,12 +13,6 @@ listed: true
 cleared: true
 order: 5
 ---
-Alpha Kappa Psi's internal operations ran by hand. Nobody asked for these tools; I saw the manual work and built them.
-
-Two tools came out of it: a membership intake pipeline that runs an application from the first email to a booked interview, and an opportunity bot that posts job listings to the organization's Discord channel.
-
-I have also mentored 5+ individuals into internships.
-
 ## Membership intake automation
 
 The pipeline takes a membership application from the first email to a booked interview, with no manual step in between.

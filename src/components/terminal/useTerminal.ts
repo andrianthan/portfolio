@@ -6,7 +6,7 @@ import { createBlip, readSound, writeSound, type Blip } from './sound';
 
 export const COMMANDS = [
   '/help', '/experience', '/about', '/skills',
-  '/contact', '/clear', '/sound', '/hire', '/coffee', '/whoami',
+  '/contact', '/clear',
 ];
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];

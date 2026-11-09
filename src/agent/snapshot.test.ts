@@ -159,6 +159,8 @@ describe('text helpers', () => {
   it('strips markdown and html but keeps the words', () => {
     expect(stripMarkdown('a **bold** claim and `code`')).toBe('a bold claim and code');
     expect(stripMarkdown('<p>hello</p>')).toBe('hello');
+    // A diagram's labels are not prose: the whole figure goes, not just its tags.
+    expect(stripMarkdown('Before.\n<figure class="arch"><svg><text>Grants person</text></svg></figure>\nAfter.')).toBe('Before.\n \nAfter.');
     // The heading marker is gone and both words survive. The line break stays because
     // stripMarkdown collapses runs of blank lines only; it keeps the paragraph structure.
     expect(stripMarkdown('## Head\nbody')).toBe('Head\nbody');

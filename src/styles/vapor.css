@@ -137,7 +137,6 @@
 .vnav a:hover { color: var(--color-fg); text-decoration: none; }
 .vnav a[aria-current="true"] { color: var(--color-fg); border-color: var(--color-num); box-shadow: 0 0 14px -4px var(--color-glow); }
 .vbar-right { grid-column: 2; grid-row: 1; justify-self: end; }
-#theme-toggle { font-family: var(--font-pixel); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 @media (max-width: 639px) {
   .vbar-in { grid-template-columns: 1fr auto; padding: 10px var(--space-md); row-gap: 6px; }
   .vnav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; grid-column: 1 / -1; grid-row: 2; gap: 4px 2px; }
@@ -185,7 +184,6 @@
 .topics a { font: 400 11px var(--font-pixel); letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); border: 0; padding: 4px 0; background: none; }
 .topics a:hover { color: var(--color-fg); background: none; text-decoration: underline; text-underline-offset: 4px; }
 .intro-prompt { background: var(--color-bg); }
-.full { font: 400 11px var(--font-pixel); letter-spacing: .14em; text-transform: uppercase; }
 @media (max-width: 639px) {
   .intro-suggest { grid-template-columns: 1fr; }
   .intro-refresh { justify-self: start; }

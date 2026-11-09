@@ -8,10 +8,6 @@ export const COMMANDS = [
   { name: '/skills', description: 'technical skills' },
   { name: '/contact', description: 'how to reach Andrian' },
   { name: '/clear', description: 'clear the screen' },
-  { name: '/sound', description: 'toggle the blip (on or off)' },
-  { name: '/hire', description: 'a short pitch' },
-  { name: '/coffee', description: 'a short cup' },
-  { name: '/whoami', description: 'one line about Andrian' },
 ];
 
 export function helpText(): string {

@@ -32,6 +32,8 @@ export function slugify(text: string): string {
 export function stripMarkdown(text: string): string {
   return text
     .replace(/```[\s\S]*?```/g, ' ')
+    // Diagrams carry their labels as text nodes; they are pictures, not prose.
+    .replace(/<(figure|svg|script|style)\b[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')

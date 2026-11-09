@@ -19,7 +19,11 @@ export const COFFEE = [
 
 function list(chunks: Ranked[]): Answer {
   return {
-    text: chunks.map(({ chunk }) => `${chunk.title}\n${chunk.text}`).join('\n\n'),
+    // Chunk text keeps a blank line between paragraphs; the chat shows it with
+    // pre-wrap, so collapse those runs and leave one blank line between chunks.
+    text: chunks
+      .map(({ chunk }) => `${chunk.title}\n${chunk.text}`.replace(/[ \t]*\n(?:[ \t]*\n)+/g, '\n'))
+      .join('\n\n'),
     sources: chunks.map(({ chunk }) => ({ title: chunk.title, url: chunk.url })),
   };
 }

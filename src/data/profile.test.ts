@@ -5,8 +5,8 @@ import { profile } from './profile';
 const DRAFT_MARKER = '[' + 'to confirm';
 
 describe('profile', () => {
-  it('has three about paragraphs and none of them is a draft', () => {
-    expect(profile.about).toHaveLength(3);
+  it('has two about paragraphs and none of them is a draft', () => {
+    expect(profile.about).toHaveLength(2);
     for (const p of profile.about) {
       expect(p.trim().length).toBeGreaterThan(20);
       expect(p.toLowerCase()).not.toContain(DRAFT_MARKER);

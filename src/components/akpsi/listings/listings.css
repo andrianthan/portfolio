@@ -32,11 +32,9 @@
 .listings .listings-role { font: 500 11px var(--font-mono); color: var(--color-muted); }
 .listings .listings-date { font: 500 11px var(--font-mono); color: var(--color-muted); margin-left: auto; }
 .listings .listings-title { flex: 1 1 100%; margin: 0; min-width: 0; font-size: 14px; color: var(--color-fg); overflow-wrap: anywhere; }
-.listings .listings-post {
-  font: 600 12px var(--font-sans); color: var(--color-fg); background: transparent;
-  border: 1px solid var(--color-rule); border-radius: 8px; padding: 6px 10px; min-height: 44px; cursor: pointer;
+.listings .listings-status {
+  font: 500 12px var(--font-mono); color: var(--color-muted); letter-spacing: .02em;
 }
-.listings .listings-post:hover { border-color: var(--color-accent); }
 .listings .listings-empty { margin: 0; padding: 4px 0; font-size: 13px; color: var(--color-muted); }
 
 /* The channel: a Discord-style pane. A sidebar of channel names, then the channel with the bot's message and one card per company. */

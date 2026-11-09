@@ -20,9 +20,8 @@ export interface ProfileData {
 
 export const profile: ProfileData = {
   about: [
-    "I'm a computer science student at San Jose State (3.7 GPA, graduating Spring 2027) who builds LLM agents for real users: copilots grounded in data, tested against golden sets, and shipped with the infrastructure to keep them honest.",
-    "I've also mentored 30+ people on working with AI coding tools like Cursor and Claude Code, including how to review and verify AI-generated changes.",
-    'Outside of engineering I lead in Alpha Kappa Psi and Spartan Analytics.',
+    "I'm a computer science student at San Jose State. I'm passionate about making an impact, and I love building tools that people use every day.",
+    'Outside of work, I love going hiking, hitting the gym, hanging out with friends, and following the stock market.',
   ],
   oneLine: 'Andrian Than — software engineer building LLM agents for real users.',
   skillGroups: [
