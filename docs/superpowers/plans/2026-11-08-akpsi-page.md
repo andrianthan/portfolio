@@ -114,7 +114,7 @@ The five fixture availabilities must therefore resolve to exactly:
 - [ ] **Step 1: Write the failing tests** — `src/components/akpsi/intake/intake.test.ts`:
   - `parseSlots`: the five fixture availabilities resolve to the exact arrays above; a fragment with no day and no time contributes nothing; `after 6` → `18:00`; the default time applies to every bare weekday in the text; duplicates are removed.
   - `answerFor`: A, B, D and E return their knowledge-base answer; **C returns `null`**.
-  - `advance`: starting from `initialState('Applicant A')`, four presses reach the `'drive'` stage with `completed` equal to `['classify','knowledge','attachments','drive']`; a fifth reaches `'schedule'` and `isComplete` is true; `slots` equals A's expected array.
+  - `advance`: starting from `initialState('Applicant A')`, four presses leave `completed` equal to `['classify','knowledge','attachments','drive']` and `stage` at `'schedule'`; a fifth appends `'schedule'`, so `isComplete` is true, and `slots` equals A's expected array.
   - `advance` on C: after `'classify'` the state is `flagged: true`, `stage` is still `'knowledge'`, and `answer` is `null`.
   - `advance` on D: after `'classify'` and `'knowledge'`, the state is `flagged: true`, `stage` is still `'attachments'`, and `invalid` is `'transcript-d.txt'`.
   - `advance` on E: `slots` is `[]` — no time was named, so no slot is invented.
