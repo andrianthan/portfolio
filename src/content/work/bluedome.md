@@ -21,13 +21,9 @@ A human-in-the-loop tool for QA analysts who verify AI-labeled roadway-infrastru
 
 The QA analysts who checked AI-labeled roadway images were already using an early prototype of the tool. They found it slow and hard to use. Likely causes: too many clicks per image, no keyboard shortcuts, no clear progress or undo.
 
-### Design spec
-
-I wrote the design spec for the production version, then built it.
-
 ### Architecture
 
-**As shipped.** A Python Flask backend, a JavaScript frontend and a SQLite database for metadata, with images stored in S3. Analysts review each AI-labeled image and validate it, and TPM 2.0-backed authentication ties a login to a trusted device.
+**As shipped.** A Python Flask backend, a JavaScript frontend and a SQLite database for metadata, with images stored in S3. Analysts review each AI-labeled image and validate it.
 
 **Target architecture.** The same Flask API and frontend, with a managed Postgres in place of SQLite.
 
@@ -55,20 +51,12 @@ I wrote the design spec for the production version, then built it.
 <figcaption>Target architecture</figcaption>
 </figure>
 
-- The browser uploads images straight to S3 through presigned URLs, so large files never pass through Flask.
-- Flask records each image's S3 key, plus AI labels and analyst verdicts, in Postgres.
-- Device-trust authentication stays at the API.
-
-### Key decisions
-
-- Device trust: authentication is backed by TPM 2.0, so a login is tied to a trusted device.
-- Built across a 3-sprint roadmap with a product manager and a UI/UX designer, tracked in Trello, with updates to the founders.
-
-### Backend and data
-
-- **Images** live as files in an S3 bucket. The database holds each image's S3 key, and the viewer loads images by signed URL.
-- **Metadata** (images, AI labels, verdicts, users) lives in the database.
-- **Why Postgres in the target:** SQLite allows one writer at a time, and many analysts saving verdicts at once is its weakest case. Postgres adds concurrent writes, managed backups and filtered queries across labels, reviewers and status.
+- **Device-trust authentication.** TPM 2.0-backed authentication ties a login to a trusted device, and stays at the API.
+  - Backing login with the device's TPM means a login is tied to a trusted device.
+- **Images in S3.** Images live as files in an S3 bucket, and the viewer loads them by signed URL. In the target, the browser uploads images straight to S3 through presigned URLs.
+  - Presigned uploads mean large files never pass through Flask.
+- **Metadata in a database.** Images, AI labels, verdicts and users live in the database, and Flask records each image's S3 key, plus AI labels and analyst verdicts.
+  - Postgres in the target instead of SQLite: SQLite allows one writer at a time, and many analysts saving verdicts at once is its weakest case. Postgres adds concurrent writes, managed backups and filtered queries across labels, reviewers and status.
 
 ### Impact
 
@@ -76,7 +64,7 @@ I wrote the design spec for the production version, then built it.
 - **Clicks per image:** about 6 before, about 2 after
 - **Analysts using it:** about 8
 - **Images reviewed per week:** about 1,500
-- **Delivered in:** 3 sprints, with a product manager and a UI/UX designer
+- **Delivered in:** 3 sprints, with a product manager and a UI/UX designer, tracked in Trello, with updates to the founders
 
 These figures are estimates, not measured results.
 
@@ -88,13 +76,9 @@ A chatbot I built that answers analysts' labeling questions from the written gui
 
 Analysts hit edge cases the guide doesn't make obvious, such as a partly hidden sign or a faded marking, and had to dig through a long document or ask a lead. That slows reviews and leads to inconsistent calls. Interview studies of annotation teams name [ambiguous guidelines and edge cases](https://arxiv.org/html/2511.16410v1) among the main causes of inconsistent labels.
 
-### What it does
-
-An analyst asks an edge-case question ("does a partially hidden sign still count?") and gets an answer grounded in the guideline text, with the source clause.
-
 ### Architecture
 
-A retrieval-augmented generation (RAG) pipeline in two parts.
+An analyst asks an edge-case question ("does a partially hidden sign still count?") and gets an answer grounded in the guideline text, with the source clause. It is a retrieval-augmented generation (RAG) pipeline in two parts.
 
 <figure class="arch">
 <svg viewBox="0 0 640 290" role="img" aria-label="Guideline chatbot architecture. Indexing, done ahead of time: guideline documents are split into chunks, embedded by an embedding model, and stored in a vector store. Answering, per question: the analyst's question is embedded, the closest guideline chunks are retrieved from the vector store, an LLM writes an answer from those chunks, and the answer cites its source clause. If nothing relevant is found, the chatbot says so and the gap can be flagged for a guideline update.">
@@ -122,10 +106,12 @@ A retrieval-augmented generation (RAG) pipeline in two parts.
 <figcaption>Guideline chatbot architecture</figcaption>
 </figure>
 
-- **Indexing, ahead of time:** guideline documents are split into chunks, embedded as vectors and stored with their clause ids.
-- **Answering, per question:** the question is embedded, the closest chunks are retrieved, and the model writes an answer from only those chunks and cites the clause.
-- **No match:** when nothing relevant is retrieved, the chatbot says so instead of guessing, and the gap can be flagged for a guideline update.
-
+- **Indexing, ahead of time.** Guideline documents are split into chunks, embedded as vectors and stored with their clause ids.
+  - Embedding ahead of time means a question only has to be embedded and matched.
+- **Answering, per question.** The question is embedded, the closest chunks are retrieved, and the model writes an answer from only those chunks and cites the clause.
+  - Answering only from retrieved chunks and citing the clause means an analyst can check the answer against the guide.
+- **No match.** When nothing relevant is retrieved, the chatbot says so instead of guessing.
+  - Saying so means the gap can be flagged for a guideline update.
 
 ### Impact
 
@@ -137,10 +123,6 @@ A retrieval-augmented generation (RAG) pipeline in two parts.
 
 These figures are estimates, not measured results.
 
-### About the demo
-
-The window above is a stand-in that runs in your browser: a made-up guide, keyword plus local LSA vector retrieval, and templated answers that quote and cite the matching clause. It shows the shape of the feature, not the production system.
-
 ## Image Search
 
 A search tool over the labeled road-scene images that finds images by description, finds images similar to one you pick, and flags near-duplicates, using CLIP-style image and text embeddings.
@@ -148,13 +130,6 @@ A search tool over the labeled road-scene images that finds images by descriptio
 ### Problem
 
 Finding more examples of an edge case meant paging through image folders, and repeated scenes got reviewed more than once, which wasted analyst time and skewed the training data.
-
-### What it does
-
-- **Search by text:** type a description like "faded lane marking at night" and get matching road scenes.
-- **Similar images:** pick an image and see its nearest neighbors, to find more examples of an edge case.
-- **Near-duplicates:** flag images that are almost identical, so analysts don't review the same scene twice and training data isn't skewed.
-
 
 ### Architecture
 
@@ -206,11 +181,12 @@ Every image is turned into a vector once, and all three features read from the s
 <figcaption>Image search architecture</figcaption>
 </figure>
 
-- **Indexing:** an image encoder turns each image in S3 into a vector, stored in a vector index with the image's metadata.
-- **Search by text:** a text encoder maps the query into the same space as the images, and the closest images are ranked.
-- **Similar images:** a picked image's stored vector finds its nearest neighbors.
-- **Duplicates:** a scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group.
-
+- **Indexing.** An image encoder turns each image in S3 into a vector, stored in a vector index with the image's metadata.
+  - One index for all three features means each image is encoded once.
+- **Search by text.** Typing a description like "faded lane marking at night" works because a text encoder maps the query into the same space as the images, and the closest images are ranked.
+- **Similar images.** A picked image's stored vector finds its nearest neighbors, to find more examples of an edge case.
+- **Duplicates.** A scheduled job compares vectors and groups images above a similarity threshold, so analysts review one image per group.
+  - Flagging near-duplicates keeps analysts from reviewing the same scene twice and keeps training data from being skewed.
 
 ### Impact
 
@@ -221,7 +197,3 @@ Every image is turned into a vector once, and all three features read from the s
 - **Repeat review avoided:** about 8 hours (1,800 images at about 15 seconds each)
 
 These figures are estimates, not measured results.
-
-### About the demo
-
-The window above is a stand-in that runs in your browser: a made-up set of 27 scenes and a small hand-built attribute space instead of CLIP. Search, nearest neighbors and the duplicate threshold are real logic over that space. It shows the shape of the feature, not the production system.

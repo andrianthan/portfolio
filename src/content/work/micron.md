@@ -20,11 +20,13 @@ An LLM copilot over high-volume manufacturing data for HBM wafers. Engineers use
 
 The manufacturing data for one wafer spans thousands of production steps. Working through it by hand to explain a failure took a lot of manual analysis time.
 
-### What I built
+### Architecture
 
-Python and Snowflake SQL pipelines that process the manufacturing data, and a workflow built on Microsoft Copilot and Power Automate that connects Snowflake queries to GPT-based reasoning. An engineer asks a question in plain language, the workflow pulls the relevant data from Snowflake, and the model reasons over what comes back.
+- **Data pipelines.** Python and Snowflake SQL pipelines process the manufacturing data.
+- **A Copilot and Power Automate workflow.** It connects Snowflake queries to GPT-based reasoning: an engineer asks a question in plain language, the workflow pulls the relevant data from Snowflake, and the model reasons over what comes back.
+  - Querying Snowflake first and reasoning second means the model works over the relevant data, not every production step.
 
-### How it was used
+### Impact
 
 Used daily by 10+ engineers to investigate wafer failure rates, including what made a specific wafer fail. Explaining one failure went from hours by hand to minutes.
 
@@ -36,14 +38,12 @@ A risk classification model that ranks wafers, so engineers know which ones to l
 
 Engineers cannot review every wafer. They needed the high-risk ones to surface first.
 
-### What I built
+### Architecture
 
-A gradient boosting model trained on wafers that had failed before. Its inputs include Z-score, failure rate and wafer size, plus other factors such as which machines each wafer went through. It scores each wafer, and the highest scores rise to the top of the list.
+- **A gradient boosting model.** It is trained on wafers that had failed before. Its inputs include Z-score, failure rate and wafer size, plus other factors such as which machines each wafer went through.
+  - Back-testing on earlier failures checks the ranking against what really failed.
+- **A ranked list.** It scores each wafer, and the highest scores rise to the top of the list.
 
-### How I checked it
-
-I back-tested it on earlier failures.
-
-### How it was used
+### Impact
 
 The model scored 1,000+ wafers. Engineers used the ranking to decide which wafers to analyze first and to inform yield optimization work.

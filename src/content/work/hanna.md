@@ -22,14 +22,6 @@ An agent that finds, scores and tracks grant opportunities for the organization,
 
 Finding grants meant searching many funder websites by hand, and the paid platform that did it for us was expensive. The goal was a tool the team owned, that surfaced only grants worth a person's time, and whose scoring non-technical staff could change themselves.
 
-### What it does
-
-- **Scrapes** the funder sources every morning and removes duplicates.
-- **Scores** each new grant on a seven-flag framework, with a reason for every flag.
-- **Logs** grants above the sheet cutoff to a shared tracker where staff approve or skip them.
-- **Emails** a daily list of grants above the email cutoff, and a digest on Fridays.
-- **Lets staff retune the scoring** in plain English through a custom GPT, with a preview before any change.
-
 ### Architecture
 
 <figure class="arch">
@@ -75,17 +67,16 @@ Finding grants meant searching many funder websites by hand, and the paid platfo
 <figcaption>Grants agent architecture</figcaption>
 </figure>
 
-- A scheduler starts the day's run. A workflow fans out to one scraper per source, and a processing step filters off-mission items, extracts details with an LLM, embeds them and writes them to a database with vector search.
-- The evaluator retrieves candidate grants by vector similarity, runs a cheap pre-filter model, then a stronger model scores the survivors against the criteria document.
-- Scores go to the sheet and the emails. The criteria live in a document that staff can edit, directly or through the custom GPT.
-
-### Key decisions
-
-- **Criteria in a document**, so non-technical staff change the scoring without code.
-- **Preview, apply, undo** for every edit made through the GPT: a change is previewed, applied with a one-time token that expires, and recorded so it can be reversed.
-- **A cheap model first, a stronger model second**, so most grants never reach the expensive step.
-- **Server-side validation** of every edit: whitelisted settings and checked values.
-- **A managed scraping service** instead of a headless browser, to keep the deployment light.
+- **Scheduled scraping.** A scheduler starts the day's run, and a workflow fans out to one scraper per source. It scrapes the funder sources every morning and removes duplicates.
+  - A managed scraping service instead of a headless browser keeps the deployment light.
+- **Processing and storage.** A processing step filters off-mission items, extracts details with an LLM, embeds them and writes them to a database with vector search.
+- **Two-stage scoring.** The evaluator retrieves candidate grants by vector similarity and runs a cheap pre-filter model. A stronger model then scores the survivors on a seven-flag framework, with a reason for every flag.
+  - A cheap model first and a stronger model second means most grants never reach the expensive step.
+- **Criteria in a document.** The scoring criteria live in a document that staff edit directly, or in plain English through a custom GPT.
+  - Criteria in a document means non-technical staff change the scoring without code.
+- **Safe edits through the GPT.** Every edit is previewed, applied with a one-time token that expires, and recorded so it can be reversed.
+  - Preview, apply and undo means a bad edit is never permanent, and server-side validation of whitelisted settings and checked values rejects a malformed one.
+- **Outputs.** Grants above the sheet cutoff are logged to a shared tracker where staff approve or skip them, a daily email lists grants above the email cutoff, and a digest goes out on Fridays.
 
 ### Impact
 
@@ -103,10 +94,6 @@ Finding grants meant searching many funder websites by hand, and the paid platfo
 
 These figures are estimates, not measured results.
 
-### About the demo
-
-The window above is a stand-in that runs in your browser: twelve made-up grants and funders, seven stand-in flags modeled on the shape of the real framework, and a deterministic scorer. The threshold, the digest and the tracker are live, and the Edit criteria tab runs a real preview, apply and undo with an expiring one-time token. Nothing here is real grant data.
-
 ## IR Updater Bot
 
 A Microsoft Teams bot that lets residential-program staff file an incident report without leaving chat. Staff type a short command, fill a guided five-step form, and the bot creates the record in Salesforce for a supervisor to review. It replaced a paid add-on.
@@ -114,13 +101,6 @@ A Microsoft Teams bot that lets residential-program staff file an incident repor
 ### Problem
 
 To file an incident report, staff had to log into Salesforce directly, which meant training, access and finding their way around a complex layout. Frontline staff needed a way to report from the tool they already had open.
-
-### What it does
-
-- **Starts from a command** typed in Teams, then walks through five short steps.
-- **Fills in what it can**: staff, youth and enrollment details come from lookups, so staff don't retype them.
-- **Reviews before sending**, with an edit button on every step.
-- **Creates a Draft** incident plus one linked record for each youth involved. A supervisor reviews and approves it in Salesforce.
 
 ### Architecture
 
@@ -148,16 +128,16 @@ To file an incident report, staff had to log into Salesforce directly, which mea
 <figcaption>Incident bot architecture</figcaption>
 </figure>
 
-- Teams talks to a bot service, which calls one serverless function. The function validates the form, builds the incident and the linked youth records, and writes them to Salesforce.
-- Replies go back to Teams through the bot service. There is no database, queue or session store: the form's state travels inside each card, and nothing lives outside Salesforce.
-
-### Key decisions
-
-- **One function**, which keeps the infrastructure and the cost as small as possible.
-- **State in the card**, so the bot is stateless and a restart loses nothing.
-- **Draft only**: staff can create reports but not approve them, so a supervisor always reviews.
-- **Dependent picklists** with a rule that drops an invalid type and sub-type pair before anything is sent.
-- **Adding a form field is a one-file change**: the card input, the state key, the payload and the review card.
+- **A command and a guided form.** Staff type a short command in Teams and walk through five short steps. Staff, youth and enrollment details come from lookups, so staff don't retype them, and a review screen has an edit button on every step.
+- **One serverless function.** Teams talks to a bot service, which calls one function that validates the form, builds the incident and the linked youth records, and writes them to Salesforce.
+  - One function keeps the infrastructure and the cost as small as possible.
+- **State in the card.** The form's state travels inside each card, so there is no database, queue or session store.
+  - Keeping state in the card means the bot is stateless and a restart loses nothing.
+- **Draft records.** It creates a Draft incident plus one linked record for each youth involved, and a supervisor reviews and approves it in Salesforce.
+  - Draft only means staff can create reports but not approve them, so a supervisor always reviews.
+- **Dependent picklists.** Type and sub-type depend on each other, and a rule drops an invalid pair before anything is sent.
+  - Dropping an invalid pair up front keeps bad data out of Salesforce.
+- **Easy to extend.** Adding a form field is a one-file change: the card input, the state key, the payload and the review card.
 
 ### Impact
 
@@ -174,10 +154,6 @@ To file an incident report, staff had to log into Salesforce directly, which mea
 
 These figures are estimates, not measured results.
 
-### About the demo
-
-The window above is a stand-in that runs in your browser: a Teams-style chat, made-up youth and staff, and the same five-step flow. The dependent picklists, the review screen, the Draft record and the supervisor approval run real logic. Nothing here is real incident data.
-
 ## Case Note Coach
 
 An AI assistant that helps licensed clinicians write progress notes, and check notes they already wrote, against one behavioral-health payer's documentation standards. It expands a clinician's keywords into a note ready for the record, explains every decision, and rates notes pasted in.
@@ -185,12 +161,6 @@ An AI assistant that helps licensed clinicians write progress notes, and check n
 ### Problem
 
 Progress notes fail payer audits or supervisor review when they leave out the elements that show a session was medically necessary. Clinicians needed help writing notes that pass, and a way to learn what a strong note contains without a supervisor reading every one.
-
-### What it does
-
-- **Start a new note:** the clinician pastes keywords. The GPT lists everything that is missing in one message, then writes the note and an **Expansion Breakdown** that explains where each sentence came from and why.
-- **Check a note:** the clinician pastes an existing note in any format. The GPT rates it Tier 1, 2 or 3 and says exactly what to fix. It evaluates the note and does not rewrite it.
-- **Stays honest:** it never invents symptoms, diagnoses or client responses, and it never softens risk documentation.
 
 ### Architecture
 
@@ -217,18 +187,17 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 <figcaption>Case note chatbot architecture</figcaption>
 </figure>
 
-- One assistant with no backend code of its own. A single instructions file is the source of truth for the rules, the routing table and the output format.
-- The knowledge base is layered by authority: payer rules first, then audit guidance, sufficiency logic, supporting guides, and structured code and term lookups. When two layers disagree, the higher one wins.
-- The flow runs input, service type, a check of each of the three note sections, one message listing every gap, then the note and its breakdown.
-
-### Key decisions
-
-- **No embellishment.** Every sentence must trace to what the clinician said, because the note is a legal record. Gaps are flagged, not filled.
-- **An authority hierarchy**, so payer rules override generic advice.
-- **Three tiers, with hard fails and soft suggestions kept apart.** Missing administrative details are never graded.
-- **Risk documentation in three proportional categories**, not always required in full.
-- **Telehealth checks are reminders only** and never block a note.
-- **A high-capability reasoning model is required**, because smaller models loosen the ratings.
+- **One assistant, no backend.** The assistant has no backend code of its own. A single instructions file is the source of truth for the rules, the routing table and the output format, and the flow runs input, service type, a check of each of the three note sections, one message listing every gap, then the note and its breakdown.
+- **Two modes.** To start a note, the clinician pastes keywords and the GPT writes the note plus an Expansion Breakdown that explains where each sentence came from and why. To check a note, the clinician pastes an existing one in any format and the GPT rates it Tier 1, 2 or 3 and says exactly what to fix, without rewriting it.
+  - No embellishment: every sentence must trace to what the clinician said, because the note is a legal record, so gaps are flagged, not filled. It never invents symptoms, diagnoses or client responses, and never softens risk documentation.
+- **A knowledge base layered by authority.** Payer rules come first, then audit guidance, sufficiency logic, supporting guides, and structured code and term lookups.
+  - An authority hierarchy means that when two layers disagree, the higher one wins, so payer rules override generic advice.
+- **Three tiers.** Hard fails and soft suggestions are kept apart, and missing administrative details are never graded.
+  - Keeping hard fails apart from soft suggestions means a note is not failed for a minor gap.
+- **Risk and telehealth checks.** Risk documentation is in three proportional categories, not always required in full, and telehealth checks are reminders only.
+  - Proportional risk categories mean the documentation asked for matches the risk, and reminders mean a telehealth detail never blocks a note.
+- **A high-capability reasoning model.** The assistant is run on one.
+  - Smaller models loosen the ratings.
 
 ### Impact
 
@@ -243,7 +212,3 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 - **Notes checked per week:** about 50
 
 These figures are estimates, not measured results.
-
-### About the demo
-
-The window above is a stand-in that runs in your browser. The real tool is an AI assistant configured with instructions and a knowledge base. The demo uses made-up documentation standards, rule checks for the eight conditions (two of them keyword heuristics), local retrieval for questions, and a note builder where every sentence comes from the input. It is not a language model, and it holds no real clinical content.
