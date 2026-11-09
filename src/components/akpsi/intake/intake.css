@@ -1,0 +1,53 @@
+/* Membership intake pipeline. Frame chrome comes from qa.css; every rule is prefixed with .intake. */
+.intake { max-width: 100%; }
+.intake .qa-top { flex-wrap: wrap; }
+
+/* The applicant list: a wrapping row of chips, never a horizontal scroll. */
+.intake .intake-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 14px 0; min-width: 0; }
+.intake .intake-pick {
+  min-height: 44px; min-width: 44px; padding: 6px 12px; font: 600 12px var(--font-mono);
+  color: var(--color-muted); background: transparent;
+  border: 1px solid var(--color-rule); border-radius: 999px; cursor: pointer;
+}
+.intake .intake-pick:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.intake .intake-pick[aria-pressed='true'] { border-color: var(--color-accent); background: var(--color-chip); color: var(--color-fg); }
+
+/* The email under work. */
+.intake .intake-mail { padding: 12px 14px 0; min-width: 0; }
+.intake .intake-mail p { margin: 0 0 4px; font-size: 13px; color: var(--color-muted); overflow-wrap: anywhere; }
+.intake .intake-mail .intake-subject b { color: var(--color-fg); font-weight: 600; }
+
+/* The stage list: a plain ordered list, no motion. */
+.intake .intake-steps { list-style: none; margin: 12px 14px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.intake .intake-steps li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; min-width: 0;
+  font: 13px var(--font-sans); color: var(--color-muted);
+  background: var(--color-chip); border-radius: 6px; padding: 6px 10px;
+}
+.intake .intake-steps li.done { color: var(--color-fg); }
+.intake .intake-steps li.on { color: var(--color-fg); border: 1px solid var(--color-accent); padding: 5px 9px; }
+.intake .intake-step-t { min-width: 0; overflow-wrap: anywhere; }
+.intake .intake-step-s { font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); margin-left: auto; }
+
+/* The output of the stages reached so far. */
+.intake .intake-out { padding: 12px 14px 0; min-width: 0; }
+.intake .intake-empty { margin: 0; font-size: 13px; color: var(--color-muted); }
+.intake .intake-results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.intake .intake-results li {
+  display: flex; flex-wrap: wrap; gap: 4px 10px; min-width: 0;
+  font-size: 13px; color: var(--color-fg); background: var(--color-chip); border-radius: 6px; padding: 7px 10px;
+}
+.intake .intake-k { font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.intake .intake-v { min-width: 0; overflow-wrap: anywhere; }
+/* A flagged row is the one that needs a person, so it carries the accent. */
+.intake .intake-results li:has(.intake-flag) { border-left: 3px solid var(--color-accent); }
+
+.intake .intake-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 14px 0; min-height: 44px; }
+.intake .intake-note { font-size: 13px; color: var(--color-muted); }
+
+.intake .intake-cap { margin: 0; padding: 12px 14px 14px; font-size: 12px; color: var(--color-muted); }
+
+@media (max-width: 640px) {
+  .intake .intake-list { gap: 6px; }
+  .intake .intake-pick { padding: 6px 10px; }
+}
