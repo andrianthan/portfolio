@@ -58,6 +58,56 @@ export default function IntakeDemo({ presses = 0 }: { presses?: number } = {}) {
 
   const done = (s: Stage) => state.completed.includes(s);
 
+  // The rows the pipeline has produced so far, one per stage it has been
+  // through. The list is built here so the live region can sit on the last
+  // row alone: the rows are appended in stage order, so the last one is
+  // always the stage that has just finished.
+  const rows: { key: string; value: string; flagged: boolean }[] = [];
+  if (done('classify')) {
+    rows.push({
+      key: 'Classify',
+      value: 'Membership application, answered from the intake mailbox.',
+      flagged: false,
+    });
+  }
+  if (done('knowledge') && state.answer) {
+    rows.push({ key: 'Answer', value: state.answer, flagged: false });
+  }
+  if (state.flagged && state.stage === 'knowledge') {
+    rows.push({
+      key: 'Answer',
+      value: 'No knowledge-base answer, so this one is flagged for a person.',
+      flagged: true,
+    });
+  }
+  if (done('attachments')) {
+    rows.push({
+      key: 'Attachments',
+      value: `${email.attachments.map((a) => a.name).join(', ')} — all readable.`,
+      flagged: false,
+    });
+  }
+  if (state.flagged && state.stage === 'attachments') {
+    const invalid = email.attachments.find((a) => a.name === state.invalid);
+    rows.push({
+      key: 'Attachments',
+      value: `${state.invalid} is not a readable ${invalid?.kind ?? 'file'}, so this one is flagged for a person.`,
+      flagged: true,
+    });
+  }
+  if (done('drive') && state.folder) {
+    rows.push({ key: 'Drive', value: state.folder, flagged: false });
+  }
+  if (done('schedule')) {
+    rows.push({
+      key: 'Slots',
+      value: state.slots.length > 0
+        ? state.slots.join(' · ')
+        : 'No slot proposed — the availability named no day or time.',
+      flagged: false,
+    });
+  }
+
   return (
     <div className="qa intake" role="group" aria-label="Sample membership intake pipeline">
       <div className="qa-top">
@@ -101,59 +151,24 @@ export default function IntakeDemo({ presses = 0 }: { presses?: number } = {}) {
         })}
       </ol>
 
-      <div className="intake-out" role="status" aria-live="polite">
-        {state.completed.length === 0 && !state.flagged ? (
+      <div className="intake-out">
+        {rows.length === 0 ? (
           <p className="intake-empty">Press Process to run the pipeline on this sample email.</p>
         ) : (
           <ul className="intake-results">
-            {done('classify') && (
-              <li>
-                <span className="intake-k">Classify</span>
-                <span className="intake-v">Membership application, answered from the intake mailbox.</span>
+            {rows.map((r, i) => (
+              <li
+                key={r.key}
+                // The live region is on the last row alone, so a screen reader
+                // hears the stage that just finished instead of the whole
+                // list every time. A live region around the whole list would
+                // re-announce every earlier row on each press.
+                {...(i === rows.length - 1 ? { role: 'status', 'aria-live': 'polite' } : {})}
+              >
+                <span className="intake-k">{r.key}</span>
+                <span className={r.flagged ? 'intake-v intake-flag' : 'intake-v'}>{r.value}</span>
               </li>
-            )}
-            {done('knowledge') && state.answer && (
-              <li>
-                <span className="intake-k">Answer</span>
-                <span className="intake-v">{state.answer}</span>
-              </li>
-            )}
-            {state.flagged && state.stage === 'knowledge' && (
-              <li>
-                <span className="intake-k">Answer</span>
-                <span className="intake-v intake-flag">No knowledge-base answer, so this one is flagged for a person.</span>
-              </li>
-            )}
-            {done('attachments') && (
-              <li>
-                <span className="intake-k">Attachments</span>
-                <span className="intake-v">
-                  {email.attachments.map((a) => a.name).join(', ')} — all readable.
-                </span>
-              </li>
-            )}
-            {state.flagged && state.stage === 'attachments' && (
-              <li>
-                <span className="intake-k">Attachments</span>
-                <span className="intake-v intake-flag">
-                  {state.invalid} is not a readable {email.attachments.find((a) => a.name === state.invalid)?.kind ?? 'file'}, so this one is flagged for a person.
-                </span>
-              </li>
-            )}
-            {done('drive') && state.folder && (
-              <li>
-                <span className="intake-k">Drive</span>
-                <span className="intake-v">{state.folder}</span>
-              </li>
-            )}
-            {done('schedule') && (
-              <li>
-                <span className="intake-k">Slots</span>
-                <span className="intake-v">
-                  {state.slots.length > 0 ? state.slots.join(' · ') : 'No slot proposed — the availability named no day or time.'}
-                </span>
-              </li>
-            )}
+            ))}
           </ul>
         )}
       </div>

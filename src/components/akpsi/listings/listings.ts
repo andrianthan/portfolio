@@ -28,10 +28,12 @@ export function filterListings(listings: readonly Listing[], opts: ListingFilter
  * channel is not posted twice, so the channel comes back exactly as it was.
  *
  * The channel handed in is never changed; a new one comes back when the
- * listing is posted.
+ * listing is posted. When the listing is already there the *same* array
+ * comes back, not a copy of it: React bails out of a re-render when the
+ * state is unchanged, and a fresh copy would defeat that.
  */
-export function postToChannel(channel: readonly Listing[], listing: Listing): Listing[] {
-  if (channel.some((l) => l.id === listing.id)) return [...channel];
+export function postToChannel<T extends readonly Listing[]>(channel: T, listing: Listing): T | Listing[] {
+  if (channel.some((l) => l.id === listing.id)) return channel;
   return [...channel, listing];
 }
 

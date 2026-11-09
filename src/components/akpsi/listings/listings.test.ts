@@ -57,6 +57,23 @@ describe('fixtures', () => {
   it('dates every listing in the posted format', () => {
     LISTINGS.forEach((l) => expect(l.posted).toMatch(/^2026-\d\d-\d\d$/));
   });
+  it('holds exactly the ten rows, each one pinned', () => {
+    // The whole row, not just the id: a fixture edit that mislabels a
+    // listing — a title on the wrong row, a source swapped for a role type —
+    // would otherwise ship without a word.
+    expect(LISTINGS).toEqual([
+      { id: 'L-01', title: 'Software Engineering Intern', company: 'Northwind Labs', source: 'career site', roleType: 'internship', posted: '2026-01-12', place: 'Remote' },
+      { id: 'L-02', title: 'Robotics Intern', company: 'Harborlight Robotics', source: 'career site', roleType: 'internship', posted: '2026-01-14', place: 'Seattle, WA' },
+      { id: 'L-03', title: 'Backend Engineer Intern', company: 'Cedarworks Systems', source: 'GitHub list', roleType: 'internship', posted: '2026-01-15', place: 'Remote' },
+      { id: 'L-04', title: 'Software Engineer, New Grad', company: 'Lumenworks', source: 'career site', roleType: 'new grad', posted: '2026-01-16', place: 'Boston, MA' },
+      { id: 'L-05', title: 'Health Data Intern', company: 'Asterline Health', source: 'referral', roleType: 'internship', posted: '2026-01-17', place: 'Austin, TX' },
+      { id: 'L-06', title: 'Platform Engineering Intern', company: 'Quarryline Software', source: 'GitHub list', roleType: 'internship', posted: '2026-01-19', place: 'Remote' },
+      { id: 'L-07', title: 'Data Science Intern', company: 'Tidecrest Data', source: 'GitHub list', roleType: 'internship', posted: '2026-01-20', place: 'Chicago, IL' },
+      { id: 'L-08', title: 'Co-op, Test Engineering', company: 'Brightfold Labs', source: 'career site', roleType: 'co-op', posted: '2026-01-21', place: 'Denver, CO' },
+      { id: 'L-09', title: 'New Grad Software Engineer', company: 'Stonebridge Analytics', source: 'referral', roleType: 'new grad', posted: '2026-01-22', place: 'Atlanta, GA' },
+      { id: 'L-10', title: 'Co-op, Embedded Systems', company: 'Vantagepoint Robotics', source: 'career site', roleType: 'co-op', posted: '2026-01-23', place: 'San Diego, CA' },
+    ]);
+  });
 });
 
 describe('filterListings', () => {
@@ -97,6 +114,13 @@ describe('postToChannel', () => {
     const again = postToChannel(channel, LISTINGS[0]);
     expect(again).toHaveLength(1);
     expect(ids(again)).toEqual(['L-01']);
+  });
+  it('hands back the same array when the listing is already in it', () => {
+    // The same reference, not a copy of it: React bails out of a re-render
+    // when the state is unchanged, and a fresh copy would defeat that.
+    const channel = postToChannel([], LISTINGS[0]);
+    const again = postToChannel(channel, LISTINGS[0]);
+    expect(again).toBe(channel);
   });
   it('does not add a second copy of a listing posted twice', () => {
     let channel = postToChannel([], LISTINGS[4]);

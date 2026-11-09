@@ -53,6 +53,24 @@ describe('IntakeDemo', () => {
     expect(underWay).toContain('>next<');
     expect(underWay).not.toContain('Interview proposed.');
   });
+  it('announces only the stage that has just finished', () => {
+    // The live region is on the last result row alone. A live region around
+    // the whole list would re-announce every earlier row on each press.
+    const underWay = renderToStaticMarkup(<IntakeDemo presses={2} />);
+    const live = underWay.match(/aria-live="polite"/g) ?? [];
+    expect(live, 'the live regions in the markup').toHaveLength(1);
+    // The live region is a row of the list, not a wrapper around it.
+    expect(underWay).not.toMatch(/<div class="intake-out"[^>]*aria-live=/);
+    const list = underWay.match(/<ul class="intake-results">([\s\S]*?)<\/ul>/);
+    expect(list, 'the results list').toBeTruthy();
+    const rows = list![1].match(/<li[^>]*>/g) ?? [];
+    expect(rows.length).toBeGreaterThan(1);
+    // Only the last row carries the live region, so the earlier rows are not
+    // announced again on every press.
+    expect(rows.slice(0, -1).join('')).not.toContain('aria-live');
+    expect(rows[rows.length - 1]).toContain('role="status"');
+    expect(rows[rows.length - 1]).toContain('aria-live="polite"');
+  });
   it('holds no email address', () => {
     expect(html).not.toContain('@');
   });

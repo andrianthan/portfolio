@@ -11,6 +11,27 @@
  * Run it with `npm run browser-check`. If Chrome is not installed the check
  * prints a SKIP line and exits 0; anything it does measure and finds broken
  * exits non-zero.
+ *
+ * What this check does not prove:
+ *
+ *   - The demos are driven with `element.click()`, which exercises React's
+ *     synthetic handler but not real pointer hit-testing. An overlay
+ *     covering a control would not be caught: the click would land on the
+ *     element even though a person could not have pressed it.
+ *   - The theme is applied after the page has loaded, so first paint is
+ *     measured in the default theme only. A first-paint flash of the wrong
+ *     theme would not be caught.
+ *
+ * The per-project demo rule below is a general one over every multi-project
+ * work page, and it is general on purpose. A swap of the two Alpha Kappa
+ * Psi demos once passed this entire check: every demo was found by its
+ * selector anywhere on the page, and nothing said which project each demo
+ * belonged to, so the published page showed the listings demo under
+ * "Membership intake automation" and the intake demo under "Opportunity
+ * bot" with the whole gate green. The rule is therefore stated over the
+ * page's project sections and the declared prefix-to-demo mapping, so it
+ * covers every multi-project page and survives a change to the template's
+ * own demo lookup.
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -34,6 +55,87 @@ const THEMES = ['vapor', 'light'];
 
 // The Alpha Kappa Psi work page, and the home page it is linked from.
 const AKPSI_PATH = '/work/akpsi/';
+
+/**
+ * Which demo belongs to which project, stated by the check itself.
+ *
+ * A project heading's id starts with the prefix of the demo it owns, and
+ * the demo's island carries the component's name. This table is the check's
+ * own statement of that pairing, deliberately written out here rather than
+ * read out of the template: the template's lookup is the thing under test,
+ * so the expectation cannot come from it.
+ *
+ * Every multi-project work page is covered, so a demo moved onto the wrong
+ * project is caught wherever it happens.
+ */
+const DEMO_BY_PREFIX = [
+  { prefix: 'qa-analyst', component: 'QaDemo' },
+  { prefix: 'guideline-chatbot', component: 'GuideDemo' },
+  { prefix: 'image-search', component: 'ImageSearchDemo' },
+  { prefix: 'grants-agent', component: 'GrantsDemo' },
+  { prefix: 'ir-updater', component: 'IrDemo' },
+  { prefix: 'case-note-coach', component: 'NoteCoachDemo' },
+  { prefix: 'dashboard', component: 'DashboardDemo' },
+  { prefix: 'part-summary', component: 'PartSummaryDemo' },
+  { prefix: 'ask-sdp', component: 'AskSdpDemo' },
+  { prefix: 'forecast-lab', component: 'ForecastLabDemo' },
+  { prefix: 'campaigns', component: 'CampaignsDemo' },
+  { prefix: 'slideshow-generation', component: 'SlidesDemo' },
+  { prefix: 'modular-architecture', component: 'ModularDemo' },
+  { prefix: 'admin', component: 'AdminDemo' },
+  { prefix: 'wafer-analysis-copilot', component: 'CopilotDemo' },
+  { prefix: 'wafer-risk-model', component: 'RiskDemo' },
+  { prefix: 'membership-intake', component: 'IntakeDemo' },
+  { prefix: 'opportunity-bot', component: 'ListingsDemo' },
+];
+
+/** The demo a project heading id owns, or null when it owns none. */
+function demoForPrefix(id) {
+  // The longest matching prefix wins, so the answer does not depend on the
+  // order the table is written in.
+  let hit = null;
+  for (const d of DEMO_BY_PREFIX) {
+    if (!id.startsWith(d.prefix)) continue;
+    if (!hit || d.prefix.length > hit.prefix.length) hit = d;
+  }
+  return hit ? hit.component : null;
+}
+
+/**
+ * The multi-project work pages, and the order their projects are expected to
+ * be in.
+ *
+ * The order is stated per page only where the plan states it (the Alpha
+ * Kappa Psi page). Every other page's order is derived twice: from its own
+ * table of contents, which lists the projects in the order they are meant to
+ * be in, and from its content entry, whose `##` headings are in the order
+ * the projects were written. The two derivations are independent of each
+ * other, so a template that renders the sections in a different order from
+ * the one the entry was written in is caught on every page.
+ */
+const MULTI_PAGES = [
+  { path: '/work/tesla/', slug: 'tesla', expectedOrder: null },
+  { path: '/work/hanna/', slug: 'hanna', expectedOrder: null },
+  { path: '/work/bluedome/', slug: 'bluedome', expectedOrder: null },
+  { path: '/work/micron/', slug: 'micron', expectedOrder: null },
+  { path: '/work/akpsi/', slug: 'akpsi', expectedOrder: ['membership-intake-automation', 'opportunity-bot'] },
+];
+
+/**
+ * The project headings of a work entry, in the order the entry writes them.
+ *
+ * The heading text is read straight out of the markdown, so the order does
+ * not depend on how the ids are slugged.
+ */
+function contentHeadings(slug) {
+  const file = path.join(root, 'src', 'content', 'work', `${slug}.md`);
+  if (!fs.existsSync(file)) return null;
+  const body = fs.readFileSync(file, 'utf8');
+  return body
+    .split('\n')
+    .filter((line) => /^## /.test(line))
+    .map((line) => line.slice(3).trim());
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -297,8 +399,47 @@ const AKPSI_INTRO_MEASUREMENT = `(() => {
     introParas,
     found,
     beforeFirstProject: found.every((f) => f.found),
-    projectOrder: [...document.querySelectorAll('.project')].map((s) => s.id),
   };
+})()`;
+
+// Every multi-project work page: which demo each project section holds, and
+// the order the sections are in.
+//
+// The demo of a section is read from the island's own `opts` attribute, which
+// names the component. That is exact: two demos can share a root class (the
+// label review tool and the grants agent are both `qa`), so a class would not
+// tell them apart, while the component name always does.
+//
+// The order comes from the page's own table of contents: the "Projects 01 …
+// 02 …" list states the order the projects are in, and the sections have to
+// be rendered in that same order.
+const PROJECT_DEMO_MEASUREMENT = `(() => {
+  const nameOf = (island) => {
+    const opts = island.getAttribute('opts');
+    if (!opts) return null;
+    const m = opts.match(/"name"\\s*:\\s*"([^"]+)"/);
+    return m ? m[1] : null;
+  };
+  const projects = [...document.querySelectorAll('.project')].map((section) => {
+    // The heading carries the number span and the title, so the title is
+    // what is left once the number is dropped.
+    const heading = section.querySelector('h2');
+    const number = heading?.querySelector('.n');
+    const title = heading ? heading.textContent.trim().replace(number?.textContent.trim() ?? '', '').trim() : '';
+    return {
+      id: section.id,
+      title,
+      demos: [...section.querySelectorAll('astro-island')].map(nameOf).filter(Boolean),
+    };
+  });
+  // The table of contents lists the projects in the order they are meant to
+  // be in, so its links are the expected order.
+  const tocOrder = [...document.querySelectorAll('.toc a[href^="#"]')].map((a) => {
+    const href = a.getAttribute('href') ?? '';
+    return href.startsWith('#') ? href.slice(1) : href;
+  });
+  const tocNumbers = [...document.querySelectorAll('.toc a[href^="#"] .n')].map((n) => n.textContent.trim());
+  return { projects, tocOrder, tocNumbers };
 })()`;
 
 // The two demos on the Alpha Kappa Psi page: each is a `qa` window with a
@@ -716,6 +857,110 @@ async function setTheme(cdp, theme) {
   await evaluate(cdp, `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)})`);
 }
 
+/**
+ * A multi-project work page: which demo each project section holds, and the
+ * order the sections are in.
+ *
+ * The demo rule is the same on every page, and it is the rule that was
+ * missing when a swap of the two Alpha Kappa Psi demos passed the whole
+ * check: a project section must hold the demo its own heading id maps to,
+ * and it must not hold any other demo. The mapping comes from the check's
+ * own table, so a demo moved onto the wrong project is caught whichever
+ * page it happens on.
+ *
+ * The order is checked twice: against the page's own table of contents,
+ * which states the order the projects are in, and against its content
+ * entry, which writes the projects in that order. A page whose plan states
+ * an order of its own passes that order instead.
+ */
+async function checkMultiPage(cdp, url, page) {
+  // A fixed viewport, so the measurement does not depend on whatever width
+  // the previous check left the browser at.
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: 1280,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await cdp.send('Page.navigate', { url });
+  await cdp.waitFor('Page.loadEventFired');
+  await sleep(600);
+
+  const measured = await evaluate(cdp, PROJECT_DEMO_MEASUREMENT);
+
+  if (measured.projects.length === 0) {
+    note(`${page.path} has no project sections, so its demos could not be measured`);
+    return { path: page.path, projects: [], ok: false };
+  }
+
+  // The demo each section holds, against the demo its heading id maps to.
+  for (const project of measured.projects) {
+    const expected = demoForPrefix(project.id);
+    if (expected === null) {
+      note(`${page.path}: the project "${project.id}" maps to no demo, so the demo it holds cannot be checked`);
+      continue;
+    }
+    if (project.demos.length === 0) {
+      note(`${page.path}: the project "${project.id}" holds no demo, expected the "${expected}" demo`);
+      continue;
+    }
+    if (project.demos.length > 1) {
+      note(`${page.path}: the project "${project.id}" holds ${project.demos.length} demos (${project.demos.join(', ')}), expected only the "${expected}" demo`);
+    }
+    // The section must hold its own demo, and it must not hold another
+    // project's demo either. Both are checked here rather than by the count
+    // alone, so the failure names the demo that is in the wrong place.
+    if (!project.demos.includes(expected)) {
+      note(`${page.path}: the project "${project.id}" does not hold the "${expected}" demo, expected it to`);
+    }
+    for (const other of DEMO_BY_PREFIX) {
+      if (other.component === expected) continue;
+      if (project.demos.includes(other.component)) {
+        note(`${page.path}: the project "${project.id}" holds the "${other.component}" demo, which belongs to another project`);
+      }
+    }
+  }
+
+  // The order of the projects. The page's own table of contents states it.
+  const rendered = measured.projects.map((p) => p.id);
+  const expectedOrder = page.expectedOrder ?? measured.tocOrder;
+  if (expectedOrder.length === 0) {
+    note(`${page.path} has a table of contents with no project links, so the project order could not be checked`);
+  } else if (rendered.join('|') !== expectedOrder.join('|')) {
+    note(`${page.path}: the projects are rendered in the order ${rendered.join(', ')}, expected ${expectedOrder.join(', ')}`);
+  }
+
+  // The order the content entry writes its projects in. This is a second,
+  // independent statement of the order: the table of contents and the
+  // sections are both built from the template's project list, so on their
+  // own they cannot catch a template that renders the sections in a
+  // different order from the one the entry was written in. Reordering the
+  // entry itself moves both, so that is caught by the page's own stated
+  // order instead.
+  const headings = contentHeadings(page.slug);
+  if (headings === null) {
+    note(`${page.path}: its content entry could not be read, so the project order could not be checked against it`);
+  } else if (headings.length !== measured.projects.length) {
+    note(`${page.path}: the content entry names ${headings.length} project headings, but the page renders ${measured.projects.length} project sections`);
+  } else {
+    const titles = measured.projects.map((p) => p.title);
+    if (titles.join('|') !== headings.join('|')) {
+      note(`${page.path}: the projects are rendered in the order ${titles.join(', ')}, but the content entry writes them as ${headings.join(', ')}`);
+    }
+  }
+
+  // The table of contents numbers its entries from one, in order.
+  const numbers = measured.tocNumbers;
+  if (numbers.length > 0) {
+    const wanted = numbers.map((_, i) => String(i + 1).padStart(2, '0'));
+    if (numbers.join('|') !== wanted.join('|')) {
+      note(`${page.path}: the table of contents numbers its projects ${numbers.join(', ')}, expected ${wanted.join(', ')}`);
+    }
+  }
+
+  return { path: page.path, projects: measured.projects, tocOrder: measured.tocOrder, ok: true };
+}
+
 // The Alpha Kappa Psi work page, at one width in one theme.
 //
 // The page has to carry its intro before the first project, both demos with
@@ -978,6 +1223,15 @@ async function main() {
     console.error(`FAIL: there is no built Alpha Kappa Psi page at ${akpsiBuilt}. Run "npm run build" first.`);
     return 1;
   }
+  // The same for every multi-project page: the per-project demo rule is only
+  // worth anything if it is run against a page that exists.
+  for (const page of MULTI_PAGES) {
+    const built = path.join(distDir, page.path, 'index.html');
+    if (!fs.existsSync(built)) {
+      console.error(`FAIL: there is no built page at ${built}. Run "npm run build" first.`);
+      return 1;
+    }
+  }
 
   const { server, port } = await serve(distDir);
   const url = `http://127.0.0.1:${port}/`;
@@ -999,6 +1253,7 @@ async function main() {
 
   const results = [];
   const akpsiResults = [];
+  const multiResults = [];
   try {
     await sleep(300);
     let target = null;
@@ -1046,6 +1301,20 @@ async function main() {
       );
     }
 
+    // Every multi-project work page: each project section holds the demo its
+    // own heading id maps to, and the sections are in the order the page's
+    // table of contents states.
+    for (const page of MULTI_PAGES) {
+      const result = await checkMultiPage(cdp, `http://127.0.0.1:${port}${page.path}`, page);
+      multiResults.push(result);
+      console.log(
+        `${page.path.padEnd(18)}  ` +
+        `projects ${result.ok ? result.projects.length : 'MISSING'}  ` +
+        `order ${result.ok ? result.tocOrder.join(' → ') : 'n/a'}  ` +
+        `demos ${result.ok ? result.projects.map((p) => `${p.id}:${p.demos.join('+') || 'NONE'}`).join('  ') : 'n/a'}`,
+      );
+    }
+
     // The Alpha Kappa Psi work page, at every width in both themes.
     for (const theme of THEMES) {
       for (const width of WIDTHS) {
@@ -1085,6 +1354,7 @@ async function main() {
   }
   console.log(
     `browser-check: ok (${results.length} widths, ${WIDTHS.join(', ')} px; ` +
+    `${multiResults.length} project pages; ` +
     `akpsi ${akpsiResults.length} checks, ${THEMES.join(' and ')})`,
   );
   return 0;
