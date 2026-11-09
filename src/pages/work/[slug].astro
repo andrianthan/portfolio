@@ -18,6 +18,8 @@ import ModularDemo from '../../components/tesla/modular/ModularDemo';
 import AdminDemo from '../../components/tesla/admin/AdminDemo';
 import CopilotDemo from '../../components/micron/copilot/CopilotDemo';
 import RiskDemo from '../../components/micron/risk/RiskDemo';
+import IntakeDemo from '../../components/akpsi/intake/IntakeDemo';
+import ListingsDemo from '../../components/akpsi/listings/ListingsDemo';
 import '../../styles/projects.css';
 
 export async function getStaticPaths() {
@@ -31,9 +33,9 @@ export async function getStaticPaths() {
 // Pages that hold several projects: each `##` heading is a project, and its demo (if any)
 // renders right after the project's first paragraph.
 // Demos are matched by heading id prefix. Astro needs static component references to hydrate.
-const MULTI = new Set(['bluedome', 'hanna', 'tesla', 'micron']);
+const MULTI = new Set(['bluedome', 'hanna', 'tesla', 'micron', 'akpsi']);
 
-type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'dashboard' | 'part' | 'ask' | 'forecast' | 'campaigns' | 'slides' | 'modular' | 'admin' | 'wafer' | 'risk';
+type Demo = 'qa' | 'img' | 'grants' | 'ir' | 'notes' | 'guide' | 'dashboard' | 'part' | 'ask' | 'forecast' | 'campaigns' | 'slides' | 'modular' | 'admin' | 'wafer' | 'risk' | 'intake' | 'listings';
 
 // Which demo a project renders, if any. The page's mock-data note uses the same
 // lookup, so a page that shows a demo always carries the note.
@@ -54,6 +56,8 @@ function demoFor(id: string): Demo | null {
   if (id.startsWith('admin')) return 'admin';
   if (id.startsWith('wafer-analysis-copilot')) return 'wafer';
   if (id.startsWith('wafer-risk-model')) return 'risk';
+  if (id.startsWith('membership-intake')) return 'intake';
+  if (id.startsWith('opportunity-bot')) return 'listings';
   return null;
 }
 
@@ -70,9 +74,19 @@ const d = entry.data;
 const multi = MULTI.has(entry.id);
 interface Project { id: string; title: string; head: string; intro: string; rest: string; demo: Demo | null }
 const projects: Project[] = [];
+let introHtml = '';
 if (multi) {
   const html = entry.rendered?.html ?? '';
-  for (const chunk of html.split(/(?=<h2[ >])/).filter((c) => c.trim().startsWith('<h2'))) {
+  // Split on the project headings. Whatever comes before the first heading is
+  // the page intro; the rest are the projects. A body that starts with a
+  // heading puts its first project in chunk 0, so the intro is only the text
+  // ahead of that heading, and a body with no heading at all is all intro.
+  const chunks = html.split(/(?=<h2[ >])/);
+  const first = chunks[0] ?? '';
+  const headingAt = first.search(/<h2[ >]/);
+  introHtml = (headingAt === -1 ? first : first.slice(0, headingAt)).trim();
+  const projectChunks = chunks.filter((c) => c.trim().startsWith('<h2'));
+  for (const chunk of projectChunks) {
     const m = chunk.match(/^<h2[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/);
     if (!m) continue;
     const after = chunk.slice(m[0].length);
@@ -125,45 +139,52 @@ const hasDemos = projects.some((p) => p.demo !== null);
     )}
   </Fragment>
   {multi
-    ? projects.map((p, i) => {
-        const demo = p.demo;
-        return (
-          <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
-            <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
-            <Fragment set:html={p.intro} />
-            {demo && (
-              <div class="demo-slot">
-                {/* A switch with a never-typed default: a demo no case handles is
-                    a type error, not an empty demo slot. The component references
-                    have to stay literal here, because Astro can only hydrate a
-                    component it can see the import of. */}
-                {(() => {
-                  switch (demo) {
-                    case 'qa': return <QaDemo client:visible />;
-                    case 'img': return <ImageSearchDemo client:visible />;
-                    case 'grants': return <GrantsDemo client:visible />;
-                    case 'ir': return <IrDemo client:visible />;
-                    case 'notes': return <NoteCoachDemo client:visible />;
-                    case 'guide': return <GuideDemo client:visible />;
-                    case 'dashboard': return <DashboardDemo client:visible />;
-                    case 'part': return <PartSummaryDemo client:visible />;
-                    case 'ask': return <AskSdpDemo client:visible />;
-                    case 'forecast': return <ForecastLabDemo client:visible />;
-                    case 'campaigns': return <CampaignsDemo client:visible />;
-                    case 'slides': return <SlidesDemo client:visible />;
-                    case 'modular': return <ModularDemo client:visible />;
-                    case 'admin': return <AdminDemo client:visible />;
-                    case 'wafer': return <CopilotDemo client:visible />;
-                    case 'risk': return <RiskDemo client:visible />;
-                    default: return unhandledDemo(demo);
-                  }
-                })()}
-                <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
-              </div>
-            )}
-            <Fragment set:html={p.rest} />
-          </section>
-        );
-      })
+    ? (
+      <>
+        {introHtml && <Fragment set:html={introHtml} />}
+        {projects.map((p, i) => {
+          const demo = p.demo;
+          return (
+            <section class="project" id={p.id} aria-labelledby={`${p.id}-h`}>
+              <h2 id={`${p.id}-h`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</h2>
+              <Fragment set:html={p.intro} />
+              {demo && (
+                <div class="demo-slot">
+                  {/* A switch with a never-typed default: a demo no case handles is
+                      a type error, not an empty demo slot. The component references
+                      have to stay literal here, because Astro can only hydrate a
+                      component it can see the import of. */}
+                  {(() => {
+                    switch (demo) {
+                      case 'qa': return <QaDemo client:visible />;
+                      case 'img': return <ImageSearchDemo client:visible />;
+                      case 'grants': return <GrantsDemo client:visible />;
+                      case 'ir': return <IrDemo client:visible />;
+                      case 'notes': return <NoteCoachDemo client:visible />;
+                      case 'guide': return <GuideDemo client:visible />;
+                      case 'dashboard': return <DashboardDemo client:visible />;
+                      case 'part': return <PartSummaryDemo client:visible />;
+                      case 'ask': return <AskSdpDemo client:visible />;
+                      case 'forecast': return <ForecastLabDemo client:visible />;
+                      case 'campaigns': return <CampaignsDemo client:visible />;
+                      case 'slides': return <SlidesDemo client:visible />;
+                      case 'modular': return <ModularDemo client:visible />;
+                      case 'admin': return <AdminDemo client:visible />;
+                      case 'wafer': return <CopilotDemo client:visible />;
+                      case 'risk': return <RiskDemo client:visible />;
+                      case 'intake': return <IntakeDemo client:visible />;
+                      case 'listings': return <ListingsDemo client:visible />;
+                      default: return unhandledDemo(demo);
+                    }
+                  })()}
+                  <noscript><p>Interactive sample (needs JavaScript).</p></noscript>
+                </div>
+              )}
+              <Fragment set:html={p.rest} />
+            </section>
+          );
+        })}
+      </>
+    )
     : <Content />}
 </Detail>

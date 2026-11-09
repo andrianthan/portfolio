@@ -19,6 +19,8 @@
   { "query": "wafer risk model", "expectIntent": "search", "expectTop": "role:micron" },
   { "query": "wafer analysis copilot", "expectIntent": "search", "expectTop": "role:micron" },
   { "query": "Blue Dome Technologies", "expectIntent": "experience", "expectTop": "role:bluedome" },
+  { "query": "what did you do at alpha kappa psi", "expectIntent": "experience", "expectTop": "role:akpsi" },
+  { "query": "what does the opportunity bot do", "expectIntent": "search", "expectTop": "role:akpsi" },
   { "query": "AdvisorAI", "expectIntent": "projects", "expectTop": "project:advisorai" },
   { "query": "what is ai-swing-trader", "expectIntent": "projects", "expectTop": "project:ai-swing-trader" },
   { "query": "claude-token-saver", "expectIntent": "projects", "expectTop": "project:claude-token-saver" },
