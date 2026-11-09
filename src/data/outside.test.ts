@@ -46,7 +46,10 @@ describe('photos', () => {
     // The manifest lists the approved photos; the directory is what actually
     // ships. A file in one and not the other is either an unapproved photo or
     // a missing one, and it must never reach the page.
-    const onDisk = readdirSync(join(root, 'public', 'outside')).filter((name) => name.endsWith('.webp'));
+    //
+    // Every file in the directory counts, not just the WebP ones: a stray
+    // .jpg dropped into the directory would ship just as a .webp would.
+    const onDisk = readdirSync(join(root, 'public', 'outside'));
     const listed = photos.map((p) => `${p.id}.webp`);
     const strays = onDisk.filter((name) => !listed.includes(name));
     const missing = listed.filter((name) => !onDisk.includes(name));
@@ -59,16 +62,25 @@ describe('photos', () => {
     // files the manifest lists: a stray file dropped into public/outside would
     // otherwise ship without counting against the cap and without being
     // scanned for EXIF or XMP.
+    //
+    // Every file is scanned, whatever it is called: the spec asks for a test
+    // that reads every file under public/outside and fails if it contains an
+    // Exif or GPS segment, and a .jpg with EXIF is exactly the file that
+    // would carry one.
     const dir = join(root, 'public', 'outside');
     const names = readdirSync(dir);
-    const webps = names.filter((name) => name.endsWith('.webp'));
-    expect(webps.length).toBeGreaterThan(0);
+    expect(names.length).toBeGreaterThan(0);
     let total = 0;
-    for (const name of webps) {
+    for (const name of names) {
       const buf = readFileSync(join(dir, name));
       total += buf.length;
       const s = buf.toString('latin1');
-      expect(s.includes('EXIF'), `${name} EXIF`).toBe(false);
+      // The Exif identifier, whatever its case: a JPEG's APP1 segment
+      // starts with "Exif\0\0", and the GPS block is an IFD inside it, so a
+      // file that carries GPS carries Exif too.
+      expect(/exif/i.test(s), `${name} Exif`).toBe(false);
+      // The XMP packet names its own namespace, which is what identifies it.
+      expect(/ns\.adobe\.com\/xap/i.test(s), `${name} XMP`).toBe(false);
       expect(s.includes('XMP'), `${name} XMP`).toBe(false);
     }
     expect(total).toBeLessThanOrEqual(3_000_000);

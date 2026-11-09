@@ -59,23 +59,24 @@ export default function IntakeDemo({ presses = 0 }: { presses?: number } = {}) {
   const done = (s: Stage) => state.completed.includes(s);
 
   // The rows the pipeline has produced so far, one per stage it has been
-  // through. The list is built here so the live region can sit on the last
-  // row alone: the rows are appended in stage order, so the last one is
-  // always the stage that has just finished.
-  const rows: { key: string; value: string; flagged: boolean }[] = [];
+  // through. The rows are appended in stage order, so the last one is always
+  // the stage that has just finished.
+  const rows: { key: string; stage: Stage; value: string; flagged: boolean }[] = [];
   if (done('classify')) {
     rows.push({
       key: 'Classify',
+      stage: 'classify',
       value: 'Membership application, answered from the intake mailbox.',
       flagged: false,
     });
   }
   if (done('knowledge') && state.answer) {
-    rows.push({ key: 'Answer', value: state.answer, flagged: false });
+    rows.push({ key: 'Answer', stage: 'knowledge', value: state.answer, flagged: false });
   }
   if (state.flagged && state.stage === 'knowledge') {
     rows.push({
       key: 'Answer',
+      stage: 'knowledge',
       value: 'No knowledge-base answer, so this one is flagged for a person.',
       flagged: true,
     });
@@ -83,6 +84,7 @@ export default function IntakeDemo({ presses = 0 }: { presses?: number } = {}) {
   if (done('attachments')) {
     rows.push({
       key: 'Attachments',
+      stage: 'attachments',
       value: `${email.attachments.map((a) => a.name).join(', ')} — all readable.`,
       flagged: false,
     });
@@ -91,22 +93,41 @@ export default function IntakeDemo({ presses = 0 }: { presses?: number } = {}) {
     const invalid = email.attachments.find((a) => a.name === state.invalid);
     rows.push({
       key: 'Attachments',
+      stage: 'attachments',
       value: `${state.invalid} is not a readable ${invalid?.kind ?? 'file'}, so this one is flagged for a person.`,
       flagged: true,
     });
   }
   if (done('drive') && state.folder) {
-    rows.push({ key: 'Drive', value: state.folder, flagged: false });
+    rows.push({ key: 'Drive', stage: 'drive', value: state.folder, flagged: false });
   }
   if (done('schedule')) {
     rows.push({
       key: 'Slots',
+      stage: 'schedule',
       value: state.slots.length > 0
         ? state.slots.join(' · ')
         : 'No slot proposed — the availability named no day or time.',
       flagged: false,
     });
   }
+
+  // What a screen reader is told when a stage finishes.
+  //
+  // The live region has to be in the markup from the first render and to
+  // have its *content* change, so it is a status element that is always
+  // there and carries the current stage's message. A live region on the
+  // results list would re-announce every earlier row on each press, and a
+  // live region on a row that is created and destroyed as the list grows
+  // would announce nothing at all, because the region would not be there
+  // before the content changed.
+  //
+  // The message before the first stage is its own wording, not the visible
+  // one, so a screen reader is not handed the same sentence twice.
+  const last = rows[rows.length - 1];
+  const announcement = last
+    ? `${stageTitle(last.stage)}. ${last.value}`
+    : 'Waiting to run the pipeline.';
 
   return (
     <div className="qa intake" role="group" aria-label="Sample membership intake pipeline">
@@ -152,19 +173,17 @@ export default function IntakeDemo({ presses = 0 }: { presses?: number } = {}) {
       </ol>
 
       <div className="intake-out">
+        {/* The live region. It is in the markup from the first render and
+            its content changes, so a screen reader is told when a stage
+            finishes. It is visually hidden, so the visible layout is the
+            results list and nothing else. */}
+        <p className="intake-status" role="status" aria-live="polite">{announcement}</p>
         {rows.length === 0 ? (
           <p className="intake-empty">Press Process to run the pipeline on this sample email.</p>
         ) : (
           <ul className="intake-results">
-            {rows.map((r, i) => (
-              <li
-                key={r.key}
-                // The live region is on the last row alone, so a screen reader
-                // hears the stage that just finished instead of the whole
-                // list every time. A live region around the whole list would
-                // re-announce every earlier row on each press.
-                {...(i === rows.length - 1 ? { role: 'status', 'aria-live': 'polite' } : {})}
-              >
+            {rows.map((r) => (
+              <li key={r.key}>
                 <span className="intake-k">{r.key}</span>
                 <span className={r.flagged ? 'intake-v intake-flag' : 'intake-v'}>{r.value}</span>
               </li>

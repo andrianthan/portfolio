@@ -31,6 +31,10 @@
 
 /* The output of the stages reached so far. */
 .intake .intake-out { padding: 12px 14px 0; min-width: 0; }
+/* The live region. It carries what a screen reader is told when a stage
+   finishes, and it is visually hidden so the visible layout is the results
+   list and nothing else. The house pattern for a hidden label. */
+.intake .intake-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 .intake .intake-empty { margin: 0; font-size: 13px; color: var(--color-muted); }
 .intake .intake-results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .intake .intake-results li {

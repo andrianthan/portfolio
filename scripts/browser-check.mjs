@@ -39,6 +39,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findDemoProblems } from './lib/demos.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const distDir = path.join(root, 'dist');
@@ -55,51 +56,6 @@ const THEMES = ['vapor', 'light'];
 
 // The Alpha Kappa Psi work page, and the home page it is linked from.
 const AKPSI_PATH = '/work/akpsi/';
-
-/**
- * Which demo belongs to which project, stated by the check itself.
- *
- * A project heading's id starts with the prefix of the demo it owns, and
- * the demo's island carries the component's name. This table is the check's
- * own statement of that pairing, deliberately written out here rather than
- * read out of the template: the template's lookup is the thing under test,
- * so the expectation cannot come from it.
- *
- * Every multi-project work page is covered, so a demo moved onto the wrong
- * project is caught wherever it happens.
- */
-const DEMO_BY_PREFIX = [
-  { prefix: 'qa-analyst', component: 'QaDemo' },
-  { prefix: 'guideline-chatbot', component: 'GuideDemo' },
-  { prefix: 'image-search', component: 'ImageSearchDemo' },
-  { prefix: 'grants-agent', component: 'GrantsDemo' },
-  { prefix: 'ir-updater', component: 'IrDemo' },
-  { prefix: 'case-note-coach', component: 'NoteCoachDemo' },
-  { prefix: 'dashboard', component: 'DashboardDemo' },
-  { prefix: 'part-summary', component: 'PartSummaryDemo' },
-  { prefix: 'ask-sdp', component: 'AskSdpDemo' },
-  { prefix: 'forecast-lab', component: 'ForecastLabDemo' },
-  { prefix: 'campaigns', component: 'CampaignsDemo' },
-  { prefix: 'slideshow-generation', component: 'SlidesDemo' },
-  { prefix: 'modular-architecture', component: 'ModularDemo' },
-  { prefix: 'admin', component: 'AdminDemo' },
-  { prefix: 'wafer-analysis-copilot', component: 'CopilotDemo' },
-  { prefix: 'wafer-risk-model', component: 'RiskDemo' },
-  { prefix: 'membership-intake', component: 'IntakeDemo' },
-  { prefix: 'opportunity-bot', component: 'ListingsDemo' },
-];
-
-/** The demo a project heading id owns, or null when it owns none. */
-function demoForPrefix(id) {
-  // The longest matching prefix wins, so the answer does not depend on the
-  // order the table is written in.
-  let hit = null;
-  for (const d of DEMO_BY_PREFIX) {
-    if (!id.startsWith(d.prefix)) continue;
-    if (!hit || d.prefix.length > hit.prefix.length) hit = d;
-  }
-  return hit ? hit.component : null;
-}
 
 /**
  * The multi-project work pages, and the order their projects are expected to
@@ -866,7 +822,8 @@ async function setTheme(cdp, theme) {
  * check: a project section must hold the demo its own heading id maps to,
  * and it must not hold any other demo. The mapping comes from the check's
  * own table, so a demo moved onto the wrong project is caught whichever
- * page it happens on.
+ * page it happens on. A project that maps to no demo holds none, which the
+ * rule allows rather than fails.
  *
  * The order is checked twice: against the page's own table of contents,
  * which states the order the projects are in, and against its content
@@ -894,31 +851,10 @@ async function checkMultiPage(cdp, url, page) {
   }
 
   // The demo each section holds, against the demo its heading id maps to.
-  for (const project of measured.projects) {
-    const expected = demoForPrefix(project.id);
-    if (expected === null) {
-      note(`${page.path}: the project "${project.id}" maps to no demo, so the demo it holds cannot be checked`);
-      continue;
-    }
-    if (project.demos.length === 0) {
-      note(`${page.path}: the project "${project.id}" holds no demo, expected the "${expected}" demo`);
-      continue;
-    }
-    if (project.demos.length > 1) {
-      note(`${page.path}: the project "${project.id}" holds ${project.demos.length} demos (${project.demos.join(', ')}), expected only the "${expected}" demo`);
-    }
-    // The section must hold its own demo, and it must not hold another
-    // project's demo either. Both are checked here rather than by the count
-    // alone, so the failure names the demo that is in the wrong place.
-    if (!project.demos.includes(expected)) {
-      note(`${page.path}: the project "${project.id}" does not hold the "${expected}" demo, expected it to`);
-    }
-    for (const other of DEMO_BY_PREFIX) {
-      if (other.component === expected) continue;
-      if (project.demos.includes(other.component)) {
-        note(`${page.path}: the project "${project.id}" holds the "${other.component}" demo, which belongs to another project`);
-      }
-    }
+  // A project that maps to no demo holds none: the template renders no demo
+  // slot for it, so a demo there would be a demo on a project that owns none.
+  for (const problem of findDemoProblems(page.path, measured.projects)) {
+    note(problem);
   }
 
   // The order of the projects. The page's own table of contents states it.

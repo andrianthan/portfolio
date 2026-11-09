@@ -53,23 +53,38 @@ describe('IntakeDemo', () => {
     expect(underWay).toContain('>next<');
     expect(underWay).not.toContain('Interview proposed.');
   });
-  it('announces only the stage that has just finished', () => {
-    // The live region is on the last result row alone. A live region around
-    // the whole list would re-announce every earlier row on each press.
+  it('announces the stage that has just finished', () => {
+    // The live region has to be in the markup from the first render and to
+    // have its content change, so it is a status element that is always
+    // there. A live region on a result row would announce nothing, because
+    // the row is created and destroyed as the list grows.
     const underWay = renderToStaticMarkup(<IntakeDemo presses={2} />);
     const live = underWay.match(/aria-live="polite"/g) ?? [];
     expect(live, 'the live regions in the markup').toHaveLength(1);
-    // The live region is a row of the list, not a wrapper around it.
+    // It is a status element of its own, not the wrapper that holds the
+    // results list and not a row of it.
     expect(underWay).not.toMatch(/<div class="intake-out"[^>]*aria-live=/);
-    const list = underWay.match(/<ul class="intake-results">([\s\S]*?)<\/ul>/);
-    expect(list, 'the results list').toBeTruthy();
-    const rows = list![1].match(/<li[^>]*>/g) ?? [];
-    expect(rows.length).toBeGreaterThan(1);
-    // Only the last row carries the live region, so the earlier rows are not
-    // announced again on every press.
-    expect(rows.slice(0, -1).join('')).not.toContain('aria-live');
-    expect(rows[rows.length - 1]).toContain('role="status"');
-    expect(rows[rows.length - 1]).toContain('aria-live="polite"');
+    expect(underWay).not.toMatch(/<li[^>]*aria-live=/);
+    expect(underWay).toMatch(/<p class="intake-status" role="status" aria-live="polite">/);
+  });
+  it('keeps the live region in the markup from the first render', () => {
+    // The region exists before any stage has run, so the first announcement
+    // has a region to be announced in.
+    expect(html).toMatch(/<p class="intake-status" role="status" aria-live="polite">/);
+    // The visible list is not itself a live region, so a screen reader is
+    // not handed every earlier row on each press.
+    expect(html).not.toMatch(/<ul class="intake-results"[^>]*aria-live=/);
+  });
+  it('tells a screen reader what the current stage produced', () => {
+    const underWay = renderToStaticMarkup(<IntakeDemo presses={2} />);
+    const status = underWay.match(/<p class="intake-status" role="status" aria-live="polite">([\s\S]*?)<\/p>/);
+    expect(status, 'the status element').toBeTruthy();
+    // The stage that has just finished and what it produced.
+    expect(status![1]).toContain('Answer from the knowledge base');
+    expect(status![1]).toContain('30-minute interview');
+    // The finished pipeline announces its last stage.
+    const done = finished.match(/<p class="intake-status" role="status" aria-live="polite">([\s\S]*?)<\/p>/);
+    expect(done![1]).toContain('Propose interview slots');
   });
   it('holds no email address', () => {
     expect(html).not.toContain('@');
