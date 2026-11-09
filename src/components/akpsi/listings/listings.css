@@ -1,0 +1,65 @@
+/* Opportunity listings feed. Frame chrome comes from qa.css; every rule is prefixed with .listings. */
+.listings { max-width: 100%; }
+.listings .qa-top { flex-wrap: wrap; }
+
+/* The filter chips: two wrapping rows, never a horizontal scroll. */
+.listings .listings-filters { padding: 12px 14px 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.listings .listings-frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.listings .listings-flabel {
+  font: 600 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--color-muted); margin-right: 2px;
+}
+.listings .listings-chip {
+  min-height: 44px; padding: 6px 12px; font: 600 12px var(--font-mono);
+  color: var(--color-muted); background: transparent;
+  border: 1px solid var(--color-rule); border-radius: 999px; cursor: pointer;
+}
+.listings .listings-chip:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.listings .listings-chip[aria-pressed='true'] { border-color: var(--color-accent); background: var(--color-chip); color: var(--color-fg); }
+
+/* The feed of scraped listings. */
+.listings .listings-feed { list-style: none; margin: 12px 14px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.listings .listings-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0;
+  padding: 8px 10px; background: var(--color-chip); border-radius: 8px;
+}
+.listings .listings-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.listings .listings-id { font: 600 11px var(--font-mono); color: var(--color-muted); }
+.listings .listings-tag {
+  font: 600 10px var(--font-mono); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-fg); border: 1px solid var(--color-rule); border-radius: 999px; padding: 1px 8px;
+}
+.listings .listings-role { font: 500 11px var(--font-mono); color: var(--color-muted); }
+.listings .listings-date { font: 500 11px var(--font-mono); color: var(--color-muted); margin-left: auto; }
+.listings .listings-title { flex: 1 1 100%; margin: 0; min-width: 0; font-size: 14px; color: var(--color-fg); overflow-wrap: anywhere; }
+.listings .listings-post {
+  font: 600 12px var(--font-sans); color: var(--color-fg); background: transparent;
+  border: 1px solid var(--color-rule); border-radius: 8px; padding: 6px 10px; min-height: 44px; cursor: pointer;
+}
+.listings .listings-post:hover { border-color: var(--color-accent); }
+.listings .listings-empty { margin: 0; padding: 4px 0; font-size: 13px; color: var(--color-muted); }
+
+/* The channel: a plain message list, not a copy of Discord's UI. */
+.listings .listings-channel { margin: 14px 14px 0; padding: 10px 12px; border: 1px solid var(--color-rule); border-radius: 10px; min-width: 0; }
+.listings .listings-chead {
+  margin: 0 0 6px; font: 600 10px var(--font-mono); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--color-muted);
+}
+.listings .listings-cempty { margin: 0; font-size: 13px; color: var(--color-muted); }
+.listings .listings-msgs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.listings .listings-msg {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0;
+  padding-left: 10px; border-left: 2px solid var(--color-rule);
+}
+.listings .listings-msg-t { font-size: 14px; color: var(--color-fg); min-width: 0; overflow-wrap: anywhere; }
+.listings .listings-msg-m { font: 500 11px var(--font-mono); color: var(--color-muted); }
+
+.listings .listings-cap { margin: 0; padding: 12px 14px 14px; font-size: 12px; color: var(--color-muted); }
+
+@media (max-width: 640px) {
+  .listings .listings-filters { padding: 10px 12px 0; }
+  .listings .listings-chip { padding: 6px 10px; }
+  .listings .listings-feed { margin: 10px 12px 0; }
+  .listings .listings-channel { margin: 12px 12px 0; }
+  .listings .listings-date { margin-left: 0; }
+}
