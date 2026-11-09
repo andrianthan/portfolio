@@ -69,11 +69,26 @@ export function isComplete(state: IntakeState): boolean {
 }
 
 /**
+ * Select an applicant. Choosing the one already selected is not a change, so
+ * the pipeline keeps whatever it has done so far; choosing a different one
+ * starts that applicant over.
+ */
+export function select(state: IntakeState, emailId: string): IntakeState {
+  return state.emailId === emailId ? state : initialState(emailId);
+}
+
+/**
  * Process one stage and return the next state. The state is never mutated.
  * A stage that cannot finish — an unanswered question, a bad attachment —
  * flags the email and leaves it on that stage for a person to look at.
+ *
+ * A finished pipeline is left alone: advancing it again would append a second
+ * 'schedule' and take the email out of `isComplete`. The halting paths are
+ * absorbing for the same reason.
  */
 export function advance(state: IntakeState, email: IntakeEmail): IntakeState {
+  if (isComplete(state)) return state;
+
   switch (state.stage) {
     case 'classify':
       return { ...state, completed: [...state.completed, 'classify'], stage: 'knowledge' };
@@ -105,23 +120,41 @@ export function advance(state: IntakeState, email: IntakeEmail): IntakeState {
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
 const DAY_ABBR = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
+/** The time phrases, and the hour each one names. */
+const TIME_PHRASES: { pattern: RegExp; hour: string }[] = [
+  { pattern: /before\s+noon/, hour: '09:00' },
+  { pattern: /\bmorning/, hour: '09:00' },
+  { pattern: /\bafternoon/, hour: '14:00' },
+  { pattern: /\bevening/, hour: '18:00' },
+];
+
 /**
  * A time phrase and the hour it maps to. `after N` is read as N o'clock in the
  * afternoon, so 6 becomes six in the evening.
+ *
+ * The first time phrase *in the text* wins, so the match position decides and
+ * not the order of the table: "Tuesday evening, Wednesday or Thursday morning"
+ * defaults Wednesday to the evening, because the evening comes first.
  */
 function timeIn(text: string): string | null {
   const lower = text.toLowerCase();
-  if (/before\s+noon/.test(lower)) return '09:00';
-  if (/\bmorning/.test(lower)) return '09:00';
-  if (/\bafternoon/.test(lower)) return '14:00';
-  if (/\bevening/.test(lower)) return '18:00';
+  let best: { at: number; hour: string } | null = null;
+
+  for (const { pattern, hour } of TIME_PHRASES) {
+    const at = lower.search(pattern);
+    if (at >= 0 && (best === null || at < best.at)) best = { at, hour };
+  }
+
   const after = lower.match(/\bafter\s+(\d{1,2})\b/);
   if (after) {
     const n = Number(after[1]);
     const hour = n < 12 ? n + 12 : n;
-    return `${String(hour).padStart(2, '0')}:00`;
+    const at = after.index ?? lower.search(/\bafter\b/);
+    const padded = `${String(hour).padStart(2, '0')}:00`;
+    if (best === null || at < best.at) best = { at, hour: padded };
   }
-  return null;
+
+  return best === null ? null : best.hour;
 }
 
 /** The weekday a fragment names, if any. */

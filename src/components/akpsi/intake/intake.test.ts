@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EMAILS } from '../fixtures';
+import { EMAILS, type IntakeEmail } from '../fixtures';
 import {
   STAGES,
   KNOWLEDGE_BASE,
@@ -8,6 +8,7 @@ import {
   answerFor,
   parseSlots,
   folderFor,
+  select,
   stageTitle,
   isComplete,
   type IntakeState,
@@ -65,6 +66,20 @@ describe('parseSlots', () => {
     expect(parseSlots('after 11')).toEqual(['23:00']);
     expect(parseSlots('after 12')).toEqual(['12:00']);
   });
+  it('takes the default from "after N" too, wherever it sits in the text', () => {
+    // The default is the first time phrase in the text, and "after 6" counts.
+    // Friday is the bare fragment, so it takes that default.
+    expect(parseSlots('Tuesday morning, Thursday after 6, Friday')).toEqual([
+      'Tuesday 09:00',
+      'Thursday 18:00',
+      'Friday 09:00',
+    ]);
+    expect(parseSlots('Tuesday after 6, Thursday morning, Friday')).toEqual([
+      'Tuesday 18:00',
+      'Thursday 09:00',
+      'Friday 18:00',
+    ]);
+  });
   it('reads the other time phrases', () => {
     expect(parseSlots('before noon')).toEqual(['09:00']);
     expect(parseSlots('evening')).toEqual(['18:00']);
@@ -72,6 +87,23 @@ describe('parseSlots', () => {
   });
   it('applies the default time to every bare weekday in the text', () => {
     expect(parseSlots('Monday, Wednesday or Friday mornings')).toEqual(['Monday 09:00', 'Wednesday 09:00', 'Friday 09:00']);
+  });
+  it('takes the default time from the first phrase in the text, not the first kind', () => {
+    // The evening comes first, so the bare Wednesday defaults to it even
+    // though the morning phrase is a kind the parser knows better. Thursday
+    // carries a morning of its own, so it keeps it.
+    expect(parseSlots('Tuesday evening, Wednesday or Thursday morning')).toEqual([
+      'Tuesday 18:00',
+      'Wednesday 18:00',
+      'Thursday 09:00',
+    ]);
+    // The other way round: the morning comes first and is the default, while
+    // Thursday carries an evening of its own.
+    expect(parseSlots('Tuesday morning, Wednesday or Thursday evening')).toEqual([
+      'Tuesday 09:00',
+      'Wednesday 09:00',
+      'Thursday 18:00',
+    ]);
   });
   it('removes duplicates and keeps the first occurrence order', () => {
     expect(parseSlots('Monday morning or Monday morning')).toEqual(['Monday 09:00']);
@@ -130,6 +162,13 @@ describe('advance', () => {
     }
     expect(isComplete(run('Applicant A', 5))).toBe(true);
   });
+  it('is a no-op once the pipeline is complete', () => {
+    const five = run('Applicant A', 5);
+    const six = run('Applicant A', 6);
+    expect(six).toEqual(five);
+    expect(six.completed).toHaveLength(5);
+    expect(isComplete(six)).toBe(true);
+  });
   it('flags Applicant C at the knowledge stage and stays there', () => {
     const state = run('Applicant C', 2);
     expect(state.flagged).toBe(true);
@@ -147,10 +186,21 @@ describe('advance', () => {
     expect(state.slots).toEqual([]);
   });
   it('never mutates the state it is given', () => {
-    const before = initialState('Applicant A');
-    const snapshot = JSON.parse(JSON.stringify(before));
-    advance(before, A);
-    expect(before).toEqual(snapshot);
+    // Every path: the plain transitions, the two halting ones, and the last
+    // stage, which rebuilds the slots.
+    const cases: [string, IntakeEmail][] = [
+      ['Applicant A', A],
+      ['Applicant C', C],
+      ['Applicant D', D],
+    ];
+    for (const [id, email] of cases) {
+      for (let n = 0; n <= 5; n += 1) {
+        const before = run(id, n);
+        const snapshot = JSON.parse(JSON.stringify(before));
+        advance(before, email);
+        expect(before, `${id} after ${n} presses`).toEqual(snapshot);
+      }
+    }
   });
 });
 
@@ -166,5 +216,18 @@ describe('helpers', () => {
     expect(stageTitle('attachments')).toBe('Validate attachments');
     expect(stageTitle('drive')).toBe('File in Drive');
     expect(stageTitle('schedule')).toBe('Propose interview slots');
+  });
+  it('keeps the progress when the same applicant is selected again', () => {
+    const underWay = run('Applicant A', 3);
+    expect(select(underWay, 'Applicant A')).toBe(underWay);
+  });
+  it('starts over when a different applicant is selected', () => {
+    const underWay = run('Applicant A', 3);
+    const other = select(underWay, 'Applicant B');
+    expect(other.emailId).toBe('Applicant B');
+    expect(other.completed).toEqual([]);
+    expect(other.stage).toBe('classify');
+    expect(other.answer).toBeNull();
+    expect(other.slots).toEqual([]);
   });
 });
