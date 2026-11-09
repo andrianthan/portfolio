@@ -17,9 +17,9 @@ describe('personal automation copy', () => {
     expect(all).not.toMatch(/\d/);
     expect(all.toLowerCase()).not.toMatch(/bank|account|plaid|card|balance|\$/);
   });
-  it('sits between Projects and Skills on the home page', () => {
+  it('sits between Experience and Skills on the home page', () => {
     const page = fs.readFileSync(path.join(process.cwd(), 'src/pages/index.astro'), 'utf8');
-    const a = page.indexOf('<ProjectCards />');
+    const a = page.indexOf('<Timeline />');
     const b = page.indexOf('<Automation />');
     const c = page.indexOf('<Skills />');
     expect(a).toBeGreaterThan(-1);

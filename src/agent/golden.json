@@ -1,7 +1,6 @@
 [
   { "query": "/help", "expectIntent": "help" },
   { "query": "/experience", "expectIntent": "experience" },
-  { "query": "/projects", "expectIntent": "projects" },
   { "query": "/resume", "expectIntent": "resume" },
   { "query": "/about", "expectIntent": "about" },
   { "query": "/skills", "expectIntent": "skills" },
@@ -21,10 +20,6 @@
   { "query": "Blue Dome Technologies", "expectIntent": "experience", "expectTop": "role:bluedome" },
   { "query": "what did you do at alpha kappa psi", "expectIntent": "experience", "expectTop": "role:akpsi" },
   { "query": "what does the opportunity bot do", "expectIntent": "search", "expectTop": "role:akpsi" },
-  { "query": "AdvisorAI", "expectIntent": "projects", "expectTop": "project:advisorai" },
-  { "query": "what is ai-swing-trader", "expectIntent": "projects", "expectTop": "project:ai-swing-trader" },
-  { "query": "claude-token-saver", "expectIntent": "projects", "expectTop": "project:claude-token-saver" },
-  { "query": "what projects have you built", "expectIntent": "projects" },
   { "query": "where did you work", "expectIntent": "experience" },
   { "query": "what are your skills", "expectIntent": "skills" },
   { "query": "can I see your resume", "expectIntent": "resume" },

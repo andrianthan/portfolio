@@ -8,7 +8,7 @@ meta:
   role: Solo build
   status: "V1, paper trading only"
   stack: Python, pydantic, Alpaca MCP
-listed: true
+listed: false
 cleared: false
 order: 2
 ---

@@ -11,8 +11,8 @@ describe('the tesla entry', () => {
     expect(data.cleared).toBe(true);
   });
 
-  it('keeps the summary exactly as it was', () => {
-    expect(data.summary).toBe("Built Ask SDP, a tool-calling LLM copilot whose answers **can't contain invented numbers**, and shipped Forecast Lab, with Chronos-2 forecasts **32% better than baseline** on backtest. Built the staging-to-prod pipeline behind 200+ staging deploys a week.");
+  it('keeps the dashboard-first summary', () => {
+    expect(data.summary).toBe("Built and shipped the unified planning dashboard (React and FastAPI) that brings eight scattered data sources into one app, including Ask SDP, a tool-calling LLM copilot whose answers **can't contain invented numbers**, and Forecast Lab, with Chronos-2 forecasts **32% better than baseline** on backtest.");
   });
 
   it('is still the current role, listed and first', () => {

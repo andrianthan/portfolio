@@ -5,7 +5,7 @@ project: LLM copilot and wafer risk model
 dates: May 2025 – Aug 2025
 start: "2025-05"
 end: "2025-08"
-summary: "Built an LLM copilot that engineers used daily to investigate wafer failure rates, and a gradient boosting risk model that ranks high-risk wafers, on Python and Snowflake pipelines over high-volume manufacturing data."
+summary: "Built the data layer, Copilot and Power Automate workflow and GPT-based reasoning behind an HBM wafer analysis agent, plus a gradient boosting risk model that ranks high-risk wafers, on Python and Snowflake pipelines over high-volume manufacturing data."
 stack: [Python, Snowflake SQL, Power Automate, Microsoft Copilot, GPT, Gradient boosting]
 logo: /logos/micron.svg
 listed: true

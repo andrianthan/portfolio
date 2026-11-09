@@ -4,7 +4,6 @@ import type { Intent, Route, Snapshot } from './types';
 export const COMMANDS = [
   { name: '/help', description: 'the command list' },
   { name: '/experience', description: 'roles and what shipped in them' },
-  { name: '/projects', description: 'projects and how they were built' },
   { name: '/resume', description: 'the resume, summarized' },
   { name: '/about', description: 'background' },
   { name: '/skills', description: 'technical skills' },
@@ -89,8 +88,7 @@ const INTENT_RULES: { intent: Intent; pattern: RegExp }[] = [
   { intent: 'help', pattern: /\b(help|commands?|usage|what\s+can\s+(you|i)\s+do)\b/ },
   { intent: 'resume', pattern: /\b(resume|cv|curriculum\s+vitae)\b/ },
   { intent: 'contact', pattern: /\b(contact|email|e-mail|linkedin|github|reach\s+out|get\s+in\s+touch|hire|message\s+me|talk\s+to\s+you)\b/ },
-  { intent: 'experience', pattern: /\b(experience|experiences|jobs?|roles?|internships?|employment|worked|work\s+history|where\s+did\s+you\s+work)\b/ },
-  { intent: 'projects', pattern: /\b(projects?|portfolio|built|build|repos?|repositories)\b/ },
+  { intent: 'experience', pattern: /\b(experience|experiences|jobs?|roles?|internships?|employment|worked|work\s+history|where\s+did\s+you\s+work|projects?|portfolio|built|build|repos?|repositories)\b/ },
   { intent: 'skills', pattern: /\b(skills?|stack|tech|technologies|technological|languages?|frameworks?|tools?)\b/ },
   { intent: 'about', pattern: /\b(about|who\s+are\s+you|introduce\s+yourself|yourself|bio|story|tell\s+me\s+about)\b/ },
 ];
@@ -121,8 +119,8 @@ function isEntityName(text: string, entity: Entity): boolean {
 function entities(snapshot: Snapshot): Entity[] {
   const found: Entity[] = [];
   for (const chunk of snapshot.chunks) {
-    if (chunk.kind !== 'role' && chunk.kind !== 'project') continue;
-    const intent: Intent = chunk.kind === 'role' ? 'experience' : 'projects';
+    if (chunk.kind !== 'role') continue;
+    const intent: Intent = 'experience';
     const terms = [chunk.title];
     const slug = chunk.id.split('#')[0].split(':')[1];
     if (slug) terms.push(slug);
@@ -162,7 +160,6 @@ function routeCommand(raw: string): Route {
   switch (command) {
     case '/help':
     case '/experience':
-    case '/projects':
     case '/resume':
     case '/about':
     case '/skills':
@@ -183,8 +180,8 @@ function routeCommand(raw: string): Route {
 // real question never overrides a rule that already fired.
 const FUZZY_WORDS: Record<string, Intent> = {
   experience: 'experience',
-  projects: 'projects',
-  project: 'projects',
+  projects: 'experience',
+  project: 'experience',
   about: 'about',
   skills: 'skills',
   contact: 'contact',
@@ -241,7 +238,7 @@ export function route(snapshot: Snapshot, query: string): Route {
   }
 
   const entity = findEntity(snapshot, normalized.text);
-  if (entity && (intent === 'about' || intent === 'search' || intent === 'projects' || isEntityName(normalized.text, entity))) {
+  if (entity && (intent === 'about' || intent === 'search' || isEntityName(normalized.text, entity))) {
     return { intent: entity.intent, args: [entity.term], query: normalized.raw };
   }
   if (intent === 'search' && !entity) {

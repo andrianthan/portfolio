@@ -22,7 +22,7 @@ describe('tab completion', () => {
   });
 
   it('lists every slash command the agent answers', () => {
-    for (const command of ['/help', '/experience', '/projects', '/resume', '/about', '/skills', '/contact', '/clear', '/sound', '/hire', '/coffee', '/whoami']) {
+    for (const command of ['/help', '/experience', '/resume', '/about', '/skills', '/contact', '/clear', '/sound', '/hire', '/coffee', '/whoami']) {
       expect(COMMANDS).toContain(command);
     }
   });

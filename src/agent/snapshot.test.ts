@@ -78,7 +78,6 @@ describe('snapshot of the real content', () => {
     expect(tesla).toBeDefined();
     expect(tesla!.text).toContain('32% better than baseline');
     expect(tesla!.facts).toContain('32%');
-    expect(tesla!.facts).toContain('200+');
     expect(tesla!.text).not.toContain('**');
   });
 

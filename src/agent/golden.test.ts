@@ -25,7 +25,7 @@ describe('golden set', () => {
   it('has at least twenty five cases and covers every intent', () => {
     expect(golden.length).toBeGreaterThanOrEqual(25);
     const intents = new Set(golden.map((c) => c.expectIntent).filter(Boolean));
-    for (const intent of ['help', 'experience', 'projects', 'resume', 'about', 'skills', 'contact', 'search', 'clear', 'sound', 'easter']) {
+    for (const intent of ['help', 'experience', 'resume', 'about', 'skills', 'contact', 'search', 'clear', 'sound', 'easter']) {
       expect(intents.has(intent)).toBe(true);
     }
   });

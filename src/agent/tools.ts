@@ -69,10 +69,6 @@ export function experience(snapshot: Snapshot, args: string[]): Ranked[] {
   return pick(ofKind(snapshot, 'role'), args);
 }
 
-export function projects(snapshot: Snapshot, args: string[]): Ranked[] {
-  return pick(ofKind(snapshot, 'project'), args);
-}
-
 export function resume(snapshot: Snapshot, args: string[]): Ranked[] {
   return pick(snapshot.chunks.filter((chunk) => chunk.kind === 'role' || chunk.kind === 'project'), args);
 }

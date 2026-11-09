@@ -5,7 +5,7 @@ project: AI/ML Quality Assurance Tool
 dates: Aug 2025 – Dec 2025
 start: "2025-08"
 end: "2025-12"
-summary: "Shipped a production full-stack QA tool for reviewing AI-labeled roadway images, with TPM 2.0 backed authentication."
+summary: "Shipped a production human-in-the-loop QA tool for AI-labeled roadway images, with TPM 2.0 device-trust login, and built a RAG guideline chatbot and a CLIP-style image search for the analysts."
 stack: [Flask, SQLite, TPM 2.0]
 logo: /logos/bluedome.png
 logoFill: true

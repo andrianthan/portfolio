@@ -5,7 +5,7 @@ project: AI Agents & Workflow Automation
 dates: Dec 2025 – Jun 2026
 start: "2025-12"
 end: "2026-06"
-summary: "Built in-house LLM tools with non-technical staff, including a grant-research agent that replaced an enterprise platform, **avoiding $30k+** in vendor and subscription cost. Wrote the validation framework for agent accuracy, consistency, and safety."
+summary: "Built in-house LLM agents with non-technical staff: a grant-research agent that scrapes 39 funder sources and scores them in two stages against staff-editable criteria, replacing an enterprise platform, plus a Teams-to-Salesforce incident bot and a clinical-note GPT. **Avoided $30k+** in vendor and subscription cost."
 stack: [Python, LLM agents, Salesforce, Agent evals]
 logo: /logos/hanna.png
 logoFill: true

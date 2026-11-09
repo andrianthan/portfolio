@@ -5,7 +5,7 @@ import type { NavTarget, Snapshot, Source } from '../../agent/types';
 import { createBlip, readSound, writeSound, type Blip } from './sound';
 
 export const COMMANDS = [
-  '/help', '/experience', '/projects', '/resume', '/about', '/skills',
+  '/help', '/experience', '/resume', '/about', '/skills',
   '/contact', '/clear', '/sound', '/hire', '/coffee', '/whoami',
 ];
 

@@ -10,7 +10,6 @@ describe('fallback sections', () => {
     const sections = fallbackSections(snapshot);
     const headings = sections.map((section) => section.heading);
     expect(headings).toContain('Experience');
-    expect(headings).toContain('Projects');
     expect(headings).toContain('Skills');
     expect(headings).toContain('Contact');
     expect(headings).toContain('About');

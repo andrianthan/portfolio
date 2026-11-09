@@ -7,7 +7,6 @@ import { visibleLines, renderAnswer } from './clip';
 // Real links: they work without JavaScript, and the prompt routes to the same places.
 const TOPICS = [
   { label: 'Experience', href: '#experience' },
-  { label: 'Projects', href: '#projects' },
   { label: 'About', href: '#about' },
   { label: 'Contact', href: '#contact' },
 ];

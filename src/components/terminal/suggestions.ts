@@ -2,7 +2,7 @@
 // through the agent against the fixture snapshot and fails on a refusal.
 export const SUGGESTIONS = [
   'What did you do at Tesla?',
-  'What projects have you built?',
+  'What did you build at Blue Dome?',
   'What are your skills?',
   'Where did you work?',
   'Can I see your resume?',

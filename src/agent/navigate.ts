@@ -5,7 +5,6 @@ import type { AgentResult, Intent, NavTarget } from './types';
 // the easter eggs have no section to scroll to, so they answer in place.
 export const NAV_TARGETS: Partial<Record<Intent, NavTarget>> = {
   experience: { href: '#experience', label: 'experience' },
-  projects: { href: '#projects', label: 'projects' },
   about: { href: '#about', label: 'about' },
   contact: { href: '#contact', label: 'contact' },
 };

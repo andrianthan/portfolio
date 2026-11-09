@@ -10,7 +10,6 @@ const nav = (query: string) => runAgent(snapshot, query).effects?.navigate;
 describe('navigate effect', () => {
   it('points the section commands at their section', () => {
     expect(nav('/experience')).toEqual({ href: '#experience', label: 'experience' });
-    expect(nav('/projects')).toEqual({ href: '#projects', label: 'projects' });
     expect(nav('/about')).toEqual({ href: '#about', label: 'about' });
     expect(nav('/contact')).toEqual({ href: '#contact', label: 'contact' });
   });

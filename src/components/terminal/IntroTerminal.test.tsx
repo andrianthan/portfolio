@@ -22,7 +22,7 @@ describe('IntroTerminal', () => {
     expect(label).toContain('Ask anything about Andrian');
   });
 
-  it('renders the four topic links as real anchors', () => {
+  it('renders the three topic links as real anchors', () => {
     // the topics row is the no-JS navigation path, so its links must be anchors, not buttons
     const chips = [...html.matchAll(/<a href="(#[^"]+)">([^<]+)<\/a>/g)].map((m) => ({
       href: m[1],
@@ -30,7 +30,6 @@ describe('IntroTerminal', () => {
     }));
     expect(chips).toEqual([
       { href: '#experience', label: 'Experience' },
-      { href: '#projects', label: 'Projects' },
       { href: '#about', label: 'About' },
       { href: '#contact', label: 'Contact' },
     ]);
