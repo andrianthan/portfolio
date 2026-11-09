@@ -23,10 +23,10 @@ describe('Terminal', () => {
   });
 
   it('renders every command chip as a button with text', () => {
-    for (const chip of ['/help', '/experience', '/resume', '/about', '/skills', '/contact', '/hire']) {
+    for (const chip of ['/help', '/experience', '/about', '/skills', '/contact', '/hire']) {
       expect(html).toContain(`>${chip}</button>`);
     }
-    expect(count('<button')).toBeGreaterThanOrEqual(8);
+    expect(count('<button')).toBeGreaterThanOrEqual(7);
   });
 
   it('offers a sound toggle that starts off', () => {

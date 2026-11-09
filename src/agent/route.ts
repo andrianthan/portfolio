@@ -4,7 +4,6 @@ import type { Intent, Route, Snapshot } from './types';
 export const COMMANDS = [
   { name: '/help', description: 'the command list' },
   { name: '/experience', description: 'roles and what shipped in them' },
-  { name: '/resume', description: 'the resume, summarized' },
   { name: '/about', description: 'background' },
   { name: '/skills', description: 'technical skills' },
   { name: '/contact', description: 'how to reach Andrian' },
@@ -86,7 +85,6 @@ const REFUSE_PATTERNS: RegExp[] = [
 
 const INTENT_RULES: { intent: Intent; pattern: RegExp }[] = [
   { intent: 'help', pattern: /\b(help|commands?|usage|what\s+can\s+(you|i)\s+do)\b/ },
-  { intent: 'resume', pattern: /\b(resume|cv|curriculum\s+vitae)\b/ },
   { intent: 'contact', pattern: /\b(contact|email|e-mail|linkedin|github|reach\s+out|get\s+in\s+touch|hire|message\s+me|talk\s+to\s+you)\b/ },
   { intent: 'experience', pattern: /\b(experience|experiences|jobs?|roles?|internships?|employment|worked|work\s+history|where\s+did\s+you\s+work|projects?|portfolio|built|build|repos?|repositories)\b/ },
   { intent: 'skills', pattern: /\b(skills?|stack|tech|technologies|technological|languages?|frameworks?|tools?)\b/ },
@@ -160,7 +158,6 @@ function routeCommand(raw: string): Route {
   switch (command) {
     case '/help':
     case '/experience':
-    case '/resume':
     case '/about':
     case '/skills':
     case '/contact':
@@ -185,7 +182,6 @@ const FUZZY_WORDS: Record<string, Intent> = {
   about: 'about',
   skills: 'skills',
   contact: 'contact',
-  resume: 'resume',
 };
 
 // Optimal string alignment distance: an adjacent swap ("expeirence") costs one edit.

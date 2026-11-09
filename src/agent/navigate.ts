@@ -1,7 +1,7 @@
 import type { AgentResult, Intent, NavTarget } from './types';
 
 // The intents that have a place on the home page. Targets are fixed here on purpose: a
-// content entry can never point the page somewhere else. Skills, resume, help, search and
+// content entry can never point the page somewhere else. Skills, help, search and
 // the easter eggs have no section to scroll to, so they answer in place.
 export const NAV_TARGETS: Partial<Record<Intent, NavTarget>> = {
   experience: { href: '#experience', label: 'experience' },

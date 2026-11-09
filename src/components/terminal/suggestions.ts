@@ -5,7 +5,7 @@ export const SUGGESTIONS = [
   'What did you build at Blue Dome?',
   'What are your skills?',
   'Where did you work?',
-  'Can I see your resume?',
+  'Tell me about Alpha Kappa Psi',
   'Tell me about Hanna Center',
 ];
 

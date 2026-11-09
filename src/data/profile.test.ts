@@ -39,7 +39,6 @@ describe('profile', () => {
     expect(profile.contact.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
     expect(profile.contact.linkedin.startsWith('https://')).toBe(true);
     expect(profile.contact.github.startsWith('https://')).toBe(true);
-    expect(profile.contact.resume).toBe('/resume.pdf');
   });
 
   it('carries the unaffiliated disclaimer verbatim', () => {

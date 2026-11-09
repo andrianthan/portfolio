@@ -1,7 +1,6 @@
 [
   { "query": "/help", "expectIntent": "help" },
   { "query": "/experience", "expectIntent": "experience" },
-  { "query": "/resume", "expectIntent": "resume" },
   { "query": "/about", "expectIntent": "about" },
   { "query": "/skills", "expectIntent": "skills" },
   { "query": "/contact", "expectIntent": "contact" },
@@ -22,7 +21,6 @@
   { "query": "what does the opportunity bot do", "expectIntent": "search", "expectTop": "role:akpsi" },
   { "query": "where did you work", "expectIntent": "experience" },
   { "query": "what are your skills", "expectIntent": "skills" },
-  { "query": "can I see your resume", "expectIntent": "resume" },
   { "query": "who are you", "expectIntent": "about" },
   { "query": "how can I contact you", "expectIntent": "contact" },
   { "query": "what did you use DuckDB for", "expectIntent": "search" },

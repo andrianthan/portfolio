@@ -23,7 +23,7 @@ describe('navigate effect', () => {
   });
 
   it('has no target for intents without a section', () => {
-    for (const query of ['/skills', '/resume', '/help', '/coffee', '/clear']) expect(nav(query)).toBeUndefined();
+    for (const query of ['/skills', '/help', '/coffee', '/clear']) expect(nav(query)).toBeUndefined();
   });
 
   it('never navigates on a refusal', () => {

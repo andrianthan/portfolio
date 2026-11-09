@@ -1,6 +1,6 @@
 import { describeRoute, route } from './route';
 import { REFUSAL_TEXT, respond, type Answer } from './respond';
-import { about, contact, experience, resume, search, skills, type Ranked } from './tools';
+import { about, contact, experience, search, skills, type Ranked } from './tools';
 import { verify, type VerifyResult } from './verify';
 import { withNavigate } from './navigate';
 import type { Actor, AgentResult, Chunk, Intent, Route, Snapshot, TraceStep } from './types';
@@ -10,11 +10,10 @@ import type { Actor, AgentResult, Chunk, Intent, Route, Snapshot, TraceStep } fr
 // Actor union has no `about` member. The intents that answer without a tool
 // (help, clear, sound), the easter eggs and the refusals are handled on
 // their own paths and are not listed here.
-type ToolIntent = 'experience' | 'resume' | 'skills' | 'contact' | 'about' | 'search';
+type ToolIntent = 'experience' | 'skills' | 'contact' | 'about' | 'search';
 
 const ACTOR_BY_INTENT: Record<ToolIntent, Actor> = {
   experience: 'experience',
-  resume: 'resume',
   skills: 'skills',
   contact: 'contact',
   about: 'search',
@@ -23,7 +22,6 @@ const ACTOR_BY_INTENT: Record<ToolIntent, Actor> = {
 
 const TOOLS: Partial<Record<Intent, (snapshot: Snapshot, args: string[]) => Ranked[]>> = {
   experience,
-  resume,
   skills,
   contact,
   about,

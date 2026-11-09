@@ -13,7 +13,6 @@ describe('slash commands', () => {
   it('maps every documented command to an intent', () => {
     expect(route(snapshot, '/help').intent).toBe('help');
     expect(route(snapshot, '/experience').intent).toBe('experience');
-    expect(route(snapshot, '/resume').intent).toBe('resume');
     expect(route(snapshot, '/about').intent).toBe('about');
     expect(route(snapshot, '/skills').intent).toBe('skills');
     expect(route(snapshot, '/contact').intent).toBe('contact');
@@ -130,7 +129,6 @@ describe('steering refusals', () => {
       ['what projects have you built', 'experience'],
       ['what are your skills', 'skills'],
       ['how can I contact you', 'contact'],
-      ['can I see your resume', 'resume'],
       ['who are you', 'about'],
       ['where did you work', 'experience'],
       ['what did you use DuckDB for', 'search'],
@@ -180,7 +178,6 @@ describe('plain questions', () => {
     expect(route(snapshot, 'what projects have you built').intent).toBe('experience');
     expect(route(snapshot, 'where did you work').intent).toBe('experience');
     expect(route(snapshot, 'what are your skills').intent).toBe('skills');
-    expect(route(snapshot, 'can i see your resume').intent).toBe('resume');
     expect(route(snapshot, 'how can i contact you').intent).toBe('contact');
     expect(route(snapshot, 'who are you').intent).toBe('about');
     expect(route(snapshot, 'help').intent).toBe('help');

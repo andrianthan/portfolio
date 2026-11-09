@@ -8,7 +8,6 @@ export interface ContactLinks {
   email: string;
   linkedin: string;
   github: string;
-  resume: string;
 }
 
 export interface ProfileData {
@@ -37,7 +36,6 @@ export const profile: ProfileData = {
     email: 'andrian.than.api@gmail.com',
     linkedin: 'https://www.linkedin.com/in/andrian-than',
     github: 'https://github.com/andrianthan',
-    resume: '/resume.pdf',
   },
   disclaimer: 'Unaffiliated personal portfolio. Inspired by Claude Code. Not an Anthropic product.',
 };

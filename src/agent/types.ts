@@ -17,7 +17,6 @@ export interface Snapshot {
 export type Intent =
   | 'help'
   | 'experience'
-  | 'resume'
   | 'about'
   | 'skills'
   | 'contact'
@@ -36,7 +35,6 @@ export interface Route {
 export type Actor =
   | 'orchestrator'
   | 'experience'
-  | 'resume'
   | 'skills'
   | 'contact'
   | 'search'
