@@ -19,7 +19,7 @@ export interface SnapshotInput {
 }
 
 const KIND_BY_COLLECTION: Record<'work' | 'projects', ChunkKind> = { work: 'role', projects: 'project' };
-const ANCHOR_BY_COLLECTION: Record<'work' | 'projects', string> = { work: '/#experience', projects: '/#projects' };
+const ANCHOR_BY_COLLECTION: Record<'work' | 'projects', string> = { work: '/experience', projects: '/' };
 const ROUTE_BY_COLLECTION: Record<'work' | 'projects', string> = { work: '/work', projects: '/projects' };
 
 export function slugify(text: string): string {

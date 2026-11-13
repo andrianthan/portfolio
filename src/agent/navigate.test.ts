@@ -9,18 +9,18 @@ const nav = (query: string) => runAgent(snapshot, query).effects?.navigate;
 
 describe('navigate effect', () => {
   it('points the section commands at their section', () => {
-    expect(nav('/experience')).toEqual({ href: '#experience', label: 'experience' });
-    expect(nav('/projects')).toEqual({ href: '#projects', label: 'projects' });
-    expect(nav('/about')).toEqual({ href: '#about', label: 'about' });
-    expect(nav('/contact')).toEqual({ href: '#contact', label: 'contact' });
+    expect(nav('/experience')).toEqual({ href: '/experience', label: 'experience' });
+    expect(nav('/projects')).toBeUndefined();
+    expect(nav('/about')).toEqual({ href: '/#about', label: 'about' });
+    expect(nav('/contact')).toEqual({ href: '/#contact', label: 'contact' });
   });
 
   it('routes a company name to the experience section', () => {
-    expect(nav('tesla')).toEqual({ href: '#experience', label: 'experience' });
+    expect(nav('tesla')).toEqual({ href: '/experience', label: 'experience' });
   });
 
   it('also targets a grounded question, so the answer can link to its place', () => {
-    expect(nav('what did you do at tesla')?.href).toBe('#experience');
+    expect(nav('what did you do at tesla')?.href).toBe('/experience');
   });
 
   it('has no target for intents without a section', () => {
@@ -33,7 +33,7 @@ describe('navigate effect', () => {
   });
 
   it('knows every target by intent only', () => {
-    expect(navTarget('experience')?.href).toBe('#experience');
+    expect(navTarget('experience')?.href).toBe('/experience');
     expect(navTarget('search')).toBeNull();
     expect(navTarget('refuse')).toBeNull();
   });

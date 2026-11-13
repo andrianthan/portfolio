@@ -84,7 +84,7 @@ describe('snapshot of the real content', () => {
 
   it('points an uncleared entry at the home anchor', () => {
     const tesla = snapshot.chunks.find((c) => c.id === 'role:tesla')!;
-    expect(tesla.url).toBe('/#experience');
+    expect(tesla.url).toBe('/experience');
   });
 
   it('carries the profile chunks', () => {
@@ -119,7 +119,7 @@ describe('snapshot builder', () => {
     const s = buildSnapshot({ roles: [fakeRole()], projects: [], profile });
     const roles = s.chunks.filter((c) => c.id.startsWith('role:'));
     expect(roles).toHaveLength(1);
-    expect(roles[0].url).toBe('/#experience');
+    expect(roles[0].url).toBe('/experience');
   });
 
   it('adds body sections for a cleared entry and points at the detail page', () => {
