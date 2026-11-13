@@ -119,8 +119,6 @@ h1 .grad { background: linear-gradient(90deg, var(--grad-a) 0%, var(--grad-b) 50
 .intro-input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--color-fg); font: 400 16px var(--font-sans); padding: 12px 0; caret-color: var(--color-num); }
 .intro-input:focus { outline: none; }
 .intro-input::placeholder { color: var(--color-muted); }
-.full { margin-top: var(--space-md); font-size: 15px; color: var(--color-muted); }
-.full:hover { color: var(--color-fg); text-decoration: none; }
 .js .intro-out:empty::before { content: "Answers show up here."; color: var(--color-muted); }
 /* stats */
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg) var(--space-md); margin-bottom: var(--space-xl); text-align: center; }
