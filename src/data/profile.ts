@@ -12,6 +12,7 @@ export interface ContactLinks {
 }
 
 export interface ProfileData {
+  intro: string[];
   about: string[];
   oneLine: string;
   skillGroups: SkillGroup[];
@@ -20,6 +21,13 @@ export interface ProfileData {
 }
 
 export const profile: ProfileData = {
+  intro: [
+    'Building LLM agents as an AI software engineer intern at **Tesla**.',
+    'Computer science at **San Jose State**.',
+    'Before that, I built a wafer analysis agent at **Micron** and Q&A and image-search tools at **Blue Dome**.',
+    'I also built grant-research and reporting agents at **Hanna Center**.',
+    'Outside of work I lead in **Alpha Kappa Psi** and **Spartan Analytics**.',
+  ],
   about: [
     "I'm a computer science student at San Jose State (3.7 GPA, graduating Spring 2027) who builds LLM agents for real users: copilots grounded in data, tested against golden sets, and shipped with the infrastructure to keep them honest.",
     "I've also mentored 30+ people on working with AI coding tools like Cursor and Claude Code, including how to review and verify AI-generated changes.",

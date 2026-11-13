@@ -45,4 +45,13 @@ describe('profile', () => {
   it('carries the unaffiliated disclaimer verbatim', () => {
     expect(profile.disclaimer).toBe('Unaffiliated personal portfolio. Inspired by Claude Code. Not an Anthropic product.');
   });
+
+  it('has a short intro: five lines, each bolding at least one name, none a draft', () => {
+    expect(profile.intro).toHaveLength(5);
+    for (const line of profile.intro) {
+      expect(line.length).toBeLessThanOrEqual(160);
+      expect(line).toMatch(/\*\*[^*]+\*\*/);
+      expect(line.toLowerCase()).not.toContain(DRAFT_MARKER);
+    }
+  });
 });

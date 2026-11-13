@@ -1,14 +1,11 @@
 ---
-import IntroTerminal from './terminal/IntroTerminal.tsx';
+import { profile } from '../data/profile';
+import { renderBold } from '../lib/content';
 ---
-<header class="hero" id="top">
-  <div class="hero-in">
-    <img class="avatar" src="/headshot.jpg" alt="Andrian Than" width="96" height="96" fetchpriority="high" />
-    <h1><span class="w">Hi, I'm</span> <span class="w grad">Andrian<span class="dot">.</span></span></h1>
-    <p class="status">Graduating Spring 2027 · San Jose, CA</p>
-    <div class="chat">
-      <p class="chat-hello">hey there! i build AI agents people can trust. Ask me anything about my work.</p>
-      <IntroTerminal client:idle />
-    </div>
+<header class="hero" id="about">
+  <h1 class="greeting" aria-label="Hey, I'm Andrian"><span aria-hidden="true" data-scramble="Hey, I'm Andrian">Hey, I'm Andrian</span></h1>
+  <div class="intro">
+    {profile.intro.map((line) => <p set:html={renderBold(line)} />)}
   </div>
 </header>
+<script>import '../scripts/scramble.ts';</script>

@@ -1,0 +1,33 @@
+.home { min-height: 100svh; display: flex; flex-direction: column; padding-bottom: 72px; }
+.home main { flex: 1; }
+
+.topbar { display: flex; justify-content: flex-end; padding: 28px 0 0; }
+.topbar nav { display: flex; align-items: center; gap: 18px; font: 500 15px var(--font-sans); }
+.topbar .icons { display: flex; gap: 14px; }
+.topbar a { display: inline-flex; align-items: center; gap: 6px; color: var(--color-muted); transition: color .15s; }
+.topbar a:hover { color: var(--color-fg); text-decoration: none; }
+.topbar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.topbar .sep { width: 1px; height: 16px; background: var(--color-rule); }
+
+.greeting { font: italic 400 clamp(36px, 6vw, 48px)/1.1 var(--font-serif); letter-spacing: -.01em; margin: 44px 0 20px; color: var(--color-fg); }
+.intro p { margin: 0 0 14px; font-size: 17px; line-height: 1.6; color: rgba(244, 243, 251, .92); }
+.intro b { font-weight: 600; color: #fff; }
+
+.gh-card { margin-top: 28px; padding: 12px 14px 14px; border: 1px solid var(--color-rule); border-radius: 12px; background: var(--color-glass); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
+.gh-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; font: 400 12px var(--font-mono); color: var(--color-muted); }
+.gh-head a { color: var(--color-muted); white-space: nowrap; }
+.gh-head a:hover { color: var(--color-fg); text-decoration: none; }
+.gh-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); grid-auto-columns: 1fr; gap: 2px; aspect-ratio: 53 / 7; }
+.gh-grid .d { border-radius: 2px; background: rgba(255, 255, 255, .06); }
+.gh-grid .lx { visibility: hidden; }
+.gh-grid .l1 { background: #4b2f8f; }
+.gh-grid .l2 { background: #7c4dff; }
+.gh-grid .l3 { background: #b46bff; }
+.gh-grid .l4 { background: #f0abfc; }
+
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; padding: 40px 0 0; font: 400 13px var(--font-mono); color: var(--color-muted); }
+.foot a { color: var(--color-muted); }
+.foot a:hover { color: var(--color-fg); text-decoration: none; }
+.foot-links { display: flex; gap: 20px; }
+
+@media (max-width: 480px) { .topbar { padding-top: 18px; } .greeting { margin-top: 32px; } }

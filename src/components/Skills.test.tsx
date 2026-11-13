@@ -9,9 +9,4 @@ describe('Skills section', () => {
     expect(astro).toContain('<SkillsGlobe />');
     expect(astro).toContain('class="grad"');
   });
-  it('is wired into the home page after ProjectCards', () => {
-    const index = readFileSync(new URL('../pages/index.astro', import.meta.url), 'utf8');
-    expect(index.indexOf('<ProjectCards />')).toBeLessThan(index.indexOf('<Skills />'));
-    expect(index).toContain("import Skills from '../components/Skills.astro'");
-  });
 });

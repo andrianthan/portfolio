@@ -1,14 +1,11 @@
 ---
 import { profile } from '../data/profile';
 ---
-<footer id="contact">
-  <div class="inner" style="padding:0">
-    <span>Built by Andrian Than</span>
-    <span class="links">
-      <a href={`mailto:${profile.contact.email}`}>Email</a>
-      <a href={profile.contact.linkedin} rel="noopener">LinkedIn</a>
-      <a href={profile.contact.github} rel="noopener">GitHub</a>
-      <a href={profile.contact.resume}>Resume</a>
-    </span>
-  </div>
+<footer class="foot" id="contact">
+  <span>© Andrian Than</span>
+  <span class="foot-links">
+    <a href="/terminal">Terminal</a>
+    <a href={profile.contact.resume}>Resume</a>
+  </span>
+  <span class="foot-hint">⌘K Command menu</span>
 </footer>
