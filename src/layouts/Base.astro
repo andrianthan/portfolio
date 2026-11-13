@@ -4,6 +4,8 @@ import Analytics from '@vercel/analytics/astro';
 import '../styles/scene.css';
 import '../styles/home.css';
 import Background from '../components/Background.astro';
+import CommandMenu from '../components/CommandMenu.tsx';
+import { profile } from '../data/profile';
 
 interface Props { title: string; description?: string; ogImage?: string; path?: string; scene?: boolean; menu?: boolean }
 const { title, description = 'Andrian Than, software engineer building AI agents.', ogImage = '/og.png', path = Astro.url.pathname, scene = true, menu = true } = Astro.props;
@@ -33,6 +35,7 @@ const og = new URL(ogImage, Astro.site).toString();
   <body>
     {scene && <Background />}
     <slot />
+    {menu && <CommandMenu client:load contact={profile.contact} />}
     <Analytics />
     <script>import '../scripts/enhance.ts';</script>
     <script>import '../scripts/cursor-field.ts';</script>
