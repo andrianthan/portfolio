@@ -2,8 +2,8 @@
 import '../styles/global.css';
 import Analytics from '@vercel/analytics/astro';
 
-interface Props { title: string; description?: string; ogImage?: string; path?: string }
-const { title, description = 'Andrian Than, software engineer building AI agents.', ogImage = '/og.png', path = Astro.url.pathname } = Astro.props;
+interface Props { title: string; description?: string; ogImage?: string; path?: string; scene?: boolean; menu?: boolean }
+const { title, description = 'Andrian Than, software engineer building AI agents.', ogImage = '/og.png', path = Astro.url.pathname, scene = true, menu = true } = Astro.props;
 const canonical = new URL(path, Astro.site).toString();
 const og = new URL(ogImage, Astro.site).toString();
 ---
@@ -24,11 +24,8 @@ const og = new URL(ogImage, Astro.site).toString();
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <script is:inline>
-      try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
-      document.documentElement.classList.add('js');
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
   <body>
     <slot />

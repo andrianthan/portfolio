@@ -1,6 +1,5 @@
 ---
 import Base from './Base.astro';
-import ThemeToggle from '../components/ThemeToggle.tsx';
 
 interface Link { label: string; href: string; primary?: boolean }
 interface Nav { href: string; label: string }
@@ -16,7 +15,7 @@ const { kicker, title, lede, meta, links, prev, next, backHref, backLabel, shot,
 ---
 <Base title={`${title} · Andrian Than`} description={lede}>
   <div class="detail">
-    <div class="wide"><header class="bar"><a href={backHref}>← {backLabel}</a><ThemeToggle client:load /></header></div>
+    <div class="wide"><header class="bar"><a href={backHref}>← {backLabel}</a></header></div>
     <main class="inner">
       <header class="ph">
         <p class="kicker">{kicker}</p>
