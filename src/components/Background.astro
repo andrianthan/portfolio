@@ -1,0 +1,16 @@
+---
+import { starShadows } from '../lib/stars';
+const far = starShadows(140, 11);
+const mid = starShadows(70, 23);
+const near = starShadows(28, 37);
+---
+<div class="scene" aria-hidden="true">
+  <div class="layer" style="--depth: .22"><div class="stars s-far" style={`box-shadow: ${far}`}></div></div>
+  <div class="layer" style="--depth: .4"><div class="stars s-mid" style={`box-shadow: ${mid}`}></div></div>
+  <div class="layer" style="--depth: .55">
+    <div class="nebula n1"></div><div class="nebula n2"></div><div class="nebula n3"></div>
+  </div>
+  <div class="layer" style="--depth: .7"><div class="stars s-near" style={`box-shadow: ${near}`}></div></div>
+  <div class="flyers"></div>
+  <div class="layer" style="--depth: .85"><div class="horizon"></div></div>
+</div>

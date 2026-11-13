@@ -1,0 +1,56 @@
+/* The scene: fixed, behind everything. Layers back to front: sky, far stars, mid stars, nebula blobs,
+   near stars, flyers, horizon, vignette. Only transform and opacity animate. */
+.scene {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, var(--scene-mid) 0%, var(--scene-deep) 70%), var(--scene-deep);
+  --px: 0px; --py: 0px;
+}
+.scene .layer {
+  position: absolute; inset: -24px; will-change: transform;
+  transform: translate3d(calc(var(--px) * var(--depth) * -1), calc(var(--py) * var(--depth) * -1), 0);
+}
+
+.stars { position: absolute; left: 0; top: 0; border-radius: 50%; animation: twinkle var(--tw, 6s) ease-in-out infinite alternate; }
+.s-far { width: 1px; height: 1px; --tw: 7s; }
+.s-mid { width: 2px; height: 2px; --tw: 5s; }
+.s-near { width: 3px; height: 3px; --tw: 4s; }
+@keyframes twinkle { from { opacity: .45; } to { opacity: 1; } }
+
+.nebula { position: absolute; border-radius: 50%; }
+.n1 { width: 70vmax; height: 50vmax; left: -10vmax; top: -8vmax; background: radial-gradient(closest-side, rgba(124, 77, 255, .5), transparent); animation: drift-a 90s ease-in-out infinite alternate; }
+.n2 { width: 60vmax; height: 40vmax; right: -15vmax; top: 10vh; background: radial-gradient(closest-side, rgba(236, 72, 153, .32), transparent); animation: drift-b 120s ease-in-out infinite alternate; }
+.n3 { width: 80vmax; height: 45vmax; left: 15vw; bottom: -20vmax; background: radial-gradient(closest-side, rgba(56, 189, 248, .22), transparent); animation: drift-a 150s ease-in-out infinite alternate-reverse; }
+@keyframes drift-a { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vw, 4vh, 0); } }
+@keyframes drift-b { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-8vw, 6vh, 0); } }
+
+.flyers { position: absolute; inset: 0; }
+.flyer { position: absolute; left: 0; top: var(--top); will-change: transform, opacity; }
+.flyer.shooting-star { width: 120px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff); animation: shoot var(--dur) linear forwards; }
+.flyer.comet { width: 5px; height: 5px; border-radius: 50%; background: #cfe8ff; box-shadow: 0 0 10px 2px rgba(180, 210, 255, .7), -60px -4px 40px 6px rgba(160, 190, 255, .25); animation: glide var(--dur) linear forwards; }
+.flyer.ship { width: 10px; height: 3px; border-radius: 2px; background: #9fb4ff; box-shadow: 0 0 8px 2px rgba(159, 180, 255, .5); animation: glide var(--dur) linear forwards; }
+.flyer.ship::after { content: ""; position: absolute; right: -2px; top: 0; width: 3px; height: 3px; border-radius: 50%; background: #ff6b6b; animation: blink 1.2s steps(2, jump-none) infinite; }
+@keyframes shoot {
+  from { transform: translate3d(var(--x0), 0, 0) rotate(var(--rot)) scale(var(--s)); opacity: 0; }
+  10% { opacity: 1; }
+  to { transform: translate3d(var(--x1), 30vh, 0) rotate(var(--rot)) scale(var(--s)); opacity: 0; }
+}
+@keyframes glide {
+  from { transform: translate3d(var(--x0), 0, 0) scale(var(--s)); opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  to { transform: translate3d(var(--x1), 8vh, 0) scale(var(--s)); opacity: 0; }
+}
+@keyframes blink { from { opacity: 1; } to { opacity: .15; } }
+
+.horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 40vh; background: radial-gradient(120% 70% at 50% 120%, rgba(124, 77, 255, .45), transparent 60%); }
+
+.scene::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(70% 60% at 50% 30%, rgba(7, 5, 15, .35), transparent 100%), linear-gradient(transparent 60%, rgba(7, 5, 15, .5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stars, .nebula, .flyer, .flyer::after { animation: none; }
+  .flyers { display: none; }
+  .scene .layer { transform: none; will-change: auto; }
+}
