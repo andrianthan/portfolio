@@ -1,0 +1,17 @@
+---
+import type { ContributionGrid } from '../lib/contributions';
+interface Props { grid: ContributionGrid | null; handle: string; href: string }
+const { grid, handle, href } = Astro.props;
+const total = grid ? grid.total.toLocaleString('en-US') : '';
+---
+{grid && (
+  <section class="gh-card" aria-label="GitHub contributions">
+    <header class="gh-head">
+      <span>{total} contributions in the past year</span>
+      <a href={href} rel="noopener">@{handle} <span aria-hidden="true">↗</span></a>
+    </header>
+    <div class="gh-grid" role="img" aria-label={`${total} contributions in the past year`}>
+      {grid.weeks.map((week) => week.map((day) => <i class={`d l${day ? day.level : 'x'}`}></i>))}
+    </div>
+  </section>
+)}
