@@ -37,8 +37,6 @@ const og = new URL(ogImage, Astro.site).toString();
     <slot />
     {menu && <CommandMenu client:load contact={profile.contact} />}
     <Analytics />
-    <script>import '../scripts/enhance.ts';</script>
-    <script>import '../scripts/cursor-field.ts';</script>
     <script>import '../scripts/scene.ts';</script>
   </body>
 </html>
