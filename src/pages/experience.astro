@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import TopBar from '../components/TopBar.astro';
+import Footer from '../components/Footer.astro';
+import { experienceRows } from '../lib/content';
+
+const rows = experienceRows(await getCollection('work'));
+---
+<Base title="Experience · Andrian Than" description="Where Andrian Than has worked: Tesla, Hanna Center, Blue Dome Technologies, and Micron." path="/experience">
+  <div class="inner home">
+    <TopBar current="experience" />
+    <main>
+      <h1 class="greeting">Experience</h1>
+      <ol class="xp">
+        {rows.map((r) => (
+          <li class="xp-row">
+            <p class="xp-dates">{r.dates}{r.current && <span class="xp-now"> · now</span>}</p>
+            <div class="xp-body">
+              <h2 class="xp-co">
+                {r.href ? <a href={r.href}>{r.company} <span aria-hidden="true">→</span></a> : r.company}
+              </h2>
+              <p class="xp-role">{r.title}</p>
+              <p class="xp-sum" set:html={r.summaryHtml} />
+            </div>
+          </li>
+        ))}
+      </ol>
+    </main>
+    <Footer />
+  </div>
+</Base>

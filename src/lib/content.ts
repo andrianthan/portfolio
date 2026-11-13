@@ -13,3 +13,25 @@ export function neighbors<T extends { id: string }>(xs: T[], id: string): { prev
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 export const renderBold = (text: string): string => esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+export interface ExperienceRow {
+  id: string; company: string; title: string; dates: string;
+  summaryHtml: string; href: string | null; current: boolean;
+}
+
+type RoleLike = Gated & {
+  id: string;
+  data: Gated['data'] & { company: string; title: string; dates: string; summary: string; current: boolean };
+};
+
+export function experienceRows(roles: RoleLike[]): ExperienceRow[] {
+  return listed(roles).map((r) => ({
+    id: r.id,
+    company: r.data.company,
+    title: r.data.title,
+    dates: r.data.dates,
+    summaryHtml: renderBold(r.data.summary),
+    href: r.data.cleared ? `/work/${r.id}` : null,
+    current: r.data.current,
+  }));
+}

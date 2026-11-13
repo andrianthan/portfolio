@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { listed, cleared, neighbors, renderBold } from './content';
+import { listed, cleared, neighbors, renderBold, experienceRows } from './content';
 
 const mk = (id: string, order: number, l = true, c = false) => ({ id, data: { listed: l, cleared: c, order } });
 
@@ -33,4 +33,29 @@ describe('neighbors', () => {
 describe('renderBold', () => {
   it('wraps **x** in <b>', () => expect(renderBold('a **b** c')).toBe('a <b>b</b> c'));
   it('escapes html', () => expect(renderBold('<i>x</i> **y**')).toBe('&lt;i&gt;x&lt;/i&gt; <b>y</b>'));
+});
+
+describe('experienceRows', () => {
+  const role = (id: string, order: number, over: Record<string, unknown> = {}) => ({
+    id,
+    data: {
+      company: `Co ${id}`, title: 'Engineer', dates: 'Jan 2025 – Feb 2025', summary: 'Built **x** & y',
+      current: false, listed: true, cleared: false, order, ...over,
+    },
+  });
+
+  it('orders listed entries and drops unlisted ones', () => {
+    const rows = experienceRows([role('b', 2), role('a', 1), role('c', 3, { listed: false })]);
+    expect(rows.map((r) => r.id)).toEqual(['a', 'b']);
+  });
+
+  it('links only cleared entries', () => {
+    const rows = experienceRows([role('a', 1, { cleared: true }), role('b', 2)]);
+    expect(rows[0].href).toBe('/work/a');
+    expect(rows[1].href).toBeNull();
+  });
+
+  it('escapes the summary and renders bold', () => {
+    expect(experienceRows([role('a', 1)])[0].summaryHtml).toBe('Built <b>x</b> &amp; y');
+  });
 });
