@@ -73,6 +73,7 @@
 @keyframes cmdk-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .cmdk-overlay { animation: none; } .cmdk-pill { transition: none; } }
 
-.detail main.inner { background: var(--color-card); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 14px; padding: 8px 24px 24px; margin-top: 16px; }
+/* No backdrop-filter here: it would make this panel the containing block for the fixed TOC rail (projects.css), pinning the rail inside the panel. */
+.detail main.inner { background: rgba(14, 11, 28, .84); border-radius: 14px; padding: 8px 24px 24px; margin-top: 16px; }
 @media (hover: none) { .foot-hint { display: none; } }
 .inner.home { padding-left: 24px; padding-right: 24px; }
