@@ -42,7 +42,8 @@
 }
 @keyframes blink { from { opacity: 1; } to { opacity: .15; } }
 
-.horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 40vh; background: radial-gradient(120% 70% at 50% 120%, rgba(124, 77, 255, .45), transparent 60%); }
+.sky { position: absolute; inset: 0; background: url('/scene/sky.webp') center / cover no-repeat; opacity: .9; }
+.horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 40vh; background: url('/scene/horizon.webp') center bottom / cover no-repeat, radial-gradient(120% 70% at 50% 120%, rgba(124, 77, 255, .45), transparent 60%); -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); mask-image: linear-gradient(to top, #000 55%, transparent); }
 
 .scene::after {
   content: ""; position: absolute; inset: 0;

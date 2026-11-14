@@ -5,6 +5,7 @@ const mid = starShadows(70, 23);
 const near = starShadows(28, 37);
 ---
 <div class="scene" aria-hidden="true">
+  <div class="layer" style="--depth: .1"><div class="sky"></div></div>
   <div class="layer" style="--depth: .22"><div class="stars s-far" style={`box-shadow: ${far}`}></div></div>
   <div class="layer" style="--depth: .4"><div class="stars s-mid" style={`box-shadow: ${mid}`}></div></div>
   <div class="layer" style="--depth: .55">
