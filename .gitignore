@@ -6,3 +6,4 @@ dist/
 .env*
 drafts/
 .DS_Store
+.superpowers/
