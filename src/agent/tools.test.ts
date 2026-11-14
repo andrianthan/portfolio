@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fixture from './fixtures/snapshot.json';
-import { about, bm25, contact, experience, MIN_SEARCH_SCORE, projects, resume, search, skills, tokenize } from './tools';
+import { about, bm25, contact, experience, MIN_SEARCH_SCORE, search, skills, tokenize } from './tools';
 import type { Chunk, Snapshot } from './types';
 
 const snapshot = fixture as unknown as Snapshot;
@@ -74,18 +74,6 @@ describe('tools', () => {
     expect(out.every((id) => id.startsWith('role:'))).toBe(true);
   });
 
-  it('returns only project chunks for projects', () => {
-    const out = ids(projects(snapshot, []));
-    expect(out.length).toBeGreaterThan(0);
-    expect(out.every((id) => id.startsWith('project:'))).toBe(true);
-  });
-
-  it('returns roles and projects for resume', () => {
-    const out = ids(resume(snapshot, []));
-    expect(out.some((id) => id.startsWith('role:'))).toBe(true);
-    expect(out.some((id) => id.startsWith('project:'))).toBe(true);
-  });
-
   it('returns skill chunks for skills', () => {
     const out = ids(skills(snapshot, []));
     expect(out.length).toBeGreaterThan(0);
@@ -138,8 +126,6 @@ describe('tools', () => {
   it('never returns an uncleared body', () => {
     const returned = [
       ...experience(snapshot, []),
-      ...projects(snapshot, []),
-      ...resume(snapshot, []),
       ...skills(snapshot, []),
       ...contact(snapshot, []),
       ...about(snapshot, []),

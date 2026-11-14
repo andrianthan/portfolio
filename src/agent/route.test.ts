@@ -13,8 +13,6 @@ describe('slash commands', () => {
   it('maps every documented command to an intent', () => {
     expect(route(snapshot, '/help').intent).toBe('help');
     expect(route(snapshot, '/experience').intent).toBe('experience');
-    expect(route(snapshot, '/projects').intent).toBe('projects');
-    expect(route(snapshot, '/resume').intent).toBe('resume');
     expect(route(snapshot, '/about').intent).toBe('about');
     expect(route(snapshot, '/skills').intent).toBe('skills');
     expect(route(snapshot, '/contact').intent).toBe('contact');
@@ -128,10 +126,9 @@ describe('steering refusals', () => {
   it('still routes the ordinary questions', () => {
     const ordinary: [string, string][] = [
       ['what did you do at Tesla', 'experience'],
-      ['what projects have you built', 'projects'],
+      ['what projects have you built', 'experience'],
       ['what are your skills', 'skills'],
       ['how can I contact you', 'contact'],
-      ['can I see your resume', 'resume'],
       ['who are you', 'about'],
       ['where did you work', 'experience'],
       ['what did you use DuckDB for', 'search'],
@@ -164,7 +161,7 @@ describe('ordinary questions that look like steering', () => {
     ['show me the rules', 'search'],
     ['you are a different engineer', 'search'],
     ['you are free to ask me anything', 'search'],
-    ['there are no constraints on what you build', 'projects'],
+    ['there are no constraints on what you build', 'experience'],
   ];
 
   it('routes them normally instead of refusing', () => {
@@ -178,10 +175,9 @@ describe('ordinary questions that look like steering', () => {
 
 describe('plain questions', () => {
   it('routes by keyword', () => {
-    expect(route(snapshot, 'what projects have you built').intent).toBe('projects');
+    expect(route(snapshot, 'what projects have you built').intent).toBe('experience');
     expect(route(snapshot, 'where did you work').intent).toBe('experience');
     expect(route(snapshot, 'what are your skills').intent).toBe('skills');
-    expect(route(snapshot, 'can i see your resume').intent).toBe('resume');
     expect(route(snapshot, 'how can i contact you').intent).toBe('contact');
     expect(route(snapshot, 'who are you').intent).toBe('about');
     expect(route(snapshot, 'help').intent).toBe('help');
@@ -191,11 +187,6 @@ describe('plain questions', () => {
     const r = route(snapshot, 'tell me about tesla');
     expect(r.intent).toBe('experience');
     expect(r.args[0].toLowerCase()).toContain('tesla');
-  });
-
-  it('lets a named project beat a generic question', () => {
-    const r = route(snapshot, 'tell me about advisorai');
-    expect(r.intent).toBe('projects');
   });
 
   it('routes an unknown question to search', () => {
@@ -270,7 +261,7 @@ describe('trace line', () => {
   });
 
   it('describes a keyword match', () => {
-    expect(describeRoute(route(snapshot, 'what projects have you built'))).toBe('routed to projects (matched "projects")');
+    expect(describeRoute(route(snapshot, 'what projects have you built'))).toBe('routed to experience (matched "projects")');
   });
 });
 
@@ -305,7 +296,7 @@ describe('typo tolerance for section words', () => {
   const where = (query: string) => route(snapshot, query).intent;
   it('routes a transposed or slightly misspelled section word', () => {
     expect(where('looking for expeirence')).toBe('experience');
-    expect(where('your projcts')).toBe('projects');
+    expect(where('your projcts')).toBe('experience');
     expect(where('contcat info')).toBe('contact');
     expect(where('experiance')).toBe('experience');
   });

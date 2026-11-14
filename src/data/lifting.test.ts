@@ -1,0 +1,35 @@
+import { describe, it, expect } from 'vitest';
+import { lifts, liftTotal, percentileLine, hoursLabel, calendarCaption } from './lifting';
+import { formatHours } from '../components/gym/calendar';
+
+describe('lifting facts', () => {
+  it('lists bench, squat and deadlift as approximate pounds', () => {
+    expect(lifts).toEqual([
+      { name: 'Bench', pounds: '~245 lb' },
+      { name: 'Squat', pounds: '~385 lb' },
+      { name: 'Deadlift', pounds: '~475 lb' },
+    ]);
+  });
+  it('the total is the sum of the three lifts', () => {
+    expect(245 + 385 + 475).toBe(1105);
+    expect(liftTotal).toBe('~1,105 lb');
+  });
+  it('uses the confirmed percentile line, hours label and caption', () => {
+    expect(percentileLine).toBe('90th percentile (per Strength Level)');
+    expect(hoursLabel).toBe('~1.6k hours');
+    expect(calendarCaption).toBe('Gym check-ins');
+  });
+  it('the hours label matches 879 check-ins at 1.8 hours each, inside the 1.25 to 2.5 hour session range', () => {
+    expect(formatHours(879, 1.8)).toBe('1.6k');
+    expect(hoursLabel).toBe(`~${formatHours(879, 1.8)} hours`);
+    expect(879 * 1.25).toBeLessThan(1600);
+    expect(879 * 2.5).toBeGreaterThan(1600);
+  });
+  it('marks the hours as an estimate, like the lifts and the total', () => {
+    // every derived figure on the page carries the marker, so a reader knows which
+    // numbers were measured and which were assumed
+    expect(hoursLabel.startsWith('~')).toBe(true);
+    for (const l of lifts) expect(l.pounds.startsWith('~')).toBe(true);
+    expect(liftTotal.startsWith('~')).toBe(true);
+  });
+});

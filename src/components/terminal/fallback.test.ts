@@ -10,7 +10,6 @@ describe('fallback sections', () => {
     const sections = fallbackSections(snapshot);
     const headings = sections.map((section) => section.heading);
     expect(headings).toContain('Experience');
-    expect(headings).toContain('Projects');
     expect(headings).toContain('Skills');
     expect(headings).toContain('Contact');
     expect(headings).toContain('About');
@@ -19,7 +18,12 @@ describe('fallback sections', () => {
   it('lists every listed role and project', () => {
     const sections = fallbackSections(snapshot);
     const roles = sections.find((section) => section.heading === 'Experience')!;
-    expect(roles.items.length).toBe(snapshot.chunks.filter((c) => c.kind === 'role').length);
+    // One item per role entry, not per chunk: a cleared multi-project role
+    // carries a summary chunk plus one body chunk per section.
+    const entries = new Set(
+      snapshot.chunks.filter((c) => c.kind === 'role').map((c) => c.id.split('#')[0]),
+    );
+    expect(roles.items.length).toBe(entries.size);
   });
 
   it('links every item', () => {

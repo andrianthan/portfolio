@@ -1,0 +1,28 @@
+/* Slideshow demo. Chrome from qa.css. Tokens only. */
+.sl { max-width: 100%; }
+.sl .qa-top { flex-wrap: wrap; }
+.sl-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sl-templates, .sl-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sl .sl-templates button, .sl .sl-actions button, .sl .sl-dl button {
+  min-height: 44px; padding: 0 14px; font: 600 12px var(--font-mono); color: var(--color-fg);
+  background: transparent; border: 1px solid var(--color-rule); border-radius: 8px; cursor: pointer;
+}
+.sl .sl-templates button.on, .sl .sl-go { border-color: var(--color-accent); }
+.sl .sl-link { text-decoration: underline; border-color: var(--color-accent); }
+.sl .sl-templates button:focus-visible, .sl .sl-actions button:focus-visible, .sl .sl-dl button:focus-visible { border-radius: 8px; }
+.sl-note, .sl-cap { margin: 0; font-size: 12px; color: var(--color-muted); }
+.sl-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sl-steps li { display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 13px; color: var(--color-muted); }
+.sl-steps li.cur { color: var(--color-fg); }
+.sl-steps li.done { color: var(--color-fg); }
+.sl-mark {
+  display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; flex: none;
+  font: 11px var(--font-mono); border: 1px solid var(--color-rule); border-radius: 50%;
+}
+.sl-steps li.cur .sl-mark { border-color: var(--color-accent); }
+.sl-steps li.done .sl-mark { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-bg); }
+.sl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sl-status { margin: 0; font: 12px var(--font-mono); color: var(--color-fg); }
+.sl-strip { display: block; width: 100%; max-width: 480px; height: auto; aspect-ratio: 240 / 40; }
+.sl-dl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.sl-mock { font: 12px var(--font-mono); color: var(--color-fg); overflow-wrap: anywhere; min-width: 0; }

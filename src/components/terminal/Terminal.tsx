@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTerminal } from './useTerminal';
 
-const CHIPS = ['/help', '/experience', '/projects', '/resume', '/about', '/skills', '/contact', '/hire'];
+const CHIPS = ['/help', '/experience', '/about', '/skills', '/contact', '/hire'];
 
 export default function Terminal() {
   const term = useTerminal();
@@ -35,8 +35,8 @@ export default function Terminal() {
             <span className="term-text">{line.text}</span>
             {line.sources && line.sources.length > 0 ? (
               <span className="term-sources">
-                {line.sources.map((source) => (
-                  <a key={`${source.title}-${source.url}`} href={source.url}>
+                {line.sources.map((source, index) => (
+                  <a key={`${source.title}-${source.url}-${index}`} href={source.url}>
                     {source.title}
                   </a>
                 ))}

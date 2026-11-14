@@ -8,7 +8,7 @@ meta:
   role: Team lead (8 people)
   status: "Hackathon build, 1st of 9 teams from 700+ applicants"
   stack: Python, React, IBM watsonx Orchestrate
-listed: true
+listed: false
 cleared: false
 order: 1
 ---

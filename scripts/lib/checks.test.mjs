@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles, findRequiredLinks, findMissingRoutes, findSnapshotProblems } from './checks.mjs';
+import { listHtml, listText, readEntries, findMarkers, findBrokenLinks, findMissingAlt, findLeaks, bodyNeedle, bodyNeedles, findRequiredLinks, findMissingRoutes, findSnapshotProblems, readCountries, findOutsideProblems } from './checks.mjs';
 import { runChecks } from './run.mjs';
 
 let dir;
@@ -234,6 +234,21 @@ describe('runChecks fail-closed', () => {
     expect(problems.join('\n')).toMatch(/required link "\/terminal"/);
     expect(problems.join('\n')).toMatch(/missing route \/terminal/);
   });
+  it('reports a broken Outside of work section when the data file is given', () => {
+    write('dist/index.html', '<a href="/terminal">terminal</a>');
+    write('dist/terminal/index.html', '<!doctype html>');
+    write('dist/agent-data.json', JSON.stringify({ version: 1, chunks: [{ id: 'role:a' }] }));
+    write('outside.ts', "export const countries: Country[] = [\n  { name: 'Japan', code: 'JPN', years: [], areas: [] },\n];");
+    const content = path.join(dir, 'content');
+    fs.mkdirSync(path.join(content, 'work'), { recursive: true });
+    fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
+    const { problems } = runChecks({
+      distDir: path.join(dir, 'dist'),
+      contentDir: content,
+      dataFile: path.join(dir, 'outside.ts'),
+    });
+    expect(problems.join('\n')).toMatch(/Outside of work/);
+  });
 });
 
 describe('findSnapshotProblems', () => {
@@ -288,5 +303,238 @@ describe('readEntries listed flag', () => {
     const entries = readEntries(dir);
     expect(entries.find((e) => e.id === 'a').listed).toBe(false);
     expect(entries.find((e) => e.id === 'b').listed).toBe(true);
+  });
+});
+
+// The Outside of work gate: the section's own markup, checked against the built page.
+const OUTSIDE_COUNTRIES = [
+  { name: 'South Korea', code: 'KOR' },
+  { name: 'Japan', code: 'JPN' },
+  { name: 'Vietnam', code: 'VNM' },
+  { name: 'Taiwan', code: 'TWN' },
+  { name: 'Thailand', code: 'THA' },
+  { name: 'Mexico', code: 'MEX' },
+  { name: 'Singapore', code: 'SGP' },
+  { name: 'Malaysia', code: 'MYS' },
+  { name: 'Indonesia', code: 'IDN' },
+];
+
+const countryEntry = (c) =>
+  `<details class="country" data-c="${c.code}"><summary><span>${c.name}</span><span class="country-years">2024</span></summary><div class="country-body"></div></details>`;
+
+// The approved photos the gate compares the built section against.
+const OUTSIDE_PHOTOS = [
+  { id: 'a', alt: 'A photo of a' },
+  { id: 'b', alt: 'A photo of b' },
+];
+
+// The trails the gate reads out of the data module and checks against the
+// built trails list.
+const OUTSIDE_TRAILS = [
+  { name: 'Hwangnyeongsan', place: 'Busan', years: [2024] },
+  { name: 'Point Lobos', place: 'California', years: [2025, 2026] },
+  { name: 'Yosemite', place: 'California', years: [] },
+];
+
+const photoImg = (p, extra = '') =>
+  `<img src="/outside/${p.id}.webp" alt="${p.alt}" width="600" height="800" loading="lazy" decoding="async"${extra}>`;
+
+const trailsList = (trails = OUTSIDE_TRAILS) =>
+  `<ul class="trails">${trails.map((t) => `<li><b>${t.name}</b><span>${t.place}${t.years.length ? ` · ${t.years.join(', ')}` : ''}</span></li>`).join('')}</ul>`;
+
+const outsideSection = (countries = OUTSIDE_COUNTRIES, opts = {}) => {
+  const {
+    id = 'outside',
+    eyebrow = 'Get to know me',
+    heading = 'Outside of work',
+    blocks = [
+      ['Strength', 'Lifting'],
+      ['In the pool', 'Swimming'],
+      ['Travel', '9 countries · 6 states'],
+      ['Food', 'Things I ate'],
+    ],
+    // The images go into the first block only, so a photo appears once.
+    images = [photoImg(OUTSIDE_PHOTOS[0]), photoImg(OUTSIDE_PHOTOS[1])],
+    trails = OUTSIDE_TRAILS,
+  } = opts;
+  const bodies = blocks
+    .map(([e, h], index) => `<div class="block"><header class="lifting-head"><p class="eyebrow">${e}</p><h3>${h}</h3></header>${index === 0 ? images.join('') : ''}</div>`)
+    .join('');
+  return `<section class="s" id="${id}"><header class="sh"><p class="eyebrow">${eyebrow}</p><h2>${heading}</h2></header>${bodies}<div class="travel-list">${countries.map(countryEntry).join('')}</div>${trailsList(trails)}</section>`;
+};
+
+describe('readCountries', () => {
+  it('reads the country list out of the data module', () => {
+    const file = path.join(dir, 'outside.ts');
+    write('outside.ts', "export const countries: Country[] = [\n  { name: 'Japan', code: 'JPN', years: [2024], areas: [] },\n];");
+    expect(readCountries(file)).toEqual([{ name: 'Japan', code: 'JPN' }]);
+  });
+  it('returns nothing when the array is not there', () => {
+    const file = path.join(dir, 'other.ts');
+    write('other.ts', 'export const states = [];');
+    expect(readCountries(file)).toEqual([]);
+  });
+});
+
+describe('findOutsideProblems', () => {
+  const dataFile = (trails = OUTSIDE_TRAILS) => {
+    const file = path.join(dir, 'outside.ts');
+    const entries = OUTSIDE_COUNTRIES.map((c) => `  { name: '${c.name}', code: '${c.code}', years: [], areas: [] },`).join('\n');
+    const trailEntries = trails.map((t) => `  { name: '${t.name}', place: '${t.place}'${t.years.length ? `, years: [${t.years.join(', ')}]` : ''} },`).join('\n');
+    write('outside.ts', `export const countries: Country[] = [\n${entries}\n];\nexport const trails: Trail[] = [\n${trailEntries}\n];`);
+    return file;
+  };
+  const manifestFile = (photos = OUTSIDE_PHOTOS) => {
+    const file = path.join(dir, 'outside-photos.json');
+    write('outside-photos.json', JSON.stringify(photos.map((p) => ({ id: p.id, alt: p.alt }))));
+    return file;
+  };
+  const build = (section, photos = OUTSIDE_PHOTOS) => {
+    write('dist/index.html', `<!doctype html><html><body><section class="s" id="about"><header class="sh"><p class="eyebrow">Where I've worked</p><h2>Experience</h2></header></section>${section}</body></html>`);
+    return findOutsideProblems(path.join(dir, 'dist'), dataFile(), manifestFile(photos));
+  };
+
+  it('passes for a well formed section', () => {
+    expect(build(outsideSection())).toEqual([]);
+  });
+
+  it('flags a missing section', () => {
+    expect(build('')).toHaveLength(1);
+    expect(build('')[0]).toMatch(/id="outside"/);
+  });
+
+  it('flags a wrong eyebrow or heading', () => {
+    expect(build(outsideSection(OUTSIDE_COUNTRIES, { eyebrow: 'Other' }))[0]).toMatch(/Get to know me/);
+    expect(build(outsideSection(OUTSIDE_COUNTRIES, { heading: 'Elsewhere' }))[0]).toMatch(/Outside of work/);
+  });
+
+  it('flags the blocks in the wrong order', () => {
+    const swapped = outsideSection(OUTSIDE_COUNTRIES, {
+      blocks: [['Strength', 'Lifting'], ['Food', 'Things I ate'], ['In the pool', 'Swimming'], ['Travel', '9 countries · 6 states']],
+    });
+    expect(build(swapped).some((p) => /Things I ate/.test(p))).toBe(true);
+  });
+
+  it('flags a missing block', () => {
+    const short = outsideSection(OUTSIDE_COUNTRIES, {
+      blocks: [['Strength', 'Lifting'], ['In the pool', 'Swimming']],
+    });
+    expect(build(short).some((p) => /Travel/.test(p))).toBe(true);
+  });
+
+  it('flags a country that is missing from the list', () => {
+    const missing = build(outsideSection(OUTSIDE_COUNTRIES.slice(1)));
+    expect(missing.some((p) => /South Korea/.test(p))).toBe(true);
+    expect(missing.some((p) => /8 entries, expected 9/.test(p))).toBe(true);
+  });
+
+  it('flags a summary that does not name its country', () => {
+    const renamed = outsideSection().replace('<span>Japan</span>', '<span>Nippon</span>');
+    expect(build(renamed).some((p) => /Japan/.test(p))).toBe(true);
+  });
+
+  it('flags a repeated country name', () => {
+    const repeated = outsideSection().replace('<span>Malaysia</span>', '<span>Indonesia</span>');
+    expect(build(repeated).some((p) => /repeats/.test(p))).toBe(true);
+  });
+
+  it('flags an image without alt, width, height, lazy loading or async decoding', () => {
+    const one = (img) => build(outsideSection(OUTSIDE_COUNTRIES, { images: [img] })).join('\n');
+    expect(one('<img src="/outside/a.webp" width="600" height="800" loading="lazy" decoding="async">')).toMatch(/has alt "", expected the manifest's/);
+    expect(one('<img src="/outside/a.webp" alt="A photo of a" height="800" loading="lazy" decoding="async">')).toMatch(/has no width/);
+    expect(one('<img src="/outside/a.webp" alt="A photo of a" width="600" loading="lazy" decoding="async">')).toMatch(/has no height/);
+    expect(one('<img src="/outside/a.webp" alt="A photo of a" width="600" height="800" decoding="async">')).toMatch(/is not lazily loaded/);
+    expect(one('<img src="/outside/a.webp" alt="A photo of a" width="600" height="800" loading="lazy">')).toMatch(/is not decoded asynchronously/);
+  });
+
+  it('flags a missing home page', () => {
+    expect(findOutsideProblems(path.join(dir, 'nope'), dataFile(), manifestFile())).toHaveLength(1);
+  });
+
+  it('fails closed on a section that is never closed', () => {
+    // A section with no closing tag used to be read as the rest of the page,
+    // so a malformed build could pass the gate. It must not.
+    const unclosed = outsideSection().replace('</section>', '');
+    write('dist/index.html', `<!doctype html><html><body>${unclosed}</body></html>`);
+    const problems = findOutsideProblems(path.join(dir, 'dist'), dataFile(), manifestFile());
+    expect(problems.join('\n')).toMatch(/never closed/);
+  });
+
+  it('fails closed on a section it cannot identify', () => {
+    // The opening tag is matched exactly, so a section whose attributes were
+    // reordered or changed is a missing section, not a section to check.
+    const renamed = outsideSection().replace('<section class="s" id="outside">', '<section id="outside" class="s">');
+    write('dist/index.html', `<!doctype html><html><body>${renamed}</body></html>`);
+    const problems = findOutsideProblems(path.join(dir, 'dist'), dataFile(), manifestFile());
+    expect(problems.join('\n')).toMatch(/is missing from the built home page/);
+  });
+
+  it('flags an approved photo that is missing from the section', () => {
+    // The section carries one photo; the manifest approves two.
+    const problems = build(outsideSection(OUTSIDE_COUNTRIES, { images: [photoImg(OUTSIDE_PHOTOS[0])] }));
+    expect(problems.some((p) => /missing the approved photo b/.test(p))).toBe(true);
+  });
+
+  it('flags a section with no photos at all', () => {
+    const problems = build(outsideSection(OUTSIDE_COUNTRIES, { images: [] }));
+    expect(problems.some((p) => /no photos at all/.test(p))).toBe(true);
+    expect(problems.some((p) => /missing the approved photo/.test(p))).toBe(true);
+  });
+
+  it('flags an image whose alt is not the manifest alt', () => {
+    const problems = build(outsideSection(OUTSIDE_COUNTRIES, {
+      images: ['<img src="/outside/a.webp" alt="something else" width="600" height="800" loading="lazy" decoding="async">'],
+    }));
+    expect(problems.some((p) => /alt "something else", expected the manifest's "A photo of a"/.test(p))).toBe(true);
+  });
+
+  it('flags an image that is missing its async decoding', () => {
+    const problems = build(outsideSection(OUTSIDE_COUNTRIES, {
+      images: ['<img src="/outside/a.webp" alt="A photo of a" width="600" height="800" loading="lazy">'],
+    }));
+    expect(problems.some((p) => /not decoded asynchronously/.test(p))).toBe(true);
+  });
+
+  it('flags a photo that is not on the approved list', () => {
+    const problems = build(outsideSection(OUTSIDE_COUNTRIES, {
+      images: ['<img src="/outside/rogue.webp" alt="A photo of a" width="600" height="800" loading="lazy" decoding="async">'],
+    }));
+    expect(problems.some((p) => /shows rogue, which is not an approved photo/.test(p))).toBe(true);
+  });
+
+  it('flags the same photo shown twice', () => {
+    const problems = build(outsideSection(OUTSIDE_COUNTRIES, {
+      images: [photoImg(OUTSIDE_PHOTOS[0]), photoImg(OUTSIDE_PHOTOS[0])],
+    }));
+    expect(problems.some((p) => /shows a more than once/.test(p))).toBe(true);
+  });
+
+  it('flags a manifest it cannot read', () => {
+    const file = path.join(dir, 'broken.json');
+    write('broken.json', 'not json');
+    write('dist/index.html', `<!doctype html><html><body>${outsideSection()}</body></html>`);
+    const problems = findOutsideProblems(path.join(dir, 'dist'), dataFile(), file);
+    expect(problems.some((p) => /manifest could not be read/.test(p))).toBe(true);
+  });
+
+  it('flags a trail that shows a year it does not have', () => {
+    // The trails list must show exactly the years the data module gives it:
+    // no year where the plan says none, and every year where it says one.
+    const withYear = build(outsideSection(OUTSIDE_COUNTRIES, {
+      trails: [{ name: 'Yosemite', place: 'California', years: [2019] }],
+    }));
+    expect(withYear.some((p) => /trail Yosemite shows the years \[2019\], expected \[\]/.test(p))).toBe(true);
+  });
+
+  it('flags a trail that is missing a year it has', () => {
+    const missing = build(outsideSection(OUTSIDE_COUNTRIES, {
+      trails: [{ name: 'Point Lobos', place: 'California', years: [2025] }],
+    }));
+    expect(missing.some((p) => /trail Point Lobos shows the years \[2025\], expected \[2025, 2026\]/.test(p))).toBe(true);
+  });
+
+  it('flags a trail that is missing from the list', () => {
+    const missing = build(outsideSection(OUTSIDE_COUNTRIES, { trails: [] }));
+    expect(missing.some((p) => /trails list has no entry for Point Lobos/.test(p))).toBe(true);
   });
 });

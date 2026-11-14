@@ -3,13 +3,18 @@
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* the outside-of-work and gym styles read a title face and a pixel face; the redesign
+     loads neither, so they fall back to the site faces */
+  --font-title: var(--font-sans);
+  --font-pixel: var(--font-mono);
 
   --color-bg: #07050f; --color-fg: #f4f3fb; --color-muted: #b8b8d0; --color-rule: rgba(255, 255, 255, .14);
   --color-accent: #b9a4ff; --color-num: #c4b2ff; --color-chip: rgba(255, 255, 255, .07);
-  --color-card: rgba(14, 11, 28, .72); --color-dot: rgba(255, 255, 255, .06);
+  --color-card: rgba(14, 11, 28, .72); --color-card-solid: #0e0b1c; --color-dot: rgba(255, 255, 255, .06);
   --color-glow: rgba(139, 92, 246, .25); --color-logo-bg: #ffffff;
   --color-glass: rgba(255, 255, 255, .07); --color-mask: #000;
   --grad-a: #a78bfa; --grad-b: #f472b6;
+  --title-glow: rgba(167, 139, 250, .45);
 
   --scene-deep: #07050f; --scene-mid: #1b1140; --scene-bright: #3b2c7d; --scene-glow: #7c4dff;
 

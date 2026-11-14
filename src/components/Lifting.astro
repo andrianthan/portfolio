@@ -1,0 +1,19 @@
+---
+import GymCalendar from './gym/GymCalendar.tsx';
+import data from '../data/gym-checkins.json';
+import { overallStats } from './gym/calendar';
+import { lifts, liftTotal, percentileLine, hoursLabel } from '../data/lifting';
+const overall = overallStats(data.dates, data.asOf);
+const days = `${overall.longestStreak} ${overall.longestStreak === 1 ? 'day' : 'days'}`;
+---
+<div class="lifting reveal">
+  <header class="lifting-head"><p class="eyebrow">Strength</p><h3>Lifting</h3></header>
+  <ul class="lifting-stats">
+    {lifts.map((l) => <li><b>{l.pounds}</b><span>{l.name}</span></li>)}
+    <li><b>{liftTotal}</b><span>Total</span></li>
+  </ul>
+  <p class="lifting-pct">{percentileLine}</p>
+  <p class="lifting-hours"><b>{hoursLabel}</b> in the gym</p>
+  <p class="gym-stats lifting-overall"><b>{overall.checkIns}</b> check-ins · since <b>{overall.since}</b> · <b>{overall.perWeek}</b> avg per week · longest streak <b>{days}</b></p>
+  <GymCalendar client:visible />
+</div>

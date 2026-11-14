@@ -78,13 +78,12 @@ describe('snapshot of the real content', () => {
     expect(tesla).toBeDefined();
     expect(tesla!.text).toContain('32% better than baseline');
     expect(tesla!.facts).toContain('32%');
-    expect(tesla!.facts).toContain('200+');
     expect(tesla!.text).not.toContain('**');
   });
 
-  it('points an uncleared entry at the home anchor', () => {
+  it('points a cleared entry at its own route', () => {
     const tesla = snapshot.chunks.find((c) => c.id === 'role:tesla')!;
-    expect(tesla.url).toBe('/experience');
+    expect(tesla.url).toBe('/work/tesla');
   });
 
   it('carries the profile chunks', () => {
@@ -93,6 +92,7 @@ describe('snapshot of the real content', () => {
     for (const group of profile.skillGroups) {
       expect(snapshot.chunks.some((c) => c.id === `skill:${group.slug}`)).toBe(true);
     }
+    expect(snapshot.chunks.some((c) => c.id === 'about:outside')).toBe(true);
     const about = snapshot.chunks.find((c) => c.id === 'about:bio')!;
     expect(about.text.startsWith(profile.oneLine)).toBe(true);
   });
@@ -169,5 +169,86 @@ describe('text helpers', () => {
     expect(sections).toHaveLength(2);
     expect(sections[0].heading).toBe('One');
     expect(sections[1].text.trim()).toBe('beta');
+  });
+});
+
+describe('about:outside chunk', () => {
+  const chunk = snapshot.chunks.find((c) => c.id === 'about:outside')!;
+  it('is titled Outside of work and points at the section', () => {
+    expect(chunk.title).toBe('Outside of work');
+    expect(chunk.url).toBe('/#outside');
+    expect(chunk.kind).toBe('about');
+  });
+  it('lists countries with years, states, trails, lifting and swimming', () => {
+    expect(chunk.text).toContain('Japan (2023, 2024, 2026)');
+    expect(chunk.text).toContain('Indonesia');
+    expect(chunk.text).not.toMatch(/Indonesia \(/);
+    expect(chunk.text).toContain('Colorado');
+    expect(chunk.text).toContain('Point Lobos');
+    expect(chunk.text).toContain('Yosemite');
+    expect(chunk.text).not.toMatch(/Yosemite[^,.]*\d{4}/);
+    expect(chunk.text).toContain('~1,105 lb');
+    expect(chunk.text).toContain('50 Free');
+  });
+  it('gives Point Lobos both of its visit years', () => {
+    // The spec lists "Point Lobos (2025, 2026)" and the manifest holds a photo
+    // from each year.
+    expect(chunk.text).toContain('Point Lobos (California, 2025, 2026)');
+  });
+  it('carries both spellings of the word it is retrieved by', () => {
+    // The retriever is BM25 over raw tokens with no stemming, so the chunk has
+    // to carry the American spelling as well as the British one or an American
+    // visitor's question retrieves nothing.
+    expect(chunk.text).toContain('travelled');
+    expect(chunk.text).toContain('traveled');
+  });
+  it('publishes its swim times so the verifier sees clean numbers', () => {
+    // The verifier's number pattern captures a trailing comma, so the compact
+    // "50 Free :24," form was published as the token "24," and "1:53" as a bare
+    // "1" and a "53,". The chunk spells the times out instead.
+    expect(chunk.text).toContain('50 Free in 24 seconds');
+    expect(chunk.text).toContain('200 Free in 1 minute 53 seconds');
+    // The only facts that still carry a comma are the year lists the spec fixes
+    // ("Japan (2023, 2024, 2026)") and the lifting total's thousands separator.
+    const commaFacts = chunk.facts.filter((fact) => fact.includes(','));
+    expect(commaFacts.every((fact) => /^\d{4},$/.test(fact) || fact === '1,105')).toBe(true);
+    // No other fact ends in a stray comma, and no fact is a bare "1" left over
+    // from a "1:53" split.
+    expect(chunk.facts.some((fact) => fact === '1' && !chunk.text.includes('1 minute'))).toBe(false);
+  });
+  it('shows no year for any of the ten protected places', () => {
+    // These ten never carry a year: Indonesia, Florida, Washington and Oregon
+    // among the countries and states, and the six trails that have no year of
+    // their own. A name carries a year when one appears inside its own
+    // parenthetical -- "Yosemite (California, 2019)" -- or straight after it
+    // -- "Yosemite 2019 (California)". The scan stops at the end of the name's
+    // own clause, so a year on one place never flags its neighbour.
+    const protectedNames = [
+      'Indonesia',
+      'Florida',
+      'Washington',
+      'Oregon',
+      'Point Reyes',
+      'Mission Peak',
+      'Castle Rock State Park',
+      'Pinnacles National Park',
+      'Yosemite',
+      'Mount Tamalpais',
+    ];
+    for (const name of protectedNames) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const withYear = new RegExp(`${escaped}\\s*(?:\\([^)]*\\d{4}[^)]*\\)|[^,.\\n]*\\d{4})`);
+      expect(chunk.text, name).toContain(name);
+      expect(chunk.text, name).not.toMatch(withYear);
+    }
+  });
+  it('states the lifting and swimming facts in one sentence each', () => {
+    const lines = chunk.text.split('\n');
+    expect(lines).toHaveLength(4);
+    expect(lines[2].startsWith('Lifting:')).toBe(true);
+    expect(lines[3].startsWith('Swimming:')).toBe(true);
+    // one sentence each: the sentence ends at its own full stop
+    expect(lines[2].split('. ')).toHaveLength(1);
+    expect(lines[3].split('. ')).toHaveLength(1);
   });
 });

@@ -1,0 +1,181 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+  photos, countries, states, trails, headline, photosFor, foodPhotos, hikePhotos, yearsLabel,
+} from './outside';
+import dots from './world-dots.json';
+
+const root = process.cwd();
+const file = (id: string) => join(root, 'public', 'outside', `${id}.webp`);
+
+describe('headline and countries', () => {
+  it('states the counts', () => {
+    expect(headline).toBe('9 countries · 6 states');
+    expect(headline).toBe(`${countries.length} countries · ${states.length} states`);
+  });
+  it('keeps years sorted', () => {
+    for (const c of countries) expect(c.years).toEqual([...c.years].sort((a, b) => a - b));
+  });
+  it('has no years or areas for Indonesia', () => {
+    const id = countries.find((c) => c.name === 'Indonesia')!;
+    expect(id.years).toEqual([]);
+    expect(id.areas).toEqual([]);
+  });
+  it('formats years', () => {
+    expect(yearsLabel([])).toBe('');
+    expect(yearsLabel([2024])).toBe('2024');
+    expect(yearsLabel([2023, 2024, 2026])).toBe('2023, 2024, 2026');
+  });
+});
+
+describe('photos', () => {
+  it('has a webp file per photo, no metadata, within budget', () => {
+    let total = 0;
+    for (const p of photos) {
+      const buf = readFileSync(file(p.id));
+      total += buf.length;
+      const s = buf.toString('latin1');
+      expect(s.includes('EXIF'), `${p.id} EXIF`).toBe(false);
+      expect(s.includes('XMP'), `${p.id} XMP`).toBe(false);
+    }
+    expect(total).toBeLessThanOrEqual(3_000_000);
+    expect(statSync(join(root, 'public', 'outside')).isDirectory()).toBe(true);
+  });
+  it('accounts for every file in the photo directory', () => {
+    // The manifest lists the approved photos; the directory is what actually
+    // ships. A file in one and not the other is either an unapproved photo or
+    // a missing one, and it must never reach the page.
+    //
+    // Every file in the directory counts, not just the WebP ones: a stray
+    // .jpg dropped into the directory would ship just as a .webp would.
+    const onDisk = readdirSync(join(root, 'public', 'outside'));
+    const listed = photos.map((p) => `${p.id}.webp`);
+    const strays = onDisk.filter((name) => !listed.includes(name));
+    const missing = listed.filter((name) => !onDisk.includes(name));
+    expect(strays, 'files in public/outside that the manifest does not list').toEqual([]);
+    expect(missing, 'manifest photos with no file in public/outside').toEqual([]);
+    expect(onDisk.length).toBe(photos.length);
+  });
+  it('keeps every file in the directory, strays included, within budget and free of metadata', () => {
+    // The budget and the metadata scan cover the whole directory, not just the
+    // files the manifest lists: a stray file dropped into public/outside would
+    // otherwise ship without counting against the cap and without being
+    // scanned for EXIF or XMP.
+    //
+    // Every file is scanned, whatever it is called: the spec asks for a test
+    // that reads every file under public/outside and fails if it contains an
+    // Exif or GPS segment, and a .jpg with EXIF is exactly the file that
+    // would carry one.
+    const dir = join(root, 'public', 'outside');
+    const names = readdirSync(dir);
+    expect(names.length).toBeGreaterThan(0);
+    let total = 0;
+    for (const name of names) {
+      const buf = readFileSync(join(dir, name));
+      total += buf.length;
+      const s = buf.toString('latin1');
+      // The Exif identifier, whatever its case: a JPEG's APP1 segment
+      // starts with "Exif\0\0", and the GPS block is an IFD inside it, so a
+      // file that carries GPS carries Exif too.
+      expect(/exif/i.test(s), `${name} Exif`).toBe(false);
+      // The XMP packet names its own namespace, which is what identifies it.
+      expect(/ns\.adobe\.com\/xap/i.test(s), `${name} XMP`).toBe(false);
+      expect(s.includes('XMP'), `${name} XMP`).toBe(false);
+    }
+    expect(total).toBeLessThanOrEqual(3_000_000);
+  });
+  it('has alt, caption and dimensions', () => {
+    for (const p of photos) {
+      expect(p.alt.length).toBeGreaterThan(0);
+      expect(p.caption.length).toBeGreaterThan(0);
+      expect(p.width).toBeGreaterThan(0);
+      expect(p.height).toBeGreaterThan(0);
+      expect(p.caption.replace(/\b\d{4}\b/g, '')).not.toMatch(/\d/);
+    }
+  });
+  it('filters by kind and country', () => {
+    const jp = photosFor('Japan');
+    expect(jp.length).toBeGreaterThan(0);
+    expect(jp.every((p) => p.country === 'Japan' && p.kind !== 'food')).toBe(true);
+    expect(foodPhotos).toHaveLength(19);
+    expect(foodPhotos.every((p) => p.kind === 'food')).toBe(true);
+    expect(hikePhotos.every((p) => p.kind === 'hike')).toBe(true);
+  });
+});
+
+describe('food captions', () => {
+  // The spec asks for "dish, place and year", so a caption that loses its year
+  // or its place is wrong even though it is still a non-empty string.
+  it('gives every food photo a caption of dish, area, country and year', () => {
+    for (const p of foodPhotos) {
+      expect(p.caption, p.id).toContain(`, ${p.area}, `);
+      expect(p.caption, p.id).toContain(`, ${p.country}, `);
+      expect(p.caption, p.id).toMatch(new RegExp(`, ${p.year}$`));
+    }
+  });
+});
+
+describe('country photo joins', () => {
+  // Travel.astro joins photos to a country by name, so renaming a country in
+  // outside.ts empties that country's photo grid without breaking anything
+  // else. The United States are listed as states rather than as one of the
+  // nine countries, so they are expected to have no country entry.
+  const listed = new Set(countries.map((c) => c.name));
+  // The countries the photos themselves name, taken from the manifest rather
+  // than from a second hand-written list.
+  const manifestCountries = [...new Set(photos.map((p) => p.country))];
+  // The United States is deliberately not one of the nine countries.
+  const withoutUs = manifestCountries.filter((c) => c !== 'United States');
+  it('has a country entry for every country in the manifest but the United States', () => {
+    for (const c of withoutUs) expect(listed.has(c), c).toBe(true);
+    for (const p of photos) {
+      if (p.country === 'United States') continue;
+      expect(listed.has(p.country), p.id).toBe(true);
+    }
+  });
+  it('finds photos for every country in the manifest but the United States', () => {
+    for (const c of withoutUs) {
+      const found = photosFor(c);
+      expect(found.length, c).toBeGreaterThan(0);
+      expect(found.every((p) => p.country === c), c).toBe(true);
+    }
+  });
+});
+
+describe('trails', () => {
+  const noYear = ['Mount Tamalpais', 'Point Reyes', 'Mission Peak', 'Castle Rock State Park', 'Pinnacles National Park', 'Yosemite'];
+  it('omits years where required', () => {
+    for (const n of noYear) {
+      const t = trails.find((x) => x.name === n)!;
+      expect(t, n).toBeDefined();
+      expect(t.years, n).toBeUndefined();
+    }
+    expect(trails.find((t) => t.name === 'Hwangnyeongsan')!.years).toEqual([2024]);
+    expect(trails.filter((t) => t.name.includes('Yosemite')).every((t) => t.years === undefined)).toBe(true);
+  });
+  it('keeps every trail year sorted', () => {
+    for (const t of trails) {
+      if (!t.years) continue;
+      expect(t.years, t.name).toEqual([...t.years].sort((a, b) => a - b));
+    }
+  });
+  it('gives Point Lobos both of its visit years', () => {
+    // The spec lists "Point Lobos (2025, 2026)" and the manifest holds a photo
+    // from each year, so the trail carries both.
+    const t = trails.find((x) => x.name === 'Point Lobos')!;
+    expect(t.years).toEqual([2025, 2026]);
+    expect(yearsLabel(t.years!)).toBe('2025, 2026');
+  });
+});
+
+describe('world dots', () => {
+  it('covers every listed country and stays in the grid', () => {
+    const codes = new Set(dots.dots.map((d) => d[2]));
+    for (const c of countries) if (c.code !== 'IDN') expect(codes.has(c.code), c.code).toBe(true);
+    for (const [x, y] of dots.dots as [number, number, string][]) {
+      expect(x).toBeLessThan(dots.cols);
+      expect(y).toBeLessThan(dots.rows);
+    }
+  });
+});

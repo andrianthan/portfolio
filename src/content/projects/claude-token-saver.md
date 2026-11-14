@@ -8,7 +8,7 @@ meta:
   role: Solo build
   status: "Working, with tests and an installer"
   stack: Python, Claude Code hooks, pytest
-listed: true
+listed: false
 cleared: false
 order: 3
 ---

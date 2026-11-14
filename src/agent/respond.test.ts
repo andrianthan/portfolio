@@ -20,7 +20,8 @@ describe('respond', () => {
     const answer = respond(route('experience'), chunks);
     expect(answer.text).toContain('Tesla');
     expect(answer.text).toContain('32% better than baseline');
-    expect(answer.sources).toEqual([{ title: 'Tesla', url: '/#experience' }]);
+    expect(answer.sources).toContainEqual({ title: 'Tesla', url: '/work/tesla' });
+    expect(answer.sources.every((s) => s.title === 'Tesla')).toBe(true);
   });
 
   it('answers the coffee egg with the fixed cup and no digits', () => {
@@ -113,9 +114,26 @@ describe('verify', () => {
     const published = new Set(
       chunks.flatMap((chunk) => extractNumbers(`${chunk.title} ${chunk.text} ${chunk.facts.join(' ')}`)),
     );
-    expect([...published].sort()).toEqual(['2', '200+', '32%']);
+    expect([...published].sort()).toEqual([
+      '$1.2M', '$100', '$11.6M', '$13.3M', '$17.0M',
+      '$2.5M', '$30k',
+      '$35k', '$4.9M', '$6.5M', '$8.4M',
+      '$9.3M', '0%', '0.05', '0.2', '0.37', '1', '1.1', '1.75',
+      '1.9', '10', '10%', '100',
+      '109', '11', '110', '112', '12',
+      '13', '131', '15', '16',
+      '165', '189', '196', '2',
+      '2.3', '2.4', '20+', '200', '22', '223', '23', '25', '25%', '250', '26', '3,141', '3.6', '30', '300', '32%',
+      '335', '35', '350', '3500', '36', '39',
+      '4', '4.0', '4.4', '4.6', '44', '5.8',
+      '50', '50%', '54', '54M', '597', '6',
+      '6.9', '66M', '71',
+      '77', '8,', '8.3%', '8.5',
+      '80', '87', '9', '90',
+      '94',
+    ]);
     expect(result.ok).toBe(true);
-    expect(result.checked).toBe(3);
+    expect(result.checked).toBe(109);
     expect(result.offending).toEqual([]);
   });
 
@@ -134,8 +152,13 @@ describe('verify', () => {
   });
 
   it('treats a version number and a plain number as different tokens', () => {
-    const tesla = experience(snapshot, ['Tesla']).map((entry) => entry.chunk);
-    const blueDome = experience(snapshot, ['Blue Dome']).map((entry) => entry.chunk);
+    // Summary chunks only: body chunks of other roles publish plain numbers
+    // that would accidentally ground the token under test, which is not what
+    // this test is about — it pins the version/plain distinction.
+    const summaries = (q: string) =>
+      experience(snapshot, [q]).map((entry) => entry.chunk).filter((c) => !c.id.includes('#'));
+    const tesla = summaries('Tesla');
+    const blueDome = summaries('Blue Dome');
     expect(verify({ text: 'TPM 2.0', sources: [] }, tesla).ok).toBe(false);
     expect(verify({ text: 'Chronos-2', sources: [] }, blueDome).ok).toBe(false);
   });

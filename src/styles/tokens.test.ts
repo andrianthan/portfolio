@@ -35,6 +35,7 @@ describe('tokens', () => {
       'color-accent', 'color-num', 'color-chip', 'color-card', 'color-dot', 'color-glow',
       'color-logo-bg', 'color-glass', 'color-mask', 'grad-a', 'grad-b', 'space-sm', 'space-md',
       'space-lg', 'space-xl', 'measure', 'scene-deep', 'scene-mid', 'scene-bright', 'scene-glow',
+      'font-title', 'font-pixel', 'title-glow', 'color-card-solid',
     ]) {
       expect(css, `--${name}`).toMatch(new RegExp(`--${name}:`));
     }

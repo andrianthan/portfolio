@@ -46,6 +46,19 @@ describe('runAgent', () => {
     expect(stepText(result)[0]).toBe('orchestrator: routed to experience (matched "Tesla")');
   });
 
+  it('answers a question about life outside work from the outside chunk', () => {
+    // Both spellings of "travelled" have to work: the retriever is BM25 over
+    // raw tokens with no stemming, so a spelling the chunk never carries
+    // retrieves nothing and the agent refuses.
+    for (const query of ['where have you travelled', 'where have you traveled?', 'do you hike']) {
+      const result = run(query);
+      expect(result.refused, query).toBe(false);
+      expect(result.answer?.sources[0].url, query).toBe('/#outside');
+      expect(result.answer?.text, query).toContain('Japan');
+      expect(stepText(result), query).toContain('search: 1 chunk (about:outside)');
+    }
+  });
+
   it('clears on /clear without an answer', () => {
     const result = run('/clear');
     expect(result.answer).toBeNull();
@@ -120,8 +133,8 @@ describe('runAgent', () => {
     const result = run('tell me about tesla');
     expect(result.steps).toEqual([
       { actor: 'orchestrator', text: 'routed to experience (matched "Tesla")', status: 'ok' },
-      { actor: 'experience', text: '1 chunk (role:tesla)', status: 'ok' },
-      { actor: 'verifier', text: '3 numbers checked against sources ✓', status: 'ok' },
+      { actor: 'experience', text: '8 chunks (role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
+      { actor: 'verifier', text: '109 numbers checked against sources ✓', status: 'ok' },
     ]);
   });
 
@@ -165,7 +178,7 @@ describe('the refusal path', () => {
     const result = run('/experience');
     expect(result.steps).toEqual([
       { actor: 'orchestrator', text: 'routed to experience (/experience)', status: 'ok' },
-      { actor: 'experience', text: '4 chunks (role:bluedome, role:hanna, role:micron, role:tesla)', status: 'ok' },
+      { actor: 'experience', text: '22 chunks (role:akpsi, role:akpsi#membership-intake-automation, role:akpsi#opportunity-bot, role:bluedome, role:bluedome#guideline-chatbot, role:bluedome#image-search, role:bluedome#qa-analyst-web-app, role:hanna, role:hanna#case-note-coach, role:hanna#grants-agent, role:hanna#ir-updater-bot, role:micron, role:micron#wafer-analysis-copilot, role:micron#wafer-risk-model, role:tesla, role:tesla#admin, role:tesla#ask-sdp, role:tesla#campaigns, role:tesla#dashboard, role:tesla#forecast-lab, role:tesla#part-summary, role:tesla#slideshow-generation)', status: 'ok' },
       { actor: 'verifier', text: 'ungrounded 99% ✗', status: 'fail' },
     ]);
   });

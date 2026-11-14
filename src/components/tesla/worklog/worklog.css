@@ -1,0 +1,62 @@
+/* The work log window's own chrome: tabs above, expandable rows below.
+   The frame, dots and sample badge come from qa.css. Tokens only. */
+
+.wl-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.wl-tabs button {
+  font: 600 12px var(--font-mono);
+  color: var(--color-muted);
+  background: transparent;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  padding: 6px 11px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.wl-tabs button.on {
+  color: var(--color-fg);
+  border-color: var(--color-accent);
+  background: var(--color-glow);
+}
+
+.wl-tabs button:hover { border-color: var(--color-accent); }
+
+.wl-body { padding: 4px 12px 12px; }
+
+.wl-entry { border-bottom: 1px solid var(--color-rule); }
+.wl-entry:last-child { border-bottom: 0; }
+
+.wl-entry > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  padding: 11px 2px;
+  min-height: 44px;
+  font: 600 13px var(--font-mono);
+  color: var(--color-fg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.wl-entry > button:hover .wl-label { color: var(--color-accent); }
+
+.wl-chev { font: 400 15px var(--font-mono); color: var(--color-accent); flex: none; }
+
+.wl-detail {
+  margin: 0;
+  padding: 0 2px 12px;
+  font-size: 14px;
+  color: var(--color-fg);
+  max-width: 62ch;
+}
