@@ -87,7 +87,7 @@ export function readPhotoManifest(manifestFile) {
     return null;
   }
   if (!Array.isArray(parsed)) return null;
-  return parsed.map((photo) => ({ id: String(photo?.id ?? ''), alt: String(photo?.alt ?? '') }));
+  return parsed.map((photo) => ({ id: String(photo?.id ?? ''), alt: String(photo?.alt ?? ''), kind: String(photo?.kind ?? '') }));
 }
 
 /**
@@ -151,12 +151,10 @@ export function findOutsideProblems(distDir, dataFile, manifestFile) {
     if (!/<h2>Outside of work<\/h2>/.test(header[1])) problems.push(`the Outside of work section is missing the heading "Outside of work" in ${indexFile}`);
   }
 
-  // The blocks come in a fixed order: achievements first, the lifestyle blocks after.
+  // The blocks come in a fixed order: Lifting, then Travel. Swimming and Food are not on the home page.
   const blocks = [
     { eyebrow: 'Strength', heading: 'Lifting' },
-    { eyebrow: 'In the pool', heading: 'Swimming' },
     { eyebrow: 'Travel', heading: '9 countries · 6 states' },
-    { eyebrow: 'Food', heading: 'Things I ate' },
   ];
   let cursor = 0;
   for (const b of blocks) {
@@ -221,7 +219,9 @@ export function findOutsideProblems(distDir, dataFile, manifestFile) {
   // The images: the section must carry every approved photo and nothing else,
   // each one with the manifest's alt and the loading attributes that keep the
   // page from shifting or blocking on them.
-  const manifest = manifestFile ? readPhotoManifest(manifestFile) : null;
+  // Food photos are approved in the manifest but the home page no longer shows the Food block,
+  // so only the hike and travel photos are expected here (and a food photo shown is unapproved).
+  const manifest = (manifestFile ? readPhotoManifest(manifestFile) : null)?.filter((photo) => photo.kind !== 'food') ?? null;
   if (!manifest) {
     problems.push(`the approved photo manifest could not be read from ${manifestFile ?? '(no manifest given)'}`);
   } else {

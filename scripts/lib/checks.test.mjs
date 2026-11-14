@@ -349,9 +349,7 @@ const outsideSection = (countries = OUTSIDE_COUNTRIES, opts = {}) => {
     heading = 'Outside of work',
     blocks = [
       ['Strength', 'Lifting'],
-      ['In the pool', 'Swimming'],
       ['Travel', '9 countries · 6 states'],
-      ['Food', 'Things I ate'],
     ],
     // The images go into the first block only, so a photo appears once.
     images = [photoImg(OUTSIDE_PHOTOS[0]), photoImg(OUTSIDE_PHOTOS[1])],
@@ -410,16 +408,32 @@ describe('findOutsideProblems', () => {
 
   it('flags the blocks in the wrong order', () => {
     const swapped = outsideSection(OUTSIDE_COUNTRIES, {
-      blocks: [['Strength', 'Lifting'], ['Food', 'Things I ate'], ['In the pool', 'Swimming'], ['Travel', '9 countries · 6 states']],
+      blocks: [['Travel', '9 countries · 6 states'], ['Strength', 'Lifting']],
     });
-    expect(build(swapped).some((p) => /Things I ate/.test(p))).toBe(true);
+    expect(build(swapped).some((p) => /Travel/.test(p))).toBe(true);
   });
 
   it('flags a missing block', () => {
     const short = outsideSection(OUTSIDE_COUNTRIES, {
-      blocks: [['Strength', 'Lifting'], ['In the pool', 'Swimming']],
+      blocks: [['Strength', 'Lifting']],
     });
     expect(build(short).some((p) => /Travel/.test(p))).toBe(true);
+    const noLifting = outsideSection(OUTSIDE_COUNTRIES, { blocks: [['Travel', '9 countries · 6 states']] });
+    expect(build(noLifting).some((p) => /Lifting/.test(p))).toBe(true);
+  });
+
+  it('no longer requires the Swimming or Food blocks', () => {
+    const withExtras = outsideSection(OUTSIDE_COUNTRIES, {
+      blocks: [['Strength', 'Lifting'], ['In the pool', 'Swimming'], ['Travel', '9 countries · 6 states'], ['Food', 'Things I ate']],
+    });
+    expect(build(withExtras)).toEqual([]);
+  });
+
+  it('does not require approved food photos on the page', () => {
+    const file = path.join(dir, 'outside-photos.json');
+    write('outside-photos.json', JSON.stringify([...OUTSIDE_PHOTOS.map((p) => ({ id: p.id, alt: p.alt })), { id: 'food-x', alt: 'A dish', kind: 'food' }]));
+    write('dist/index.html', `<!doctype html><html><body>${outsideSection()}</body></html>`);
+    expect(findOutsideProblems(path.join(dir, 'dist'), dataFile(), file)).toEqual([]);
   });
 
   it('flags a country that is missing from the list', () => {

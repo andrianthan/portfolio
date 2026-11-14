@@ -2,21 +2,14 @@
 import Base from '../layouts/Base.astro';
 import TopBar from '../components/TopBar.astro';
 import Hero from '../components/Hero.astro';
-import ContributionCard from '../components/ContributionCard.astro';
 import Outside from '../components/Outside.astro';
 import Footer from '../components/Footer.astro';
-import { profile } from '../data/profile';
-import { fetchContributions } from '../lib/contributions';
-
-const handle = profile.contact.github.split('/').filter(Boolean).pop() ?? 'andrianthan';
-const grid = await fetchContributions(handle);
 ---
 <Base title="Andrian Than · Software Engineer" description="Andrian Than is a computer science student at San Jose State building LLM agents with numeric grounding, evals, and guardrails.">
   <div class="inner home">
     <TopBar />
     <main>
       <Hero />
-      <ContributionCard grid={grid} handle={handle} href={profile.contact.github} />
       <Outside />
     </main>
     <Footer />
