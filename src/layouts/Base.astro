@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Analytics from '@vercel/analytics/astro';
 import '../styles/scene.css';
+import '../styles/cursor.css';
 import '../styles/home.css';
 import '../styles/outside-home.css';
 import Background from '../components/Background.astro';
@@ -39,5 +40,6 @@ const og = new URL(ogImage, Astro.site).toString();
     {menu && <CommandMenu client:load contact={profile.contact} />}
     <Analytics />
     <script>import '../scripts/scene.ts';</script>
+    <script>import '../scripts/cursor-trail.ts';</script>
   </body>
 </html>
