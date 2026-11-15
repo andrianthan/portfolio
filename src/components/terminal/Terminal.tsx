@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTerminal } from './useTerminal';
 
-const CHIPS = ['/help', '/experience', '/about', '/skills', '/contact', '/hire'];
+const CHIPS = ['/help', '/experience', '/about', '/skills', '/contact'];
 
 export default function Terminal() {
   const term = useTerminal();

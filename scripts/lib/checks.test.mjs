@@ -225,13 +225,13 @@ describe('runChecks fail-closed', () => {
     fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
     expect(runChecks({ distDir: path.join(dir, 'dist'), contentDir: content }).problems).toEqual([]);
   });
-  it('reports a terminal link that is missing and a terminal route that was not built', () => {
+  it('reports a terminal route that was not built, and does not require a link to it', () => {
     write('dist/index.html', '<p>ok</p>');
     const content = path.join(dir, 'content');
     fs.mkdirSync(path.join(content, 'work'), { recursive: true });
     fs.writeFileSync(path.join(content, 'work', 'a.md'), '---\ncleared: true\n---\nbody');
     const { problems } = runChecks({ distDir: path.join(dir, 'dist'), contentDir: content });
-    expect(problems.join('\n')).toMatch(/required link "\/terminal"/);
+    expect(problems.join('\n')).not.toMatch(/required link/);
     expect(problems.join('\n')).toMatch(/missing route \/terminal/);
   });
   it('reports a broken Outside of work section when the data file is given', () => {

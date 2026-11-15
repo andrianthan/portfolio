@@ -2,7 +2,7 @@ import '../../qa/qa.css';
 import './listings.css';
 import { useState } from 'react';
 import { LISTINGS, ROLE_TYPES, SOURCES, type Listing, type ListingSource, type RoleType } from '../fixtures';
-import { channelSummary, filterListings, groupByCompany, postToChannel, toggleRoleType, toggleSource, type ListingFilter } from './listings';
+import { channelSummary, filterListings, groupByCompany, toggleRoleType, toggleSource, type ListingFilter } from './listings';
 
 /** The channel names the sidebar shows, with the one the bot posts to. */
 const CHANNELS = ['job-board', 'finance-internships', 'consulting-internships', 'tech-data-internships', 'fellowships'];
@@ -10,8 +10,8 @@ const ACTIVE_CHANNEL = 'tech-data-internships';
 
 /**
  * A mock of the opportunity bot: a feed of scraped listings, narrowed by
- * source and role type, and a "Post to channel" button that moves a listing
- * into a plain message list standing in for the members' channel.
+ * source and role type. The bot posts on its own, so every listing the
+ * filters let through appears in the members' channel with no button to press.
  *
  * The channel is a Discord-style pane: a sidebar of channel names, then the
  * bot's message with one card per company, as the real channel shows it.
@@ -19,23 +19,17 @@ const ACTIVE_CHANNEL = 'tech-data-internships';
  * The demo is a pure state machine over invented sample data. There is no
  * network call, no model and no timer anywhere in it.
  *
- * `initial` opens a filter on the first render and `posted` pre-fills the
- * channel. They exist so the render test can reach the filtered and the
- * posted states; the demo on the page never passes either.
+ * `initial` opens a filter on the first render. It exists so the render test
+ * can reach the filtered state; the demo on the page never passes it.
  */
 export default function ListingsDemo({
   initial = { source: null, roleType: null },
-  posted = [],
-}: { initial?: ListingFilter; posted?: string[] } = {}) {
+}: { initial?: ListingFilter } = {}) {
   const [filter, setFilter] = useState<ListingFilter>(initial);
-  const [channel, setChannel] = useState<Listing[]>(() =>
-    posted
-      .map((id) => LISTINGS.find((l) => l.id === id))
-      .filter((l): l is Listing => l !== undefined)
-      .reduce<Listing[]>((acc, l) => postToChannel(acc, l), []),
-  );
 
   const visible = filterListings(LISTINGS, filter);
+  // The bot posts every listing that passes the filters, so the channel is the visible feed.
+  const channel: Listing[] = visible;
   const cards = groupByCompany(channel);
   const summary = channelSummary(channel);
 
@@ -46,10 +40,6 @@ export default function ListingsDemo({
 
   function pressRoleType(roleType: RoleType) {
     setFilter((f) => toggleRoleType(f, roleType));
-  }
-
-  function post(listing: Listing) {
-    setChannel((c) => postToChannel(c, listing));
   }
 
   return (
@@ -101,9 +91,7 @@ export default function ListingsDemo({
               <span className="listings-date">{l.posted}</span>
             </div>
             <p className="listings-title">{l.title} · {l.company} · {l.place}</p>
-            <button type="button" className="listings-post" onClick={() => post(l)}>
-              Post to channel
-            </button>
+            <span className="listings-status">Posted automatically</span>
           </li>
         ))}
         {visible.length === 0 && (
@@ -126,7 +114,7 @@ export default function ListingsDemo({
           <div className="listings-chan">
             <p className="listings-chead"><span className="listings-hash">#</span>{ACTIVE_CHANNEL}</p>
             {channel.length === 0 ? (
-              <p className="listings-cempty">Nothing posted yet. Press “Post to channel” on a listing.</p>
+              <p className="listings-cempty">Nothing to post. No scraped listing matches these filters.</p>
             ) : (
               <div className="listings-bot">
                 <span className="listings-avatar" aria-hidden="true">OB</span>

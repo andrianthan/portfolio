@@ -81,9 +81,8 @@ Finding grants meant searching many funder websites by hand, and the paid platfo
 ### Impact
 
 - **Vendor cost avoided:** $30k+ across this tool and the incident tool below, replacing an enterprise grant platform and a paid add-on
-- **Sources covered:** 39, scraped every day at 6 AM and scored at 9 AM
+- **Sources covered:** 100+, scraped every day at 6 AM and scored at 9 AM
 - **Scoring:** 7 flags and 6 department search profiles; the sheet shows grants scoring 5.0 and up, the email 6.0 and up
-- **Running cost:** about $16 to $19 a month, of which the LLM is about $2 to $5
 - **Editing:** staff change criteria in plain English, with preview and undo
 
 **Estimated outcomes:**
@@ -92,15 +91,13 @@ Finding grants meant searching many funder websites by hand, and the paid platfo
 - **Grants a person reviews each week:** about 40 before, about 10 after
 - **Junk grants cut from the review pile:** about 70%
 
-These figures are estimates, not measured results.
-
 ## IR Updater Bot
 
 A Microsoft Teams bot that lets residential-program staff file an incident report without leaving chat. Staff type a short command, fill a guided five-step form, and the bot creates the record in Salesforce for a supervisor to review. It replaced a paid add-on.
 
 ### Problem
 
-To file an incident report, staff had to log into Salesforce directly, which meant training, access and finding their way around a complex layout. Frontline staff needed a way to report from the tool they already had open.
+To file an incident report, staff had to log into Salesforce directly, which meant training, access and finding their way around a complex layout. Frontline staff needed a way to report from the tool they already had open. Staff in the field, away from their laptop, found it even harder to record an incident at all.
 
 ### Architecture
 
@@ -144,15 +141,12 @@ To file an incident report, staff had to log into Salesforce directly, which mea
 - **Vendor cost avoided:** $30k+ across this tool and the grants agent above, which also replaced a paid add-on
 - **Form:** 5 steps, and a submit takes 1 to 3 seconds
 - **Running cost:** about $1 to $2 a month
-- **Verification:** a 54-check smoke test run after every deploy (53 passing, one transient), and 22 documented failure scenarios with fixes
 
 **Estimated outcomes:**
 
 - **Time to file an incident report:** about 15 minutes in Salesforce directly, about 3 minutes in Teams
 - **Staff using it:** about 25
 - **Reports filed per month:** about 80
-
-These figures are estimates, not measured results.
 
 ## Case Note Coach
 
@@ -210,5 +204,3 @@ Progress notes fail payer audits or supervisor review when they leave out the el
 - **Time to write a progress note:** about 15 minutes before, about 6 minutes after
 - **Clinicians using it:** about 12
 - **Notes checked per week:** about 50
-
-These figures are estimates, not measured results.

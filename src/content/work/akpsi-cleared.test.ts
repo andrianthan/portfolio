@@ -40,7 +40,7 @@ describe('the akpsi entry', () => {
 
   it('carries only the four confirmed figures', () => {
     expect(data.summary.match(/\d[\d,]*\+?/g)).toEqual(['21+', '50+']);
-    expect(content.match(/\d[\d,]*\+?/g)).toEqual(['5+', '21+', '80', '50+']);
+    expect(content.match(/\d[\d,]*\+?/g)).toEqual(['21+', '80', '50+']);
   });
 
   it('has exactly the two project headings', () => {
@@ -54,7 +54,7 @@ describe('the akpsi entry', () => {
     expect(content).not.toMatch(/\b(?:applicant|member|candidate)\s+[A-Z][a-z]+\b/i);
   });
 
-  it('has a three paragraph page intro', () => {
-    expect(introParagraphs).toHaveLength(3);
+  it('has no page intro, so the page opens on the first project', () => {
+    expect(introParagraphs).toHaveLength(0);
   });
 });

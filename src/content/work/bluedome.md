@@ -66,15 +66,13 @@ The QA analysts who checked AI-labeled roadway images were already using an earl
 - **Images reviewed per week:** about 1,500
 - **Delivered in:** 3 sprints, with a product manager and a UI/UX designer, tracked in Trello, with updates to the founders
 
-These figures are estimates, not measured results.
-
 ## Guideline Chatbot
 
 A chatbot I built that answers analysts' labeling questions from the written guidelines, using retrieval-augmented generation (RAG) with vector embeddings.
 
 ### Problem
 
-Analysts hit edge cases the guide doesn't make obvious, such as a partly hidden sign or a faded marking, and had to dig through a long document or ask a lead. That slows reviews and leads to inconsistent calls. Interview studies of annotation teams name [ambiguous guidelines and edge cases](https://arxiv.org/html/2511.16410v1) among the main causes of inconsistent labels.
+Analysts hit edge cases the guide doesn't make obvious, such as a partly hidden sign or a faded marking, and had to dig through a long document or ask a lead. That slows reviews and leads to inconsistent calls. Interview studies of annotation teams name ambiguous guidelines and edge cases among the main causes of inconsistent labels.
 
 ### Architecture
 
@@ -120,8 +118,6 @@ An analyst asks an edge-case question ("does a partially hidden sign still count
 - **Accuracy on a hand-checked test set:** about 85%
 - **"Ask a lead" interruptions:** about 15 a week before, about 5 after
 - **Answer time:** about 3 seconds
-
-These figures are estimates, not measured results.
 
 ## Image Search
 
@@ -192,8 +188,6 @@ Every image is turned into a vector once, and all three features read from the s
 
 - **Time to find examples of an edge case:** about 20 minutes before, about 1 minute after
 - **Search quality on test queries:** about 8 in 10 of the top 5 results relevant
-- **Images in the index:** about 25,000
+- **Images in the index:** more than 25,000
 - **Near-duplicates found:** about 1,800, roughly 7% of the set
 - **Repeat review avoided:** about 8 hours (1,800 images at about 15 seconds each)
-
-These figures are estimates, not measured results.

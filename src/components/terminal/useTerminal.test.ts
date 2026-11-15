@@ -5,12 +5,12 @@ import { COMMANDS, completeCommand, recall, useTerminal } from './useTerminal';
 
 describe('tab completion', () => {
   it('completes a unique command', () => {
-    expect(completeCommand('/who')).toBe('/whoami');
+    expect(completeCommand('/exp')).toBe('/experience');
     expect(completeCommand('/hel')).toBe('/help');
   });
 
   it('leaves an ambiguous command alone', () => {
-    expect(completeCommand('/s')).toBe('/s');
+    expect(completeCommand('/c')).toBe('/c');
   });
 
   it('leaves an unknown command alone', () => {
@@ -22,7 +22,7 @@ describe('tab completion', () => {
   });
 
   it('lists every slash command the agent answers', () => {
-    for (const command of ['/help', '/experience', '/about', '/skills', '/contact', '/clear', '/sound', '/hire', '/coffee', '/whoami']) {
+    for (const command of ['/help', '/experience', '/about', '/skills', '/contact', '/clear']) {
       expect(COMMANDS).toContain(command);
     }
   });
@@ -93,14 +93,14 @@ describe('the tab key', () => {
   });
 
   it('gives the key back when the completion is ambiguous', () => {
-    const press = pressKey('/s', 'Tab');
+    const press = pressKey('/c', 'Tab');
     expect(press.prevented).toBe(0);
-    expect(press.value).toBe('/s');
+    expect(press.value).toBe('/c');
   });
 
   it('takes the key and completes a unique command', () => {
-    const press = pressKey('/who', 'Tab');
+    const press = pressKey('/exp', 'Tab');
     expect(press.prevented).toBe(1);
-    expect(press.value).toBe('/whoami');
+    expect(press.value).toBe('/experience');
   });
 });

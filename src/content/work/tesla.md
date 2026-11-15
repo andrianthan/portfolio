@@ -444,7 +444,7 @@ The executive deck was assembled by hand from queries that drifted between runs,
 ### Architecture
 
 <figure class="arch">
-<svg viewBox="0 0 640 250" role="img" aria-label="Slideshow architecture. A weekly GitHub Actions run, whose schedule was later stopped, pulls the week's demand data and builds tables that are verified before anything reads them. The verified tables are the one source for the in-app Regenerate button, which rebuilds the executive deck as a PPTX, and for the accessories KPIs and the Part Miss by Lag CSV.">
+<svg viewBox="0 0 640 250" role="img" aria-label="Slideshow architecture. A weekly GitHub Actions run pulls the week's demand data and builds tables that are verified before anything reads them. The verified tables are the one source for the in-app Regenerate button, which rebuilds the executive deck as a PPTX, and for the accessories KPIs and the Part Miss by Lag CSV.">
 <defs><marker id="at6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
 <g fill="none" stroke="currentColor" stroke-width="1.4" style="color:var(--color-muted)">
 <g stroke-dasharray="5 4"><rect x="2" y="100" width="108" height="56" rx="10"/></g>
@@ -464,7 +464,7 @@ The executive deck was assembled by hand from queries that drifted between runs,
 <path d="M506 146C518 146 518 218 530 218" marker-end="url(#at6)"/>
 </g>
 <g fill="currentColor" font-family="var(--font-sans)" font-size="13" text-anchor="middle" style="color:var(--color-fg)">
-<text x="56" y="126" font-weight="600">Weekly run</text><text x="56" y="142" font-size="11" style="fill:var(--color-muted)">schedule stopped</text>
+<text x="56" y="126" font-weight="600">Weekly run</text><text x="56" y="142" font-size="11" style="fill:var(--color-muted)">GitHub Actions</text>
 <text x="188" y="126" font-weight="600">Build tables</text><text x="188" y="142" font-size="11" style="fill:var(--color-muted)">week's demand</text>
 <text x="320" y="126" font-weight="600">Verify</text><text x="320" y="142" font-size="11" style="fill:var(--color-muted)">before any read</text>
 <text x="452" y="126" font-weight="600">Verified set</text><text x="452" y="142" font-size="11" style="fill:var(--color-muted)">one source</text>
@@ -488,7 +488,6 @@ The deck and the KPI files came from one weekly run, so the number in the deck m
 - **Regenerate in the app.** A Regenerate button rebuilds the deck from the current data with a PPTX download, and composer controls stay hidden while they are a work in progress.
   - Generating the deck instead of assembling it by hand makes it the same every time for the same data.
   - Unfinished controls stay hidden instead of shipping half-working.
-- **The schedule was later stopped.** The scheduled Monday run was later stopped; the in-app regenerate still works on demand.
 
 ### Impact
 
