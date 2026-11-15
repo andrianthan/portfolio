@@ -12,7 +12,7 @@
 .swimming-context { margin: 0 0 var(--space-lg); text-align: center; font: 400 14px/1.5 var(--font-mono); color: var(--color-muted); }
 .lifting-hours b { color: var(--color-fg); font-weight: 500; }
 
-.gym { --gym-go: #5ee38a; --gym-go-ink: #08210f; }
+.gym { --gym-star: #f4f3fb; --gym-glow: #a78bfa; --gym-dim: rgba(255, 255, 255, .22); }
 .gym-caption { margin: 0 0 8px; text-align: center; font: 400 11px var(--font-pixel); letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); }
 .gym-bar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .gym-title { margin: 0; min-width: 5ch; text-align: center; font: 500 16px/1.2 var(--font-mono); color: var(--color-fg); }

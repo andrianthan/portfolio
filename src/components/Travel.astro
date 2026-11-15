@@ -26,15 +26,16 @@ import './outside.css';
       );
     })}
   </div>
-  <h4 class="out-sub">United States</h4>
-  <ul class="chips">{states.map((s) => <li>{s}</li>)}</ul>
-  <h4 class="out-sub">Trails</h4>
-  <ul class="trails">
-    {trails.map((t) => <li><b>{t.name}</b><span>{t.place}{t.years?.length ? ` · ${yearsLabel(t.years)}` : ''}</span></li>)}
-  </ul>
-  <ul class="photos">
-    {hikePhotos.map((p) => (
-      <li style={`aspect-ratio:${p.width}/${p.height}`}><img src={`/outside/${p.id}.webp`} alt={p.alt} width={p.width} height={p.height} loading="lazy" decoding="async" /></li>
-    ))}
-  </ul>
+  <p class="travel-states"><span class="travel-states-label">United States:</span> {states.join(' · ')}</p>
+  <details class="trails-more">
+    <summary>Trails &amp; photos</summary>
+    <ul class="trails">
+      {trails.map((t) => <li><b>{t.name}</b><span>{t.place}{t.years?.length ? ` · ${yearsLabel(t.years)}` : ''}</span></li>)}
+    </ul>
+    <ul class="photos">
+      {hikePhotos.map((p) => (
+        <li style={`aspect-ratio:${p.width}/${p.height}`}><img src={`/outside/${p.id}.webp`} alt={p.alt} width={p.width} height={p.height} loading="lazy" decoding="async" /></li>
+      ))}
+    </ul>
+  </details>
 </div>

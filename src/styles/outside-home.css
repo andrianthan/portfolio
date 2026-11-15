@@ -1,0 +1,131 @@
+/* Home: the Outside of work section in the Constellation look.
+   Everything here is scoped to .home so it beats the centered, boxy defaults in
+   components/outside.css and components/gym/gym.css (which other pages and tests pin)
+   without rewriting them. No boxes: hairline rules, serif italic titles, mono labels,
+   and the scene's own stars carry the section. */
+
+/* Section opener */
+.home #outside { margin-top: 72px; padding-bottom: 24px; }
+.home #outside > .sh { margin: 0 0 40px; }
+.home #outside > .sh .eyebrow { margin: 0 0 10px; font: 500 11px var(--font-mono); letter-spacing: .2em; color: var(--color-muted); }
+.home #outside > .sh h2 {
+  display: flex; align-items: baseline; gap: 18px; margin: 0;
+  font: italic 400 30px/1.15 var(--font-serif); letter-spacing: -.005em; text-transform: none; color: var(--color-fg);
+}
+.home #outside > .sh h2::after { content: ""; flex: 1; height: 1px; align-self: center; background: var(--color-rule); }
+
+/* Block titles */
+.home .lifting, .home .travel { max-width: none; margin: 0 0 56px; }
+.home .lifting-head, .home .out-head { text-align: left; margin: 0 0 22px; }
+.home .lifting-head .eyebrow, .home .out-head .eyebrow { margin: 0 0 4px; font: 500 11px var(--font-mono); letter-spacing: .2em; color: var(--color-muted); }
+.home .lifting-head h3, .home .out-head h3 {
+  margin: 0; font: italic 400 27px/1.2 var(--font-serif); letter-spacing: 0; text-transform: none;
+  color: var(--color-fg); text-shadow: none;
+}
+
+/* Lifting: four numerals between two hairlines */
+.home .lifting-stats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0 0 18px; padding: 20px 0 18px;
+  text-align: left; border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule);
+}
+.home .lifting-stats li { padding: 0; border: 0; border-radius: 0; background: none; min-width: 0; }
+.home .lifting-stats b {
+  font: italic 400 clamp(38px, 8vw, 46px)/1 var(--font-serif); letter-spacing: -.01em; color: var(--color-fg);
+  text-shadow: 0 0 18px rgba(167, 139, 250, .55), 0 0 2px rgba(196, 178, 255, .5);
+}
+.home .lifting-stats span { margin-top: 8px; font: 500 10.5px/1.3 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--color-muted); }
+.home .lifting-pct, .home .lifting-hours { margin: 0 0 2px; text-align: left; font: 400 13px/1.6 var(--font-mono); color: var(--color-muted); }
+.home .lifting-hours b { font-weight: 400; color: var(--color-muted); }
+.home .gym-stats.lifting-overall { margin: 0 0 36px; text-align: left; font: 400 13px/1.6 var(--font-mono); color: var(--color-muted); }
+.home .lifting-overall b { font-weight: 500; color: var(--color-fg); }
+
+/* The check-in wall as a star field */
+.home .gym-caption { margin: 0 0 6px; text-align: left; font: 500 11px var(--font-mono); letter-spacing: .2em; color: var(--color-muted); }
+.home .gym-bar { justify-content: flex-start; gap: 2px; margin: 0 0 14px; }
+.home .gym-title { min-width: 4.5ch; font: italic 400 22px/1.2 var(--font-serif); color: var(--color-fg); }
+.home .gym-nav {
+  padding: 2px 8px; border: 0; border-radius: 6px; background: none;
+  font: 400 18px/1 var(--font-sans); color: var(--color-muted);
+}
+.home .gym-nav:first-child { margin-left: -8px; }
+.home .gym-nav:hover:not([aria-disabled="true"]) { color: var(--color-fg); }
+.home .gym-nav[aria-disabled="true"] { opacity: .35; }
+.home .gym-wall-wrap { max-width: 100%; overflow: hidden; }
+.home .gym-stats { margin: 12px 0 0; text-align: left; font-size: 12.5px; color: var(--color-muted); }
+.home .gym-stats b { font-weight: 500; color: var(--color-fg); }
+
+/* Travel: the dot map sits straight on the scene */
+.home .travel-mapwrap { max-width: none; margin: 0 0 26px; }
+.home .travel-map .dot-land circle { fill: rgba(255, 255, 255, .13); }
+.home .travel-map .dot-visited { filter: drop-shadow(0 0 .7px rgba(167, 139, 250, .95)); }
+.home .travel-map .dot-visited circle { fill: var(--color-accent); r: .58px; }
+@keyframes outside-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.home .travel-map .dot-visited circle { animation: outside-twinkle 4s ease-in-out infinite; }
+.home .travel-map .dot-visited circle:nth-child(2n) { animation-duration: 5.2s; animation-delay: -1.3s; }
+.home .travel-map .dot-visited circle:nth-child(3n) { animation-duration: 3.4s; animation-delay: -2.1s; }
+.home .travel-map .dot-visited circle:nth-child(5n) { animation-duration: 6s; animation-delay: -.7s; }
+.home .travel-map .dot-visited circle:nth-child(7n) { animation-duration: 4.6s; animation-delay: -3.2s; }
+
+/* The countries: one flowing line; an open one drops its body below the line */
+.home .travel-list { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 0; margin: 0 0 14px; }
+.home .country { border: 0; border-radius: 0; background: none; min-width: 0; }
+.home .country[open] { display: contents; }
+/* Chrome wraps the details body in a ::details-content box; flatten it too, so the body
+   becomes a flex item of the list and can take the full row under the line */
+.home .country[open]::details-content { display: contents; }
+.home .country summary {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 2px 0; list-style: none;
+  font: 400 15px/1.5 var(--font-sans); color: var(--color-fg); cursor: pointer; position: static;
+}
+.home .country summary::-webkit-details-marker { display: none; }
+.home .country summary > span:first-child { text-decoration: underline dotted rgba(255, 255, 255, .3); text-underline-offset: 4px; }
+.home .country summary:hover > span:first-child { text-decoration-color: var(--color-accent); }
+.home .country-years { font: 400 12px var(--font-mono); color: var(--color-muted); }
+/* the disclosure mark: a small plus that turns into a violet minus when open. The separator
+   to the next country rides on the same mark, so a wrapped line never starts with a dot. */
+.home .country summary::after { content: "+"; position: static; transform: none; white-space: pre; font: 400 12px var(--font-mono); color: var(--color-muted); }
+.home .country[open] summary::after { content: "\2212"; color: var(--color-num); }
+.home .country:not(:last-child) summary::after { content: "+  \00B7  "; }
+.home .country:not(:last-child)[open] summary::after { content: "\2212  \00B7  "; }
+.home .country summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+.home .country-body { flex: 1 0 100%; order: 0; padding: 10px 0 18px; margin: 4px 0 6px; border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); }
+.home .chips { display: block; margin: 0 0 12px; font: 400 12.5px/1.6 var(--font-mono); color: var(--color-muted); }
+.home .chips li { display: inline; padding: 0; border: 0; border-radius: 0; background: none; font: inherit; color: inherit; }
+.home .chips li + li::before { content: " · "; }
+
+/* Photos: plain rounded frames, no borders */
+.home .photos { gap: 8px; margin: 12px 0 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.home .country-body .photos { margin-top: 0; }
+.home .photos li { border: 0; border-radius: 8px; background: rgba(255, 255, 255, .04); }
+
+/* United States as one quiet line */
+.home .travel-states { margin: 0 0 22px; font: 400 13px/1.6 var(--font-mono); color: var(--color-muted); }
+.home .travel-states-label { color: var(--color-fg); }
+
+/* Trails & photos: a quiet text toggle */
+.home .trails-more { border-top: 1px solid var(--color-rule); }
+.home .trails-more > summary {
+  display: inline-flex; align-items: center; gap: 8px; padding: 14px 0 4px; list-style: none; cursor: pointer;
+  font: 500 11px var(--font-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--color-muted);
+}
+.home .trails-more > summary::-webkit-details-marker { display: none; }
+.home .trails-more > summary::before { content: "\25B8"; font-size: 12px; letter-spacing: 0; color: var(--color-accent); }
+.home .trails-more[open] > summary::before { content: "\25BE"; }
+.home .trails-more > summary:hover { color: var(--color-fg); }
+.home .trails-more > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
+.home .trails { gap: 0 28px; margin: 12px 0 4px; }
+.home .trails li { display: block; padding: 6px 0; border: 0; font: 400 13px/1.45 var(--font-sans); }
+.home .trails b { display: block; font-weight: 500; color: var(--color-fg); }
+.home .trails span { display: block; text-align: left; font: 400 11.5px/1.5 var(--font-mono); color: var(--color-muted); }
+
+@media (min-width: 560px) {
+  .home .photos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .home .trails { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479px) {
+  .home .lifting-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
+  .home #outside > .sh h2 { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home .travel-map .dot-visited circle { animation: none; }
+}

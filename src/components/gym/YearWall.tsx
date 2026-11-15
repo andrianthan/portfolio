@@ -25,7 +25,6 @@ export default function YearWall({ year }: { year: number }) {
     const canvas = ref.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
-    const root = document.documentElement;
     let lastWidth = -1;
     const draw = () => {
       const width = canvas.getBoundingClientRect().width;
@@ -40,15 +39,32 @@ export default function YearWall({ year }: { year: number }) {
       lastWidth = width;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
-      const style = getComputedStyle(root);
-      const on = style.getPropertyValue('--gym-go').trim() || '#5ee38a';
-      const off = style.getPropertyValue('--color-rule').trim() || '#2a2552';
-      const gap = Math.max(1, cell * 0.18);
+      // a star field: every day is a faint dot, a check-in is a bright star with a soft violet glow
+      const style = getComputedStyle(canvas);
+      const star = style.getPropertyValue('--gym-star').trim() || '#f4f3fb';
+      const glow = style.getPropertyValue('--gym-glow').trim() || '#a78bfa';
+      const dim = style.getPropertyValue('--gym-dim').trim() || 'rgba(255, 255, 255, .22)';
+      const half = cell / 2;
+      ctx.fillStyle = dim;
       for (const c of grid.cells) {
-        ctx.fillStyle = c.went ? on : off;
-        ctx.globalAlpha = c.went ? 1 : 0.55;
-        ctx.fillRect(WALL_LABEL + c.col * cell, c.row * cell, cell - gap, cell - gap);
+        if (c.went) continue;
+        ctx.beginPath();
+        ctx.arc(WALL_LABEL + c.col * cell + half, c.row * cell + half, Math.max(0.6, cell * 0.09), 0, Math.PI * 2);
+        ctx.fill();
       }
+      ctx.shadowColor = glow;
+      ctx.shadowBlur = Math.max(3, cell * 0.7);
+      for (const c of grid.cells) {
+        if (!c.went) continue;
+        // a small, stable variation in brightness so the field reads as stars, not a grid
+        const v = ((c.col * 7 + c.row * 13) % 5) / 5;
+        ctx.fillStyle = v > 0.5 ? star : glow;
+        ctx.globalAlpha = 0.8 + v * 0.2;
+        ctx.beginPath();
+        ctx.arc(WALL_LABEL + c.col * cell + half, c.row * cell + half, Math.max(1.3, cell * (0.2 + v * 0.06)), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
     };
     draw();
