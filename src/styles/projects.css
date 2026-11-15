@@ -37,7 +37,7 @@ html:has(.toc) { scroll-behavior: auto; }
 .project a { text-decoration: underline; text-underline-offset: 3px; }
 
 .project .arch { margin: var(--space-md) 0 var(--space-lg); }
-.project .arch svg { display: block; width: 100%; height: auto; max-width: 640px; }
+.project .arch svg { display: block; width: 100%; height: auto; }
 .project .arch figcaption { font: 500 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); margin-top: 8px; }
 
 /* Desktop: the contents list follows the reader down the page. Below 900px it is
