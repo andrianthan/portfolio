@@ -109,7 +109,7 @@ describe('the tesla page body', () => {
     // total says what it covers.
     const campaigns = body.split(/^## Campaigns$/m)[1] ?? '';
     expect(campaigns).toContain('across the projects on this page');
-    expect(campaigns).toContain("Forecast Lab's 80-hour estimate");
+    expect(campaigns).toContain("Forecast Lab's estimate");
   });
 
   it('does not say a request waits on a build it never waits on', () => {

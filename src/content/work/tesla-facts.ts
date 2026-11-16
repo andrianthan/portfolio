@@ -33,7 +33,7 @@ export const ALLOWED_NUMBERS: readonly string[] = [
   // modular architecture
   '445', '44', '11', '28', '242,563', '217,514', '10.3%', '405', '46', '3,141', '597', '5,048', '93', '2,008', '852', '24.1k',
   // data freshness
-  '66M',
+  '66M', '40', '5',
 ];
 
 export const BANNED_TERMS: readonly string[] = [

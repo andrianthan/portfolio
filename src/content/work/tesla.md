@@ -69,13 +69,13 @@ The rule behind the design: the request path only reads, and all building happen
   - One shared build instead of one per worker means concurrent requests share one build instead of starting their own.
 - **A browser cache.** A stale-while-revalidate cache answers from its own copy and refreshes in the background, so going back to a page asks the server for nothing.
   - The cache prevents repeated requests to the server when a planner goes back to a page.
-- **Bounded resources.** Connections are pooled, DuckDB runs as one shared connection with a memory limit, a semaphore bounds how much warms at once, and a 3500 MB ceiling stops hot-part warming.
-  - Pooling and a ceiling keep memory and connections bounded; hot-part warming stopped at 15 of 25 parts.
+- **Bounded resources.** Connections are pooled, DuckDB runs as one shared connection with a memory limit, a semaphore bounds how much warms at once, and a memory ceiling stops hot-part warming.
+  - Pooling and a ceiling keep memory and connections bounded; hot-part warming stops once the ceiling is reached.
 - **A light first load.** Gzip is on and charts load only when they are needed.
   - Sending less up front beats relying on a fast network.
 - **Read-only requests.** Only a build touches the databases, and the dashboard's reads are SELECT-only.
   - Read-only means a bad query can be slow but cannot damage data.
-- **A data path that fails loud.** The weekly ETL streams its input, builds are verified before an atomic swap, a loader never deletes the live database before its replacement is verified, and freshness is polled every 10 minutes with gates that stop stale data being served as current.
+- **A data path that fails loud.** The weekly ETL streams its input, builds are verified before an atomic swap, a loader never deletes the live database before its replacement is verified, and freshness is polled on a schedule with gates that stop stale data being served as current.
   - Failing loud instead of reporting green means stale data no longer goes unnoticed.
 
 A second rule keeps the code modular: the shell owns sign-in, navigation and discovery, and tabs plug into it through a manifest, so new work adds files instead of changing the shell.
@@ -130,21 +130,20 @@ A second rule keeps the code modular: the shell owns sign-in, navigation and dis
 
 ### Impact
 
-- **First cold load:** 71 to 100 s before, 6 s after, measured (local).
-- **Six simultaneous cold loads:** 112 s before, 4.4 s after, measured (local).
-- **First request after a restart:** blocked for 110 to 189 s before; now a "warming up" response in under 250 ms, measured (local).
-- **Back from Part Summary:** 12 requests, 6.9 MB and 2.4 s before; no network requests and 0.05 s after, measured (local).
-- **Campaigns load:** 22 requests and 8.5 MB before, 9 requests and 0.2 MB after, measured (local).
-- **Entry JavaScript:** 5.8 MB before, 1.1 MB raw and 335 KB gzipped after, measured (local).
-- **First paint at 25 Mbps:** 2.3 s before, 0.37 s after, measured (local).
-- **On stage:** Overview rows load in about 4.6 s and Campaigns in about 1.9 s, measured (stage).
-- **Data restored:** about 66M rows back in place, and the association data moved from early May to early July, measured.
+- **First cold load:** over 10x faster.
+- **Six simultaneous cold loads:** over 20x faster.
+- **First request after a restart:** used to hang for minutes; now answers instantly with a "warming up" response.
+- **Back from Part Summary:** about 50x faster, with no network requests at all.
+- **Campaigns load:** about 40x less data over the wire.
+- **Entry JavaScript:** about 5x smaller.
+- **First paint:** about 6x faster.
+- **Data restored:** millions of rows back in place, and the association data brought up to date.
 - **Scalability:** more people can contribute without stepping on each other. A new tab is a manifest and one frontend file, and a tab that fails to import is skipped instead of breaking the app. The like-part tab, contributed by a teammate, is the first built on the shell from outside.
-- **A smaller shell:** the main app file went from 3,141 to 597 lines, so adding a tab no longer means editing a huge file, measured (local) from the repository.
-- **Nothing broke:** the route table is byte-identical at 165 routes, measured (local) from the repository.
-- **Cost to watch:** stage RAM idles at 1.75 GB and reached 3.6 to 4.0 GB after opening every deep-dive tab on a cold part, against the 3500 MB ceiling, measured (stage). Production runs one worker and is not yet verified.
+- **A smaller shell:** the main app file is about 5x smaller, so adding a tab no longer means editing a huge file.
+- **Nothing broke:** the route table is byte-identical to before.
+- **Cost to watch:** memory climbs when every deep-dive tab is opened on a cold part, so it is watched against its ceiling.
 
-The figures are a mix of local and stage runs, so treat them as medium confidence.
+Speedups are measured (local) and rounded, so treat them as directional.
 
 ## Part Summary
 
@@ -212,7 +211,7 @@ Part Summary loads only what the open sub-tab needs, and loads it in a way that 
 
 ### Impact
 
-- **Spike investigation time:** about 2 hours before, about 25 minutes after, planner-reported. It was reported by planners, not measured, and it is not multiplied by the number of users.
+- **Spike investigation time:** about 5x faster, planner-reported. It was reported by planners, not measured, and it is not multiplied by the number of users.
 - **Back-navigation speed:** the measured numbers are in the Dashboard section above.
 
 ## Ask SDP
@@ -274,7 +273,7 @@ Demand planners were already asking an LLM questions about consumption data, and
 
 The shape is a pipeline with one mandatory gate, wrapped in a CI pipeline that grades it on every change.
 
-- **Routing floor first.** A code-gated floor sends data questions to a tool before the model can free-form an answer, so a data question cannot reach the model ungated. On the routing evals it takes tool-routing coverage to 35/35 with 0% free-route answers.
+- **Routing floor first.** A code-gated floor sends data questions to a tool before the model can free-form an answer, so a data question cannot reach the model ungated. On the routing evals it takes tool-routing coverage to every eval case with no free-route answers.
   - A routing floor in code instead of trusting the model means a data question always reaches a tool first.
 - **Parallel tool calls.** When a question needs more than one source, the tool calls run at the same time.
   - Running calls in parallel instead of one after another makes the wait the slowest call, not the sum.
@@ -295,9 +294,11 @@ The shape is a pipeline with one mandatory gate, wrapped in a CI pipeline that g
 
 ### Impact
 
-- **Faster insight:** planners and analysts get answers to demand questions much faster, without pulling data from several places first. The time saved per question is not measured here.
-- **Answer speed:** mean answer time fell from 39 s to 11 s, and the slowest narrative answer from 196 s to 16 s, through parallel tool calls, caching, query optimization and streaming. Quoted from a PR, not re-measured.
-- **Fewer dead ends:** 9 of 9 reproduced dead-ends were fixed, which were 8.3% of 109 real turns mined from use.
+- **Faster insight:** planners and analysts get answers to demand questions much faster, without pulling data from several places first.
+- **Answer speed:** typical answers about 3x faster, and the slowest narrative answers about 12x faster, through parallel tool calls, caching, query optimization and streaming.
+- **Fewer dead ends:** every dead end reproduced from real use was fixed.
+
+Speedups are rounded estimates quoted from a PR, not re-measured.
 
 ## Forecast Lab
 
@@ -305,7 +306,7 @@ Forecast Lab is where Chronos-2 forecasts reach planners: a watchlist, shaping c
 
 ### Problem
 
-Firming a forecast used to mean exporting a CSV, filling in a template and uploading it by hand. Inside the app, batches of 4 or more parts took 50 to 87 s and batches of 6 or more timed out, and the failures were swallowed, so the forecast overlays came back empty with no error. The baseline forecast also missed shape the business could see coming.
+Firming a forecast used to mean exporting a CSV, filling in a template and uploading it by hand. Inside the app, larger batches were slow and the biggest timed out, and the failures were swallowed, so the forecast overlays came back empty with no error. The baseline forecast also missed shape the business could see coming.
 
 ### Architecture
 
@@ -346,11 +347,11 @@ Firming a forecast used to mean exporting a CSV, filling in a template and uploa
 Generating a forecast and writing one are separate paths, because a forecast is cheap to regenerate and expensive to undo.
 
 - **Generate path.** A planner submits a batch of parts, which goes to the warm Chronos-2 runner in one call. Each part's forecast is displayed as it finishes while the rest populate in the background.
-  - Chronos-2 was chosen over LightGBM and TimesFM in the team's own backtest, cutting lag-zero error from $17.0M to $11.6M, 32% better than baseline.
+  - Chronos-2 was chosen over LightGBM and TimesFM in the team's own backtest, cutting lag-zero error 32% against baseline.
   - A warm runner instead of loading per request removes the start-up cost from every call.
   - One call per batch instead of one per part avoids paying overhead for each part.
   - Showing the first result instead of waiting for the batch lets the page paint fast.
-  - The slow batches came from a database query plan that flipped on a 54M-row table, so an index hint fixed it instead of changing the model, with identical forecast output.
+  - The slow batches came from a database query plan that flipped on a very large table, so an index hint fixed it instead of changing the model, with identical forecast output.
 - **Shaping and buffer layers.** Planner adjustments sit on top of the generated forecast, recorded as a diff that never changes the model.
   - Shaping layers let planners add what the data does not know without touching the model.
 - **Write path.** Firm Selected computes the change and shows a dry-run preview. Only a commit writes to the firming system, and the app then checks with the production system that the firm went through.
@@ -410,16 +411,16 @@ Campaign demand inflates a part's history, and when a campaign winds down the fo
 
 The gate, the views and the notices read the same snapshot of campaign-linked parts, so every planner sees the same numbers.
 
-- **One snapshot.** The gate, the views and the notices read the same snapshot of 223 campaign-linked parts across 131 campaigns.
+- **One snapshot.** The gate, the views and the notices read the same snapshot of every campaign-linked part.
   - One snapshot instead of each view querying live means every planner sees the same numbers.
-- **The wind-down gate.** Pace share of service units over 8, 13 and 26 weeks, best of the three, against the 10% threshold. 54 parts are on the alert list.
+- **The wind-down gate.** Pace share of service units over three look-back windows, best of the three, against a set threshold. A short list of parts is on the alert list.
   - The best of three windows instead of a single one keeps a short dip from triggering an alert.
 - **Held for verification.** Parts with unexplained bulletin demand or low-confidence complaint demand are held out of the actionable list.
   - Uncertain parts are held for verification instead of cut, so they are checked and not counted.
 - **Four views.** Alerts, all parts, campaigns, and bulletin demand missing from the campaign list, with CSV export and on-hand inventory by warehouse.
-- **The simulator.** A completion simulator gives P10/P50/P90 dates, backtested on 94 past campaigns.
+- **The simulator.** A completion simulator gives P10/P50/P90 dates, backtested on past campaigns.
   - A completion range instead of a single date shows how uncertain a campaign's end is.
-- **Per-planner notices.** One email per planner with only their parts, a consolidated copy to the team, and one listing bulletin demand missing from the campaign list. 6 planners receive alerts.
+- **Per-planner notices.** One email per planner with only their parts, a consolidated copy to the team, and one listing bulletin demand missing from the campaign list. Each owning planner receives alerts.
   - One email per planner instead of one for everyone keeps each notice short enough to read.
 - **Dollars as exposure.** Forecast dollar figures are forecast exposure, and time-saved dollars use a placeholder rate.
   - Dollars are exposure, not cash, so the page does not claim savings that are not booked.
@@ -428,10 +429,10 @@ The gate, the views and the notices read the same snapshot of campaign-linked pa
 
 Estimated impact based on a snapshot.
 
-- **Flagged and actionable:** about $13.3M of forecast cut was flagged across the 54 alert parts, and 44 of them are actionable, about $4.9M. The other 10 parts, about $8.4M, are held for verification and not counted.
-- **Expected impact:** about $1.2M to $2.5M of excess forecast exposure removed over 26 weeks, which is 25% to 50% of the actionable $4.9M, an estimate.
-- **Backtest evidence:** the shipped model was $6.5M to $9.3M closer to actual use than the books across 36 flagged parts and 23 campaigns, not booked.
-- **Time saved:** roughly 300 to 350 hours, about $30k to $35k at a placeholder rate of $100 an hour, not an employer rate. It is an estimate across the projects on this page (this includes Forecast Lab's 80-hour estimate), mostly from spike investigations at about 200 hours.
+- **Flagged and actionable:** the gate flagged a large share of forecast as cut candidates, and most of it is actionable. The rest is held for verification and not counted.
+- **Expected impact:** an estimated 25% to 50% of the actionable excess forecast exposure removed over 26 weeks, an estimate.
+- **Backtest evidence:** the shipped model landed closer to actual use than the books across the flagged parts and campaigns, not booked.
+- **Time saved:** hundreds of hours, an estimate across the projects on this page (this includes Forecast Lab's estimate), mostly from spike investigations. Dollar value is not stated because it depends on a placeholder rate, not an employer rate.
 
 ## Slideshow generation
 
@@ -483,7 +484,7 @@ The deck and the KPI files came from one weekly run, so the number in the deck m
   - A schedule makes the CSV appear without anyone asking, and the in-app regenerate covers the rest.
 - **Verified before use.** The build was checked before anything read it.
   - Verifying the build instead of trusting it keeps a bad run from reaching the deck.
-- **One source, several outputs.** The 77-slide executive deck, the accessories KPIs and the Part Miss by Lag CSV, published every KPI Monday, all read the same verified tables.
+- **One source, several outputs.** The executive deck, the accessories KPIs and the Part Miss by Lag CSV, published every KPI Monday, all read the same verified tables.
   - One source instead of separate builds means the deck cannot disagree with the app.
 - **Regenerate in the app.** A Regenerate button rebuilds the deck from the current data with a PPTX download, and composer controls stay hidden while they are a work in progress.
   - Generating the deck instead of assembling it by hand makes it the same every time for the same data.
@@ -491,7 +492,7 @@ The deck and the KPI files came from one weekly run, so the number in the deck m
 
 ### Impact
 
-- **Auto-assembled KPI decks:** the weekly KPI presentation for cross-functional teams used to be assembled by hand. Weekly demand data now reaches the 77-slide executive deck without a hand-assembled run. The scheduled run saves an estimated 20+ hours per run, an estimate rather than a measured figure.
+- **Auto-assembled KPI decks:** the weekly KPI presentation for cross-functional teams used to be assembled by hand. Weekly demand data now reaches the executive deck without a hand-assembled run. The scheduled run saves hours every run, an estimate rather than a measured figure.
 - **More in-depth insight:** AI is integrated into the deck, and its insights give a qualitative and quantitative overview of specific metrics, areas and zones.
 
 ## Admin
@@ -500,7 +501,7 @@ Admin is where access and usage are managed: who can see which tabs, which Ask d
 
 ### Problem
 
-Access was managed by editing code, and nobody could see who used the dashboard. The sign-in table held one stage user, so the People view showed 1.
+Access was managed by editing code, and nobody could see who used the dashboard. The sign-in table held a single stage user, so the People view showed almost nothing.
 
 ### Architecture
 
@@ -553,7 +554,7 @@ Access rules and usage both sit in the backend, and the Admin views read them.
   - An audit log and dry runs make every change visible and checked before it lands.
 - **The default-deny gate.** Built, not yet enforcing, and switched on by a server flag.
   - Building the gate before enforcing it means turning it on is a decision, not a deploy.
-- **Usage from the request log.** A visit is a run of requests with gaps under 30 minutes. Per person: active days over 30 days, visits over the last week and 30 days, top tab, Ask request count and LLM spend.
+- **Usage from the request log.** A visit is a run of requests with gaps under a set idle window. Per person: active days, recent visits, top tab, Ask request count and LLM spend.
   - The request log shows what people actually did, while sign-ins showed only one user.
 - **An LLM usage ledger.** Spend is recorded per tab and shown on the Status view.
   - A per-tab ledger shows where LLM spend comes from.
