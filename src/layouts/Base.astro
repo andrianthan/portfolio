@@ -9,10 +9,9 @@ import Background from '../components/Background.astro';
 import CommandMenu from '../components/CommandMenu.tsx';
 import { profile } from '../data/profile';
 
-interface Props { title: string; description?: string; ogImage?: string; path?: string; scene?: boolean; menu?: boolean }
-const { title, description = 'Andrian Than, software engineer building AI agents.', ogImage = '/og.png', path = Astro.url.pathname, scene = true, menu = true } = Astro.props;
+interface Props { title: string; description?: string; path?: string; scene?: boolean; menu?: boolean }
+const { title, description = 'Andrian Than, software engineer building AI agents.', path = Astro.url.pathname, scene = true, menu = true } = Astro.props;
 const canonical = new URL(path, Astro.site).toString();
-const og = new URL(ogImage, Astro.site).toString();
 ---
 <!doctype html>
 <html lang="en">
@@ -27,8 +26,7 @@ const og = new URL(ogImage, Astro.site).toString();
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={og} />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
