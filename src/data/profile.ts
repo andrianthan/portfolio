@@ -7,7 +7,6 @@ export interface SkillGroup {
 export interface ContactLinks {
   email: string;
   linkedin: string;
-  github: string;
 }
 
 export interface ProfileData {
@@ -42,7 +41,6 @@ export const profile: ProfileData = {
   contact: {
     email: 'andrian.than.api@gmail.com',
     linkedin: 'https://www.linkedin.com/in/andrian-than',
-    github: 'https://github.com/andrianthan',
   },
   disclaimer: 'Unaffiliated personal portfolio. Inspired by Claude Code. Not an Anthropic product.',
 };

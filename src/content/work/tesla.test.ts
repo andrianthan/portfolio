@@ -67,8 +67,11 @@ describe('the tesla page body', () => {
     const sections = body.split(/^## /m).slice(1);
     expect(sections).toHaveLength(7);
     for (const s of sections) {
+      const name = s.split('\n')[0].trim();
       const subs = [...s.matchAll(/^### (.+)$/gm)].map((m) => m[1].trim());
-      expect(subs).toEqual(['Problem', 'Architecture', 'Impact']);
+      // The Dashboard closes with the design considerations instead of measurements.
+      const third = name === 'Dashboard' ? 'What I kept in mind' : 'Impact';
+      expect(subs, name).toEqual(['Problem', 'Architecture', third]);
     }
   });
 
@@ -95,9 +98,18 @@ describe('the tesla page body', () => {
 
   it('labels every impact claim with a basis word', () => {
     const impacts = body.split(/^### Impact$/m).slice(1).map((s) => s.split(/^### /m)[0]);
-    expect(impacts).toHaveLength(7);
+    expect(impacts).toHaveLength(6);
     const basis = /(measured \((local|stage)\)|planner-reported|estimate|not booked|not measured)/i;
     for (const imp of impacts) expect(imp, imp.slice(0, 80)).toMatch(basis);
+  });
+
+  it('states no figure in the dashboard considerations', () => {
+    // The Dashboard section closes with what had to be kept in mind, not with
+    // measurements. A figure here is the ratio form of the claim the section
+    // was written to avoid, so the section carries none.
+    const kept = body.split(/^### What I kept in mind$/m)[1]?.split(/^## /m)[0] ?? '';
+    expect(kept).not.toBe('');
+    expect(numberTokens(kept), 'the considerations section states no figure').toEqual([]);
   });
 
   it('never makes a forbidden claim', () => {

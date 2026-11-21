@@ -115,33 +115,19 @@ describe('verify', () => {
       chunks.flatMap((chunk) => extractNumbers(`${chunk.title} ${chunk.text} ${chunk.facts.join(' ')}`)),
     );
     expect([...published].sort()).toEqual([
-      '$1.2M', '$100', '$11.6M', '$13.3M', '$17.0M',
-      '$2.5M', '$30k',
-      '$35k', '$4.9M', '$6.5M', '$8.4M',
-      '$9.3M', '0%', '0.05', '0.2', '0.37', '1', '1.1', '1.75',
-      '1.9', '10', '10%', '100',
-      '109', '11', '110', '112', '12',
-      '13', '131', '15', '16',
-      '165', '189', '196', '2',
-      '2.3', '2.4', '20+', '200', '22', '223', '23', '25', '25%', '250', '26', '3,141', '3.6', '30', '300', '32%',
-      '335', '35', '350', '3500', '36', '39',
-      '4', '4.0', '4.4', '4.6', '44', '5.8',
-      '50', '50%', '54', '54M', '597', '6',
-      '6.9', '66M', '71',
-      '77', '8,', '8.3%', '8.5',
-      '80', '87', '9', '90',
-      '94',
+      '10', '12', '2', '25%', '26', '3',
+      '32%', '5', '50', '50%', '90',
     ]);
     expect(result.ok).toBe(true);
-    expect(result.checked).toBe(109);
+    expect(result.checked).toBe(15);
     expect(result.offending).toEqual([]);
   });
 
   it('refuses a number that is only part of a published one', () => {
     const chunks = experience(snapshot, ['Tesla']).map((entry) => entry.chunk);
-    const result = verify({ text: 'Improved by 3.', sources: [] }, chunks);
+    const result = verify({ text: 'Improved by 1.', sources: [] }, chunks);
     expect(result.ok).toBe(false);
-    expect(result.offending).toContain('3');
+    expect(result.offending).toContain('1');
   });
 
   it('refuses a number whose punctuation differs from the published one', () => {

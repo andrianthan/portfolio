@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CommandMenu from './CommandMenu';
 
-const contact = { email: 'a@b.co', linkedin: 'https://l/in', github: 'https://g/h', resume: '/resume.pdf' };
+const contact = { email: 'a@b.co', linkedin: 'https://l/in' };
 
 describe('CommandMenu (closed, as server-rendered)', () => {
   const html = renderToStaticMarkup(<CommandMenu contact={contact} />);

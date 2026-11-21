@@ -128,22 +128,15 @@ A second rule keeps the code modular: the shell owns sign-in, navigation and dis
 - **A data-client facade.** Screens reach data through one small facade, and lint guards stop imports past it.
   - A facade instead of screens reaching into data means a change in one screen cannot break another.
 
-### Impact
+### What I kept in mind
 
-- **First cold load:** over 10x faster.
-- **Six simultaneous cold loads:** over 20x faster.
-- **First request after a restart:** used to hang for minutes; now answers instantly with a "warming up" response.
-- **Back from Part Summary:** about 50x faster, with no network requests at all.
-- **Campaigns load:** about 40x less data over the wire.
-- **Entry JavaScript:** about 5x smaller.
-- **First paint:** about 6x faster.
-- **Data restored:** millions of rows back in place, and the association data brought up to date.
-- **Scalability:** more people can contribute without stepping on each other. A new tab is a manifest and one frontend file, and a tab that fails to import is skipped instead of breaking the app. The like-part tab, contributed by a teammate, is the first built on the shell from outside.
-- **A smaller shell:** the main app file is about 5x smaller, so adding a tab no longer means editing a huge file.
-- **Nothing broke:** the route table is byte-identical to before.
-- **Cost to watch:** memory climbs when every deep-dive tab is opened on a cold part, so it is watched against its ceiling.
-
-Speedups are measured (local) and rounded, so treat them as directional.
+- **One app, one sign-in, one navigation.** Planners were clicking between eight dashboards with different layouts and filters. Making them one tool was the whole point, so every screen had to feel like part of the same tool.
+- **The backend had to load data in a way the UI could use directly.** Data was fetched and shaped for the screen that shows it, not handed to the front end to sort out.
+- **Nothing a planner did should be able to damage data.** A bad query can be slow; it should never be able to change a row.
+- **Stale data was worse than no data.** A number that looks current and is not is how a planning decision goes wrong, so every path to the screen had to know how fresh the data was.
+- **Nothing was allowed to grow without a bound.** Connections were pooled, one shared DuckDB connection ran under a memory limit, a semaphore capped how much warmed at once, and a ceiling stopped hot-part warming before the process got too large. Memory still climbs when every deep-dive tab is opened on a cold part, so it is watched against that ceiling.
+- **Other people had to be able to add to it.** A new tab is a manifest and one file, so the next person adds files instead of learning the shell. The like-part tab, contributed by a teammate, is the first piece built on the shell from outside, and the route table is byte-identical to before, so none of the existing paths moved.
+- **A broken tab could not be allowed to take the app down.** A tab that fails to import is skipped and reported, and any tab can be turned off without a deploy.
 
 ## Part Summary
 

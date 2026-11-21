@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { buildRows, filterItems, menuItems } from './commands';
 
-const contact = { email: 'a@b.co', linkedin: 'https://l/in', github: 'https://g/h', resume: '/resume.pdf' };
+const contact = { email: 'a@b.co', linkedin: 'https://l/in' };
 const items = menuItems(contact);
 
 describe('menuItems', () => {
   it('lists the pages and the contact links', () => {
-    expect(items.map((i) => i.id)).toEqual(['home', 'experience', 'terminal', 'email', 'github', 'linkedin', 'resume']);
+    expect(items.map((i) => i.id)).toEqual(['home', 'experience', 'terminal', 'email', 'linkedin']);
     expect(items.find((i) => i.id === 'email')?.href).toBe('mailto:a@b.co');
     expect(items.find((i) => i.id === 'terminal')?.href).toBe('/terminal');
-    expect(items.find((i) => i.id === 'github')?.external).toBe(true);
+    expect(items.find((i) => i.id === 'linkedin')?.external).toBe(true);
   });
 });
 

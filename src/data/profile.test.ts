@@ -38,7 +38,6 @@ describe('profile', () => {
   it('has reachable contact links', () => {
     expect(profile.contact.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
     expect(profile.contact.linkedin.startsWith('https://')).toBe(true);
-    expect(profile.contact.github.startsWith('https://')).toBe(true);
   });
 
   it('carries the unaffiliated disclaimer verbatim', () => {

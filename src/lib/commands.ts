@@ -13,9 +13,7 @@ export function menuItems(contact: ContactLinks): MenuItem[] {
     { id: 'experience', label: 'Experience', group: 'Go to', href: '/experience', keywords: 'work jobs' },
     { id: 'terminal', label: 'Terminal', group: 'Go to', href: '/terminal', keywords: 'agent chat' },
     { id: 'email', label: 'Email', group: 'Contact', href: `mailto:${contact.email}`, external: true, keywords: 'contact mail' },
-    { id: 'github', label: 'GitHub', group: 'Contact', href: contact.github, external: true, keywords: 'code' },
     { id: 'linkedin', label: 'LinkedIn', group: 'Contact', href: contact.linkedin, external: true },
-    { id: 'resume', label: 'Resume', group: 'Contact', href: contact.resume, keywords: 'cv pdf' },
   ];
 }
 

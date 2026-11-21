@@ -137,7 +137,7 @@ export function buildSnapshot(input: SnapshotInput): Snapshot {
   }
 
   const contact = input.profile.contact;
-  const contactText = `Email: ${contact.email} · LinkedIn: ${contact.linkedin} · GitHub: ${contact.github}`;
+  const contactText = `Email: ${contact.email} · LinkedIn: ${contact.linkedin}`;
   add({ id: 'contact:links', kind: 'contact', title: 'Contact', text: contactText, url: '/#contact', facts: extractNumbers(contactText) });
 
   chunks.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
