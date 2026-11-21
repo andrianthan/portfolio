@@ -130,13 +130,12 @@ A second rule keeps the code modular: the shell owns sign-in, navigation and dis
 
 ### What I kept in mind
 
-- **One app, one sign-in, one navigation.** Planners were clicking between eight dashboards with different layouts and filters. Making them one tool was the whole point, so every screen had to feel like part of the same tool.
 - **The backend had to load data in a way the UI could use directly.** Data was fetched and shaped for the screen that shows it, not handed to the front end to sort out.
-- **Nothing a planner did should be able to damage data.** A bad query can be slow; it should never be able to change a row.
-- **Stale data was worse than no data.** A number that looks current and is not is how a planning decision goes wrong, so every path to the screen had to know how fresh the data was.
-- **Nothing was allowed to grow without a bound.** Connections were pooled, one shared DuckDB connection ran under a memory limit, a semaphore capped how much warmed at once, and a ceiling stopped hot-part warming before the process got too large. Memory still climbs when every deep-dive tab is opened on a cold part, so it is watched against that ceiling.
-- **Other people had to be able to add to it.** A new tab is a manifest and one file, so the next person adds files instead of learning the shell. The like-part tab, contributed by a teammate, is the first piece built on the shell from outside, and the route table is byte-identical to before, so none of the existing paths moved.
-- **A broken tab could not be allowed to take the app down.** A tab that fails to import is skipped and reported, and any tab can be turned off without a deploy.
+- **The opening screen had to be worth waiting for.** A slow open would have sent planners back to the dashboards they already knew.
+- **What a planner does must not change the data.** The numbers drive planning calls, so the app only ever reads them.
+- **Stale data is worse than no data.** A number that looks current and is not is how a planning decision goes wrong, so freshness had to be known on every path to a screen.
+- **The next person had to be able to add to it.** The like-part tab, contributed by a teammate, now runs on the shell, and the route table is byte-identical to before, so none of the existing paths moved.
+- **Memory is watched against a ceiling.** It climbs when every deep-dive tab is opened on a cold part.
 
 ## Part Summary
 
@@ -205,7 +204,7 @@ Part Summary loads only what the open sub-tab needs, and loads it in a way that 
 ### Impact
 
 - **Spike investigation time:** about 5x faster, planner-reported. It was reported by planners, not measured, and it is not multiplied by the number of users.
-- **Back-navigation speed:** the measured numbers are in the Dashboard section above.
+- **Back-navigation speed:** going back to the dashboard now makes no network requests at all, measured (local).
 
 ## Ask SDP
 

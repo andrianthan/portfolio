@@ -81,7 +81,7 @@ const REFUSE_PATTERNS: RegExp[] = [
 
 const INTENT_RULES: { intent: Intent; pattern: RegExp }[] = [
   { intent: 'help', pattern: /\b(help|commands?|usage|what\s+can\s+(you|i)\s+do)\b/ },
-  { intent: 'contact', pattern: /\b(contact|email|e-mail|linkedin|github|reach\s+out|get\s+in\s+touch|hire|message\s+me|talk\s+to\s+you)\b/ },
+  { intent: 'contact', pattern: /\b(contact|email|e-mail|linkedin|reach\s+out|get\s+in\s+touch|hire|message\s+me|talk\s+to\s+you)\b/ },
   { intent: 'experience', pattern: /\b(experience|experiences|jobs?|roles?|internships?|employment|worked|work\s+history|where\s+did\s+you\s+work|projects?|portfolio|built|build|repos?|repositories)\b/ },
   { intent: 'skills', pattern: /\b(skills?|stack|tech|technologies|technological|languages?|frameworks?|tools?)\b/ },
   { intent: 'about', pattern: /\b(about|who\s+are\s+you|introduce\s+yourself|yourself|bio|story|tell\s+me\s+about)\b/ },

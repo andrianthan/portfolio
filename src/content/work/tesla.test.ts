@@ -42,6 +42,12 @@ function hasHexId(text: string): boolean {
   return /\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/i.test(text);
 }
 
+/**
+ * A figure written in words slips past the digit scan, so the guard on the
+ * considerations section checks the number words as well.
+ */
+const NUMBER_WORDS = /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand|million|billion|first|second|third|half)\b/i;
+
 function forbiddenClaims(text: string): string[] {
   const out: string[] = [];
   const sentences = stripTags(text).split(/(?<=[.!?])\s+/);
@@ -96,6 +102,14 @@ describe('the tesla page body', () => {
     for (const token of numberTokens(prose)) expect(isAllowedNumber(token), `unlisted number "${token}"`).toBe(true);
   });
 
+  it('keeps the facts file and the page in step', () => {
+    // The allowlist is a permission list, so it can drift: an entry left
+    // behind lets a figure back onto the page without anyone adding it on
+    // purpose. The two sets are meant to be the same set, so the test says so.
+    const used = [...new Set(numberTokens(prose))].sort();
+    expect(used).toEqual([...ALLOWED_NUMBERS].sort());
+  });
+
   it('labels every impact claim with a basis word', () => {
     const impacts = body.split(/^### Impact$/m).slice(1).map((s) => s.split(/^### /m)[0]);
     expect(impacts).toHaveLength(6);
@@ -106,10 +120,11 @@ describe('the tesla page body', () => {
   it('states no figure in the dashboard considerations', () => {
     // The Dashboard section closes with what had to be kept in mind, not with
     // measurements. A figure here is the ratio form of the claim the section
-    // was written to avoid, so the section carries none.
+    // was written to avoid, so the section carries none, in digits or in words.
     const kept = body.split(/^### What I kept in mind$/m)[1]?.split(/^## /m)[0] ?? '';
     expect(kept).not.toBe('');
     expect(numberTokens(kept), 'the considerations section states no figure').toEqual([]);
+    expect(kept, 'the considerations section states no figure in words').not.toMatch(NUMBER_WORDS);
   });
 
   it('never makes a forbidden claim', () => {
@@ -139,7 +154,9 @@ describe('test helpers', () => {
   });
   it('normalises thousands separators', () => {
     expect(stripCommas('1,375')).toBe(stripCommas('1375'));
-    expect(isAllowedNumber('1,375')).toBe(true);
+    // The allowlist holds the plain form, so a token that carries a separator
+    // resolves the same way as the plain one.
+    expect(isAllowedNumber('3,2%')).toBe(true);
   });
   it('passes a hedged default-deny sentence', () => {
     expect(forbiddenClaims('default-deny is not enforced yet')).toEqual([]);

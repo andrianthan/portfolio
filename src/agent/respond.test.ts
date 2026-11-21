@@ -119,6 +119,7 @@ describe('verify', () => {
       '32%', '5', '50', '50%', '90',
     ]);
     expect(result.ok).toBe(true);
+    // 15 number tokens across the eight Tesla chunks this answer is built from.
     expect(result.checked).toBe(15);
     expect(result.offending).toEqual([]);
   });
